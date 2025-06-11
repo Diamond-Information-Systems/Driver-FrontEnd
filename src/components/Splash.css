@@ -1,0 +1,110 @@
+.splash-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #FFD600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.splash-screen.visible {
+  opacity: 1;
+}
+
+.splash-screen.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.splash-content {
+  transform-origin: center;
+  animation: splashIntro 1s ease-out;
+}
+
+.vaye-logo {
+  position: relative;
+  padding: 20px;
+  width: 200px; /* adjust as needed */
+}
+
+.logo-image {
+  width: 100%;
+  height: auto;
+  animation: textPop 0.5s ease-out 0.5s both;
+}
+
+/* Remove .logo-text and .logo-outline classes as they're no longer needed */
+
+@keyframes splashIntro {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes textPop {
+  0% {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes outlineExpand {
+  0% {
+    transform: scale(1.2);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+
+/* ...existing styles... */
+
+.splash-message {
+  position: absolute;
+  bottom: -40px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 500;
+  min-width: 120px;
+  animation: messageAppear 0.3s ease-out 0.8s both;
+}
+
+@keyframes messageAppear {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 
+.logo-image
+{
+
+} */
