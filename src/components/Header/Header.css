@@ -1,0 +1,214 @@
+/* Header Component Styles */
+.app-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 70px;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.95), rgba(255, 217, 61, 0.9));
+  backdrop-filter: blur(40px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  z-index: 1001;
+  box-shadow: 0 4px 20px rgba(251, 191, 36, 0.3);
+}
+
+/* Header Logo Container */
+.header-logo-container {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-logo {
+  height: 45px;
+  width: 70px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.2));
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.header-logo:hover {
+  transform: scale(1.05);
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+}
+
+/* Header Left Side (Menu) */
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.header-menu-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 12px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.header-menu-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.header-menu-button:active {
+  transform: translateY(0px);
+}
+
+.header-menu-button svg {
+  color: #1e2761;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+/* Header Right Side (Notifications) */
+.header-right {
+  display: flex;
+  align-items: center;
+}
+
+.notification-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  position: relative;
+  overflow: visible;
+}
+
+.notification-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.notification-button:active {
+  transform: translateY(-1px) scale(1.02);
+}
+
+.notification-button svg {
+  color: #1e2761;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+/* Notification Badge */
+.notification-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background: linear-gradient(135deg, #ff4757, #ff3742);
+  color: white;
+  border-radius: 50%;
+  min-width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 8px rgba(255, 71, 87, 0.4);
+  animation: badgePulse 2s ease-in-out infinite;
+  padding: 0 4px;
+}
+
+@keyframes badgePulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 2px 8px rgba(255, 71, 87, 0.4);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(255, 71, 87, 0.6);
+  }
+}
+
+/* Header Responsive Design */
+@media (max-width: 768px) {
+  .app-header {
+    height: 65px;
+    padding: 0 16px;
+  }
+  
+  .header-logo {
+    height: 40px;
+  }
+  
+  .header-menu-button {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .notification-button {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-header {
+    height: 60px;
+    padding: 0 15px;
+  }
+  
+  .header-logo {
+    height: 130px;
+        width: 102px;
+  }
+  
+  .header-menu-button,
+  .notification-button {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .notification-badge {
+    width: 18px;
+    height: 18px;
+    font-size: 10px;
+    min-width: 18px;
+  }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .header-logo,
+  .header-menu-button,
+  .notification-button {
+    transition: none;
+  }
+  
+  .notification-badge {
+    animation: none;
+  }
+  
+  .header-menu-button:hover,
+  .notification-button:hover,
+  .header-logo:hover {
+    transform: none;
+  }
+}

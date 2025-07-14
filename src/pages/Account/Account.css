@@ -1,0 +1,260 @@
+/* Account Page Styles */
+
+.account-page {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background: white;
+  overflow-y: auto;
+  padding-bottom: 100px; /* Space for bottom dock */
+}
+
+/* Header */
+.account-header {
+  background: white;
+  padding: 50px 20px 20px 20px; /* Reduced top padding */
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-bottom: 1px solid #e9ecef;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.account-back-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.account-back-btn:hover {
+  background: #f8f9fa;
+}
+
+.account-back-btn:active {
+  background: #e9ecef;
+}
+
+.account-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #212529;
+  margin: 0;
+  flex: 1;
+}
+
+/* Content */
+.account-content {
+  padding: 0;
+  background: white;
+  flex: 1;
+}
+
+.account-menu {
+  background: white;
+  margin: 0;
+  width: 100%;
+}
+
+/* Menu Items */
+.account-menu-item {
+  width: 100%;
+  padding: 20px;
+  border: none;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.account-menu-item:hover {
+  background: #f8f9fa;
+}
+
+.account-menu-item:active {
+  background: #e9ecef;
+}
+
+.account-menu-item:last-child {
+  border-bottom: none;
+}
+
+.account-menu-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+}
+
+.account-menu-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #495057;
+}
+
+.account-menu-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.account-menu-title {
+  font-size: 17px;
+  font-weight: 500;
+  color: #212529;
+  text-align: left;
+}
+
+.account-menu-subtitle {
+  font-size: 15px;
+  color: #6c757d;
+  text-align: left;
+}
+
+.account-menu-arrow {
+  color: #adb5bd;
+  display: flex;
+  align-items: center;
+}
+
+/* Specific icon colors to match the design */
+.account-menu-item:nth-child(1) .account-menu-icon {
+  color: #6c757d; /* Vehicles - Gray */
+}
+
+.account-menu-item:nth-child(2) .account-menu-icon {
+  color: #212529; /* Work Hub - Dark */
+}
+
+.account-menu-item:nth-child(3) .account-menu-icon {
+  color: #212529; /* Documents - Dark */
+}
+
+.account-menu-item:nth-child(4) .account-menu-icon {
+  color: #212529; /* Payment - Dark */
+}
+
+.account-menu-item:nth-child(5) .account-menu-icon {
+  color: #212529; /* Tax info - Dark */
+}
+
+.account-menu-item:nth-child(6) .account-menu-icon {
+  color: #212529; /* Manage account - Dark */
+}
+
+.account-menu-item:nth-child(7) .account-menu-icon {
+  color: #212529; /* Edit address - Dark */
+}
+
+.account-menu-item:nth-child(8) .account-menu-icon {
+  color: #212529; /* Privacy - Dark */
+}
+
+.account-menu-item:nth-child(9) .account-menu-icon {
+  color: #212529; /* Security - Dark */
+}
+
+.account-menu-item:nth-child(10) .account-menu-icon {
+  color: #495057; /* App settings - Gray */
+}
+
+.account-menu-item:nth-child(11) .account-menu-icon {
+  color: #6c757d; /* About - Light Gray */
+}
+
+/* Mobile Responsive */
+@media (max-width: 480px) {
+  .account-header {
+    padding: 40px 16px 16px 16px;
+  }
+
+  .account-title {
+    font-size: 28px;
+  }
+
+  .account-menu-item {
+    padding: 16px;
+  }
+
+  .account-menu-title {
+    font-size: 16px;
+  }
+
+  .account-menu-subtitle {
+    font-size: 14px;
+  }
+
+  .account-menu-icon {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* Remove dark mode for now to ensure white background */
+/* Dark mode support for Account page */
+/* @media (prefers-color-scheme: dark) {
+  .account-page {
+    background: #121212;
+  }
+
+  .account-header {
+    background: #1e1e1e;
+    border-bottom-color: #333;
+  }
+
+  .account-title {
+    color: #ffffff;
+  }
+
+  .account-back-btn:hover {
+    background: #333;
+  }
+
+  .account-content {
+    background: #121212;
+  }
+
+  .account-menu {
+    background: #1e1e1e;
+  }
+
+  .account-menu-item {
+    background: #1e1e1e;
+    border-bottom-color: #333;
+  }
+
+  .account-menu-item:hover {
+    background: #2a2a2a;
+  }
+
+  .account-menu-title {
+    color: #ffffff;
+  }
+
+  .account-menu-subtitle {
+    color: #adb5bd;
+  }
+
+  .account-menu-icon {
+    color: #adb5bd;
+  }
+} */

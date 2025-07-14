@@ -1,0 +1,111 @@
+import config from "../config";
+
+// Get nearby ride requests for drivers
+export async function getNearbyRequests(token) {
+  try {
+    const response = await fetch(`${config.apiBaseUrl}/api/rides/nearby-requests`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to fetch nearby ride requests");
+    }
+
+    return await response.json();
+  } catch (error) {
+    throw error;
+  }
+}
+
+// Accept a ride request by rideId
+export async function acceptRideRequest(rideId, token) {
+  try {
+    const response = await fetch(`${config.apiBaseUrl}/api/rides/accept/${rideId}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to accept ride request");
+    }
+
+    return await response.json();
+  } catch (error) {
+    throw error;
+    }
+}
+
+export async function setDriverAvailability(token, available) {
+  try {
+    const response = await fetch(`${config.apiBaseUrl}/api/drivers/availability`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ available }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to update availability");
+    }
+
+    return await response.json();
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function updateDriverLocation(token, coordinates) {
+  try {
+    const response = await fetch(`${config.apiBaseUrl}/api/drivers/location`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ coordinates }), // [longitude, latitude]
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to update location");
+    }
+
+    return await response.json();
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function updateRideStatus(token, rideId, status) {
+  try {
+    const response = await fetch(`${config.apiBaseUrl}/api/rides/status/${rideId}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ status }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to update ride status");
+    }
+
+    return await response.json();
+  } catch (error) {
+    throw error;
+  }
+}

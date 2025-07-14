@@ -1,110 +1,197 @@
-import React, { useState } from 'react';
-import { 
-  Home, 
-  MapPin, 
-  DollarSign, 
-  User, 
+import React, { useState, useContext, useEffect } from "react";
+import {
+  Home,
+  MapPin,
+  DollarSign,
+  User,
   Settings,
   Navigation,
   Clock,
   BarChart3,
   MessageCircle,
-  LogOut ,
-} from 'lucide-react';
-import './BottomDock.css';
+  LogOut,
+  Inbox,
+  Share2,
+  Wallet as WalletIcon,
+  UserCog,
+  HelpCircle,
+  Smartphone, // Add this for App Settings
+} from "lucide-react";
+import { Badge } from "antd";
+import { useNavigate } from "react-router-dom";
+import "./BottomDock.css";
+import { DriverStatusContext } from "../context/DriverStatusContext";
+import AppSettings from "./AppSettingsDrawer/AppSettings"; // Import the new component
 
-const BottomDock = ({ 
-  activeTab = 'dashboard', 
-  onTabChange, 
-  isOnline = false,
-  quickActions = [] 
+const BottomDock = ({
+  activeTab = "dashboard",
+  onTabChange,
+  quickActions = [],
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showAppSettings, setShowAppSettings] = useState(false); // Add state for App Settings drawer
+  const navigate = useNavigate();
+  const { isOnline } = useContext(DriverStatusContext) || {};
+
+  // Debug log
+  useEffect(() => {
+    console.log("BottomDock isOnline:", isOnline);
+  }, [isOnline]);
 
   const mainTabs = [
     {
-      id: 'dashboard',
+      id: "dashboard",
       icon: Home,
-      label: 'Dash',
-      color: '#4facfe'
+      label: "Dash",
+      color: "#4facfe",
     },
     {
-      id: 'trips',
+      id: "trips",
       icon: MapPin,
-      label: 'Trips',
-      color: '#51cf66',
-      badge: isOnline ? 'Live' : null
+      label: "Trips",
+      color: "#51cf66",
+      badge: isOnline === true ? "Live" : null,
     },
     {
-      id: 'earnings',
+      id: "earnings",
       icon: DollarSign,
-      label: 'Earnings',
-      color: '#ffd43b'
+      label: "Earnings",
+      color: "#ffd43b",
     },
     {
-      id: 'profile',
+      id: "profile",
       icon: User,
-      label: 'Profile',
-      color: '#a78bfa'
-    }
+      label: "Profile",
+      color: "#a78bfa",
+    },
   ];
 
   const expandedActions = [
     {
-      id: 'navigate',
-      icon: Navigation,
-      label: 'Navigate',
-      color: '#4facfe'
+      id: "inbox",
+      icon: Inbox,
+      label: "Inbox",
+      color: "red",
+      badge: "2",
+      badgeColor: "red",
+        route: "/inbox",
     },
     {
-      id: 'history',
-      icon: Clock,
-      label: 'History',
-      color: '#6c757d'
+      id: "referrals",
+      icon: Share2,
+      label: "Referrals",
+      color: "#51cf66",
+       route: "/referrals",
     },
     {
-      id: 'stats',
-      icon: BarChart3,
-      label: 'Stats',
-      color: '#ff6b6b'
+      id: "wallet",
+      icon: WalletIcon,
+      label: "Wallet",
+      color: "#FFD600",
+      route: "/wallet",
     },
     {
-      id: 'support',
-      icon: MessageCircle,
-      label: 'Support',
-      color: '#17a2b8'
+      id: "account",
+      icon: UserCog,
+      label: "Account",
+      color: "#4facfe",
+      route: "/account", // Add route for account page
     },
     {
-      id: 'logout',
-      icon: LogOut ,
-      label: 'Logout',
-      color: '#343a40'
+      id: "app-settings", // Add App Settings to the expanded actions
+      icon: Smartphone,
+      label: "App Settings",
+      color: "#a78bfa",
+      action: "drawer", // Special action type for drawer
     },
-
+    {
+      id: "help",
+      icon: HelpCircle,
+      label: "Help",
+      color: "#6c757d",
+      small: true,
+       route: "/help",
+    },
+    {
+      id: "logout",
+      icon: LogOut,
+      label: "Logout",
+      color: "#343a40",
+    },
   ];
 
+  // Map tab/action ids to route paths
+  const tabRoutes = {
+    dashboard: "/dashboard",
+    trips: "/trips",
+    earnings: "/earnings",
+    profile: "/profile",
+    account: "/account", // Add account route
+    logout: "/",
+  };
+
   const handleTabPress = (tabId) => {
-    if (tabId === 'more') {
+    if (tabId === "more") {
       setIsExpanded(!isExpanded);
     } else {
       onTabChange?.(tabId);
       setIsExpanded(false);
+      if (tabRoutes[tabId]) {
+        navigate(tabRoutes[tabId]);
+      }
     }
   };
 
   const handleQuickAction = (actionId) => {
+    // Handle special actions
+    if (actionId === "app-settings") {
+      setShowAppSettings(true);
+      setIsExpanded(false);
+      return;
+    }
+
     onTabChange?.(actionId);
     setIsExpanded(false);
+
+    // Find the action object by id
+    const action = expandedActions.find((a) => a.id === actionId);
+
+    // Prefer action.route, fallback to tabRoutes
+    if (action?.route) {
+      navigate(action.route);
+    } else if (tabRoutes[actionId]) {
+      navigate(tabRoutes[actionId]);
+    }
+  };
+
+  // Handle App Settings menu item clicks
+  const handleAppSettingsMenuClick = (menuItemId) => {
+    console.log("App Settings menu clicked:", menuItemId);
+    // Handle the specific settings menu item
+    // You can add navigation or actions here based on menuItemId
+    
+    // Example: Navigate to specific settings pages
+    switch (menuItemId) {
+      case 'sounds-voice':
+        // Navigate to sounds settings
+        break;
+      case 'navigation':
+        // Navigate to navigation settings
+        break;
+      case 'night-mode':
+        // Toggle night mode
+        break;
+      // Add more cases as needed
+      default:
+        console.log(`Settings action not implemented: ${menuItemId}`);
+    }
   };
 
   return (
     <>
       {/* Backdrop for expanded state */}
       {isExpanded && (
-        <div 
-          className="dock-backdrop"
-          onClick={() => setIsExpanded(false)}
-        />
+        <div className="dock-backdrop" onClick={() => setIsExpanded(false)} />
       )}
 
       {/* Expanded Actions Panel */}
@@ -118,12 +205,20 @@ const BottomDock = ({
                 return (
                   <button
                     key={action.id}
-                    className="dock-expanded-item"
+                    className={`dock-expanded-item ${
+                      action.small ? "small-text" : ""
+                    }`}
                     onClick={() => handleQuickAction(action.id)}
-                    style={{ '--action-color': action.color }}
+                    style={{ "--action-color": action.color }}
                   >
                     <div className="dock-expanded-icon">
-                      <IconComponent size={24} />
+                      {action.badge ? (
+                        <Badge count={action.badge} color={action.badgeColor}>
+                          <action.icon size={24} />
+                        </Badge>
+                      ) : (
+                        <action.icon size={24} />
+                      )}
                     </div>
                     <span className="dock-expanded-label">{action.label}</span>
                   </button>
@@ -134,6 +229,13 @@ const BottomDock = ({
         </div>
       )}
 
+      {/* App Settings Drawer */}
+      <AppSettings
+        isOpen={showAppSettings}
+        onClose={() => setShowAppSettings(false)}
+        onMenuItemClick={handleAppSettingsMenuClick}
+      />
+
       {/* Main Dock Bar */}
       <div className="bottom-dock">
         <div className="dock-container">
@@ -142,19 +244,16 @@ const BottomDock = ({
             {mainTabs.map((tab) => {
               const IconComponent = tab.icon;
               const isActive = activeTab === tab.id;
-              
+
               return (
                 <button
                   key={tab.id}
-                  className={`dock-tab ${isActive ? 'dock-tab-active' : ''}`}
+                  className={`dock-tab ${isActive ? "dock-tab-active" : ""}`}
                   onClick={() => handleTabPress(tab.id)}
-                  style={{ '--tab-color': tab.color }}
+                  style={{ "--tab-color": tab.color }}
                 >
                   <div className="dock-tab-icon">
-                    <IconComponent 
-                      size={24} 
-                      strokeWidth={isActive ? 2.5 : 2}
-                    />
+                    <IconComponent size={24} strokeWidth={isActive ? 2.5 : 2} />
                     {tab.badge && (
                       <span className="dock-tab-badge">{tab.badge}</span>
                     )}
@@ -167,11 +266,15 @@ const BottomDock = ({
 
             {/* More/Settings Button */}
             <button
-              className={`dock-tab dock-tab-more ${isExpanded ? 'dock-tab-active' : ''}`}
-              onClick={() => handleTabPress('more')}
+              className={`dock-tab dock-tab-more ${
+                isExpanded ? "dock-tab-active" : ""
+              }`}
+              onClick={() => handleTabPress("more")}
             >
               <div className="dock-tab-icon">
-                <div className={`dock-more-icon ${isExpanded ? 'rotated' : ''}`}>
+                <div
+                  className={`dock-more-icon ${isExpanded ? "rotated" : ""}`}
+                >
                   <Settings size={24} strokeWidth={isExpanded ? 2.5 : 2} />
                 </div>
               </div>
@@ -182,7 +285,9 @@ const BottomDock = ({
 
           {/* Online Status Indicator */}
           <div className="dock-status">
-            <div className={`dock-status-dot ${isOnline ? 'online' : 'offline'}`} />
+            <div
+              className={`dock-status-dot ${isOnline ? "online" : "offline"}`}
+            />
           </div>
         </div>
 

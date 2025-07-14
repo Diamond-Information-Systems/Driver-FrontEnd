@@ -1,316 +1,333 @@
+/* RideRequest.css */
+:root {
+  --color-primary: #FFD93D;
+  --color-primary-dark: #FFB800;
+  --color-secondary: #1E2761;
+  --color-secondary-light: #2A3990;
+  --color-success: #4CAF50;
+  --color-danger: #FF6B6B;
+  --color-warning: #FFD93D;
+  --color-info: #2A3990;
+  --color-light: #f8f9fa;
+  --color-dark: #1E2761;
+}
+
 .ride-request-overlay {
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(8px);
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
-  animation: fadeIn 0.3s ease;
+  z-index: 3000;
+  padding: 20px;
 }
 
-.ride-request-card {
+.ride-request-modal {
   background: white;
-  border-radius: 1.5rem;
-  width: 90%;
+  border-radius: 20px;
+  padding: 0;
   max-width: 400px;
-  padding: 1.5rem;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-  position: relative;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   animation: slideUp 0.3s ease;
 }
 
-.request-timer {
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Header */
+.ride-request-header {
+  background: linear-gradient(135deg, var(--color-secondary), var(--color-secondary-light));
+  padding: 25px 20px;
+  border-radius: 20px 20px 0 0;
+  color: white;
+  text-align: center;
+  position: relative;
+}
+
+.timer-section {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  border-radius: 1.5rem 1.5rem 0 0;
-  overflow: hidden;
+  top: 15px;
+  right: 15px;
 }
 
-.timer-bar {
-  height: 100%;
-  background: #4facfe;
-  width: 100%;
-  animation: timerCount linear forwards;
-}
-
-.request-header {
+.timer-circle {
+  width: 50px;
+  height: 50px;
+  border: 3px solid var(--color-primary);
+  border-radius: 50%;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
-  padding-top: 0.5rem;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.timer-text {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.request-type h3 {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: white;
+}
+
+.estimated-fare {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--color-primary);
+  margin: 0;
+}
+
+/* Passenger Section */
+.passenger-section {
+  padding: 20px;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .passenger-info {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 15px;
+  margin-bottom: 15px;
 }
 
-.passenger-info h3 {
-  font-size: 1.25rem;
+.passenger-info:last-child {
+  margin-bottom: 0;
+}
+
+.passenger-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-secondary);
+}
+
+.passenger-details h4 {
+  font-size: 18px;
   font-weight: 600;
-  color: #343a40;
-  margin: 0;
+  color: var(--color-secondary);
+  margin: 0 0 5px 0;
 }
 
-.rating {
+.passenger-rating {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
-  background: #fff9db;
-  padding: 0.25rem 0.5rem;
-  border-radius: 1rem;
-  color: #f59f00;
-}
-
-.estimated-price {
-  background: #e9faf1;
-  color: #40c057;
-  padding: 0.5rem 1rem;
-  border-radius: 1rem;
+  gap: 5px;
+  color: var(--color-primary);
+  font-size: 14px;
   font-weight: 600;
+  margin-bottom: 3px;
+}
+
+.passenger-phone {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 5px;
+  color: #666;
+  font-size: 12px;
 }
 
-.request-details {
-  background: #f8f9fa;
-  border-radius: 1rem;
-  padding: 1rem;
-  margin-bottom: 1rem;
+/* Route Section */
+.route-section {
+  padding: 20px;
+  border-bottom: 1px solid #f0f0f0;
 }
 
-.location-detail {
+.route-stop {
   display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  padding: 0.5rem;
+  gap: 15px;
+  margin-bottom: 15px;
+  position: relative;
 }
 
-.location-detail p {
-  margin: 0;
-  color: #495057;
-  font-size: 0.875rem;
-  line-height: 1.4;
-}
-
-.location-detail.pickup {
-  border-bottom: 1px dashed #dee2e6;
-  padding-bottom: 0.75rem;
-  margin-bottom: 0.75rem;
-  color: #4facfe;
-}
-
-.location-detail.dropoff {
-  color: #40c057;
-}
-
-.trip-metrics {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.metric {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: #6c757d;
-  font-size: 0.875rem;
-}
-
-.request-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-
-.action-button {
-  padding: 1rem;
-  border: none;
-  border-radius: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.action-button.decline {
-  background: #ffe3e3;
-  color: #ff6b6b;
-}
-
-.action-button.accept {
-  background: #40c057;
-  color: white;
-}
-
-.action-button:hover {
-  transform: translateY(-2px);
-}
-
-.action-button:active {
-  transform: translateY(0);
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-@keyframes timerCount {
-  from { width: 100%; }
-  to { width: 0%; }
-}
-
-
-.carpool-header {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.carpool-indicator {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: #e3fafc;
-  color: #15aabf;
-  padding: 0.5rem 1rem;
-  border-radius: 1rem;
-  font-weight: 600;
+.route-stop:last-child {
+  margin-bottom: 0;
 }
 
 .stop-indicator {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.25rem;
+  position: relative;
 }
 
-.passenger-label {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-size: 0.75rem;
-  color: #868e96;
-  background: #f8f9fa;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.5rem;
+.stop-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  z-index: 2;
+}
+
+.stop-dot.pickup {
+  background: var(--color-success);
+}
+
+.stop-dot.dropoff {
+  background: var(--color-danger);
+}
+
+.stop-dot.intermediate {
+  background: var(--color-secondary-light);
+}
+
+.stop-line {
+  width: 2px;
+  height: 25px;
+  background: linear-gradient(to bottom, var(--color-success), var(--color-danger));
+  margin-top: 5px;
+}
+
+.stop-details {
+  flex: 1;
+}
+
+.stop-location {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-secondary);
+  margin: 0 0 3px 0;
+}
+
+.stop-passenger {
+  font-size: 14px;
+  color: #666;
+  margin: 0 0 3px 0;
 }
 
 .stop-price {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-size: 0.875rem;
-  color: #40c057;
-  margin-left: auto;
-}
-
-.total-price {
-  background: #e9faf1;
-  color: #40c057;
-  padding: 0.5rem 1rem;
-  border-radius: 1rem;
+  font-size: 14px;
+  color: var(--color-success);
   font-weight: 600;
+  margin: 0;
+}
+
+/* Trip Details */
+.trip-details {
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-around;
+  background: #f8f9fa;
+}
+
+.detail-item {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 8px;
+  color: var(--color-secondary);
+  font-size: 14px;
+  font-weight: 600;
 }
 
-.payment-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+.detail-item svg {
+  color: var(--color-secondary-light);
+}
+
+/* Action Buttons */
+.action-buttons {
+  padding: 20px;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
+  gap: 15px;
 }
 
-.payment-modal {
-  background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  width: 90%;
-  max-width: 400px;
-}
-
-.payment-modal h2 {
-  margin-bottom: 1.5rem;
-  text-align: center;
-}
-
-.payment-methods {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.payment-method-button {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 1rem;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
-  background: none;
-  width: 100%;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.payment-method-button:hover {
-  background-color: #f5f5f5;
-  border-color: #ccc;
-}
-
-.method-name {
-  font-weight: bold;
-  margin-bottom: 0.25rem;
-}
-
-.method-description {
-  font-size: 0.875rem;
-  color: #666;
-}
-
-.close-modal {
-  margin-top: 1rem;
-  width: 100%;
-  padding: 0.75rem;
-  background-color: #f44336;
-  color: white;
+.decline-btn,
+.accept-btn {
+  flex: 1;
+  padding: 15px 20px;
   border: none;
-  border-radius: 4px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
   cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-.close-modal:hover {
-  background-color: #d32f2f;
+.decline-btn {
+  background: #f1f3f4;
+  color: var(--color-secondary);
+  border: 2px solid #e0e0e0;
+}
+
+.decline-btn:hover {
+  background: var(--color-danger);
+  color: white;
+  border-color: var(--color-danger);
+}
+
+.accept-btn {
+  background: var(--color-success);
+  color: white;
+  border: 2px solid var(--color-success);
+}
+
+.accept-btn:hover {
+  background: #45a049;
+  border-color: #45a049;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .ride-request-overlay {
+    padding: 10px;
+  }
+  
+  .ride-request-modal {
+    max-height: 95vh;
+  }
+  
+  .ride-request-header {
+    padding: 20px 15px;
+  }
+  
+  .timer-circle {
+    width: 45px;
+    height: 45px;
+  }
+  
+  .timer-text {
+    font-size: 12px;
+  }
+  
+  .estimated-fare {
+    font-size: 28px;
+  }
+  
+  .passenger-section,
+  .route-section {
+    padding: 15px;
+  }
+  
+  .action-buttons {
+    padding: 15px;
+    gap: 10px;
+  }
+  
+  .decline-btn,
+  .accept-btn {
+    padding: 12px 15px;
+    font-size: 14px;
+  }
 }

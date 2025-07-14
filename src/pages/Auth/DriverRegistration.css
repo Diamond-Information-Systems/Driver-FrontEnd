@@ -1,0 +1,1275 @@
+/* DriverRegistration.css */
+
+:root {
+  --color-primary: #ffd93d;
+  --color-primary-dark: #ffb800;
+  --color-secondary: #1e2761;
+  --color-secondary-light: #2a3990;
+  --color-success: #4caf50;
+  --color-danger: #ff6b6b;
+  --color-warning: #ffd93d;
+  --color-info: #2a3990;
+  --color-light: #f8f9fa;
+  --color-dark: #1e2761;
+}
+
+/* Main Wrapper */
+.registration-wrapper {
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+  background: linear-gradient(to bottom, #f8f9fa 0%, white 100%);
+}
+
+/* Background - Clean and Simple */
+.registration-background {
+  min-height: 100vh;
+  position: relative;
+  background: white;
+}
+
+.registration-background::before {
+  display: none; /* Remove the overlay since we're not using background image */
+}
+
+/* Container */
+.registration-container {
+  position: relative;
+  z-index: 1;
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 0;
+  width: 100%; /* Add this */
+}
+
+/* Car Image Section - Enhanced Chic Design */
+.car-image-section {
+  width: 100%;
+  height: 40vh;
+  min-height: 300px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 217, 61, 0.05) 0%,
+    rgba(248, 249, 250, 0.8) 50%,
+    rgba(255, 255, 255, 0.95) 100%
+  );
+}
+
+.car-image-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.car-image {
+  max-width: 103%; /* Increased from 85% */
+  max-height: 95%; /* Increased from 85% */
+  margin-top: -100px;
+  object-fit: contain;
+  filter: drop-shadow(0 15px 35px rgba(0, 0, 0, 0.15));
+  transition: transform 0.3s ease;
+}
+
+.car-image:hover {
+  transform: scale(1.02);
+}
+
+/* Enhanced Header Styles */
+.registration-header {
+  position: absolute;
+  top: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  z-index: 10;
+  width: 100%;
+  padding: 0 1rem;
+}
+
+.logo-container {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    var(--color-primary-dark)
+  );
+  width: 80px;
+  height: 80px;
+
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  box-shadow: 0 20px 40px rgba(255, 217, 61, 0.3),
+    0 0 0 4px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: logoFloat 6s ease-in-out infinite;
+  position: relative;
+}
+
+.logo-container::before {
+  content: "";
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(255, 217, 61, 0.3),
+    transparent
+  );
+  border-radius: 50%;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.logo-container:hover::before {
+  opacity: 1;
+  animation: rotate 2s linear infinite;
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.logo-container:hover {
+  transform: scale(1.1) translateY(-8px);
+
+  box-shadow: 0 25px 50px rgba(255, 217, 61, 0.4),
+    0 0 0 6px rgba(255, 255, 255, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+@keyframes logoFloat {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.logo-icon {
+  color: white;
+  font-size: 2.2rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.registration-title {
+  color: var(--color-secondary) !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.03em !important;
+  margin-bottom: 0.5rem !important;
+  font-size: 2.8rem !important;
+  background: linear-gradient(
+    135deg,
+    var(--color-secondary),
+    var(--color-secondary-light),
+    var(--color-primary)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: none;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  position: relative;
+}
+
+.registration-title::after {
+  content: "";
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-primary),
+    transparent
+  );
+  border-radius: 2px;
+}
+
+.registration-subtitle {
+  color: var(--color-secondary-light) !important;
+  font-size: 1.3rem !important; /* Slightly larger since it's now the main text */
+  font-weight: 600 !important; /* Bolder */
+  text-shadow: 0 1px 3px rgba(255, 255, 255, 0.8);
+  opacity: 0.9;
+  margin-top: 0.5rem !important;
+}
+
+/* Form Section - Solid Background */
+.form-section {
+  background: white;
+  position: relative;
+  z-index: 3;
+  padding-top: 1rem;
+}
+
+/* Steps - AGGRESSIVE Horizontal Override */
+.registration-steps {
+  margin-bottom: 1rem !important;
+  padding: 0 1rem;
+  margin-top: -1rem !important;
+  background: transparent !important;
+}
+
+/* Nuclear option - override EVERYTHING */
+.registration-steps .ant-steps,
+.registration-steps .ant-steps-vertical,
+.registration-steps .ant-steps-horizontal {
+  display: flex !important;
+  flex-direction: row !important;
+  width: 100% !important;
+  justify-content: space-between !important;
+}
+
+:where(.css-dev-only-do-not-override-36gkoj).ant-steps.ant-steps-vertical {
+  display: flex !important;
+  flex-direction: row !important;
+}
+
+.registration-steps .ant-steps-item,
+.registration-steps .ant-steps.ant-steps-vertical .ant-steps-item {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  position: relative !important;
+  padding-left: 0 !important;
+  overflow: visible !important;
+}
+
+.registration-steps .ant-steps-item-container,
+.registration-steps .ant-steps.ant-steps-vertical .ant-steps-item-container {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  width: 100% !important;
+  padding: 0 !important;
+  padding-left: 0 !important;
+}
+
+.registration-steps .ant-steps-item-content,
+.registration-steps .ant-steps.ant-steps-vertical .ant-steps-item-content {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+  margin: 8px 0 0 0 !important;
+  margin-left: 0 !important;
+  margin-top: 8px !important;
+  padding: 0 !important;
+  padding-left: 0 !important;
+  width: 100% !important;
+  min-height: auto !important;
+}
+
+.registration-steps .ant-steps-item-icon,
+.registration-steps .ant-steps.ant-steps-vertical .ant-steps-item-icon {
+  margin: 0 auto !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  position: relative !important;
+  display: block !important;
+}
+
+.registration-steps .ant-steps-item-title,
+.registration-steps .ant-steps.ant-steps-vertical .ant-steps-item-title {
+  text-align: center !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 4px !important;
+  display: block !important;
+  padding-left: 0 !important;
+}
+
+/* KILL ALL TAILS/LINES */
+.registration-steps .ant-steps-item-tail,
+.registration-steps .ant-steps.ant-steps-vertical .ant-steps-item-tail {
+  display: none !important;
+}
+
+/* Force horizontal on every possible breakpoint */
+@media screen and (max-width: 1200px) {
+  .registration-steps .ant-steps {
+    flex-direction: row !important;
+  }
+}
+
+@media screen and (max-width: 992px) {
+  .registration-steps .ant-steps {
+    flex-direction: row !important;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .registration-steps .ant-steps {
+    flex-direction: row !important;
+  }
+}
+
+@media screen and (max-width: 576px) {
+  .registration-steps .ant-steps {
+    flex-direction: row !important;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .registration-steps .ant-steps {
+    flex-direction: row !important;
+  }
+}
+
+/* Step colors */
+.registration-steps .ant-steps-item-finish .ant-steps-item-icon {
+  background-color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+}
+
+.registration-steps .ant-steps-item-process .ant-steps-item-icon {
+  background-color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+}
+
+.registration-steps .ant-steps-item-process .ant-steps-item-title {
+  color: var(--color-primary) !important;
+  font-weight: 600;
+}
+
+.registration-steps .ant-steps-item-wait .ant-steps-item-icon {
+  background-color: #fff !important;
+  border-color: #d9d9d9 !important;
+  color: #999 !important;
+}
+
+.registration-steps .ant-steps-item-wait .ant-steps-item-title {
+  color: #999 !important;
+}
+
+/* Responsive sizing */
+@media (max-width: 768px) {
+  .registration-steps .ant-steps-item-title {
+    font-size: 12px !important;
+    font-weight: 600 !important;
+  }
+
+  .registration-steps .ant-steps-item-icon {
+    width: 28px !important;
+    height: 28px !important;
+    line-height: 26px !important;
+    font-size: 12px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .registration-steps .ant-steps-item-title {
+    font-size: 10px !important;
+  }
+
+  .registration-steps .ant-steps-item-icon {
+    width: 24px !important;
+    height: 24px !important;
+    line-height: 22px !important;
+    font-size: 10px !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .registration-steps {
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 2.5rem !important;
+  }
+
+  .registration-steps .ant-steps-item-title {
+    font-size: 14px !important;
+    font-weight: 600 !important;
+  }
+
+  .registration-steps .ant-steps-item-icon {
+    width: 32px !important;
+    height: 32px !important;
+    line-height: 30px !important;
+    font-size: 14px !important;
+  }
+}
+
+/* Desktop: Keep horizontal with better spacing */
+@media (min-width: 769px) {
+  .registration-steps {
+    margin-bottom: 3rem !important;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .registration-steps .ant-steps-item-title {
+    font-size: 14px !important;
+  }
+
+  .car-image-section {
+    height: 45vh;
+    min-height: 350px;
+  }
+}
+
+/* Mobile responsive adjustments for car section */
+@media (max-width: 768px) {
+  .car-image-section {
+    height: 35vh;
+    min-height: 250px;
+  }
+
+  .registration-header {
+    top: 1rem;
+  }
+
+  .logo-container {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 1rem;
+  }
+
+  .logo-icon {
+    font-size: 1.75rem;
+  }
+
+  .registration-title {
+    font-size: 2rem !important;
+    margin-bottom: 0.25rem !important;
+  }
+
+  .registration-subtitle {
+    font-size: 1.1rem !important;
+    font-weight: 600 !important;
+  }
+
+  .car-to-form-transition {
+    height: 60px;
+    margin-top: -60px;
+  }
+}
+
+.registration-steps .ant-steps-item-finish .ant-steps-item-icon {
+  background-color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+}
+
+.registration-steps .ant-steps-item-process .ant-steps-item-icon {
+  background-color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+}
+
+.registration-steps
+  .ant-steps-item-finish
+  .ant-steps-item-content
+  .ant-steps-item-title::after {
+  background-color: var(--color-primary) !important;
+}
+
+.registration-steps .ant-steps-item-process .ant-steps-item-title {
+  color: var(--color-primary) !important;
+  font-weight: 600;
+}
+
+/* Form Container - Now sits in solid white area */
+.registration-form {
+  background: white;
+  border-radius: 2rem 2rem 0 0; /* Rounded top corners only */
+  padding: 2rem;
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 4;
+  margin: 0 1rem;
+  width: 100%; /* Add this */
+  max-width: 100%; /* Add this */
+}
+
+@media (max-width: 768px) {
+  .registration-form {
+    border-radius: 1.5rem 1.5rem 0 0;
+    padding: 1.5rem;
+    margin: 0 0.5rem;
+  }
+}
+
+/* Step Card */
+.step-card {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.step-card .ant-card-body {
+  padding: 0 !important;
+}
+
+.step-title {
+  color: var(--color-secondary) !important;
+  font-weight: 600 !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.step-subtitle {
+  color: var(--color-secondary-light) !important;
+  margin-bottom: 2rem !important;
+  display: block;
+}
+
+/* Custom Input Styles */
+.custom-input {
+  border-radius: 1.5rem !important;
+  border: 2px solid #e9ecef !important;
+  padding: 0.75rem 1rem !important;
+  font-size: 1rem !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  background: rgba(248, 249, 250, 0.8) !important;
+}
+
+.custom-input:hover {
+  border-color: var(--color-primary) !important;
+  background: white !important;
+  box-shadow: 0 2px 8px rgba(255, 217, 61, 0.1) !important;
+}
+
+.custom-input:focus,
+.custom-input.ant-input-focused {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 4px rgba(255, 217, 61, 0.1) !important;
+  background: white !important;
+  transform: translateY(-1px);
+}
+
+.custom-input .ant-input {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Custom Select Styles */
+.custom-select {
+  width: 100% !important; /* Add this */
+}
+
+.custom-select .ant-select-selector {
+  border-radius: 1.5rem !important;
+  border: 2px solid #e9ecef !important;
+  padding: 0.5rem 1rem !important;
+  height: auto !important;
+  min-height: 48px !important;
+  background: rgba(248, 249, 250, 0.8) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.custom-select:hover .ant-select-selector {
+  border-color: var(--color-primary) !important;
+  background: white !important;
+  box-shadow: 0 2px 8px rgba(255, 217, 61, 0.1) !important;
+}
+
+.custom-select.ant-select-focused .ant-select-selector {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 4px rgba(255, 217, 61, 0.1) !important;
+  background: white !important;
+}
+
+/* Date Picker */
+.ant-picker {
+  border-radius: 1.5rem !important;
+  border: 2px solid #e9ecef !important;
+  padding: 0.75rem 1rem !important;
+  background: rgba(248, 249, 250, 0.8) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.ant-picker:hover {
+  border-color: var(--color-primary) !important;
+  background: white !important;
+  box-shadow: 0 2px 8px rgba(255, 217, 61, 0.1) !important;
+}
+
+.ant-picker.ant-picker-focused {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 4px rgba(255, 217, 61, 0.1) !important;
+  background: white !important;
+  transform: translateY(-1px);
+}
+
+/* Form Divider */
+.form-divider {
+  margin: 2rem 0;
+  text-align: center;
+  position: relative;
+}
+
+.form-divider::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #e9ecef, transparent);
+}
+
+.form-divider span {
+  background: white;
+  padding: 0 1.5rem;
+  color: var(--color-secondary-light);
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+/* ID Type Radio */
+.id-type-radio {
+  width: 100%;
+}
+
+.id-type-radio .ant-radio-wrapper {
+  margin-right: 2rem;
+  font-weight: 500;
+  color: var(--color-secondary);
+}
+
+.id-type-radio .ant-radio-checked .ant-radio-inner {
+  border-color: var(--color-primary) !important;
+  background-color: var(--color-primary) !important;
+}
+
+.id-type-radio .ant-radio-wrapper:hover .ant-radio-inner {
+  border-color: var(--color-primary) !important;
+}
+
+/* ID Info Card */
+.id-info-card {
+  background: linear-gradient(
+    135deg,
+    rgba(76, 175, 80, 0.1),
+    rgba(76, 175, 80, 0.05)
+  );
+  border: 1px solid rgba(76, 175, 80, 0.2);
+  border-radius: 1rem;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+/* Vehicle Requirements */
+.vehicle-requirements {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 217, 61, 0.1),
+    rgba(255, 217, 61, 0.05)
+  );
+  border: 1px solid rgba(255, 217, 61, 0.2);
+  padding: 1.5rem;
+  border-radius: 1.5rem;
+  margin-top: 2rem;
+}
+
+.vehicle-requirements h4 {
+  color: var(--color-secondary) !important;
+  margin-bottom: 1rem !important;
+  font-weight: 600;
+}
+
+.vehicle-requirements ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.vehicle-requirements li {
+  margin-bottom: 0.5rem;
+  color: var(--color-success);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+/* Document Upload */
+.document-item {
+  background: rgba(248, 249, 250, 0.6);
+  padding: 1.5rem;
+  border-radius: 1.5rem;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+  height: 100%;
+  width: 100%; /* Add this */
+  margin-bottom: 1rem; /* Add this */
+}
+
+.document-item:hover {
+  border-color: var(--color-primary);
+  background: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 217, 61, 0.15);
+}
+
+.document-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  color: var(--color-secondary);
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.document-header .anticon {
+  font-size: 1.25rem;
+  color: var(--color-primary);
+}
+
+.document-hint {
+  font-size: 0.75rem !important;
+  color: var(--color-secondary-light) !important;
+  margin-top: 0.5rem !important;
+  display: block;
+}
+
+/* Upload Component Customization */
+.ant-upload-list-picture-card .ant-upload-list-item {
+  border-radius: 1rem !important;
+  border: 2px solid var(--color-primary) !important;
+}
+
+.ant-upload.ant-upload-select-picture-card {
+  border: 2px dashed #adb5bd !important;
+  border-radius: 1rem !important;
+  background: white !important;
+  transition: all 0.3s ease !important;
+}
+
+.ant-upload.ant-upload-select-picture-card:hover {
+  border-color: var(--color-primary) !important;
+  background: rgba(255, 217, 61, 0.05) !important;
+}
+
+/* Next Steps Info */
+.next-steps-info {
+  background: linear-gradient(
+    135deg,
+    rgba(42, 57, 144, 0.1),
+    rgba(42, 57, 144, 0.05)
+  );
+  border: 1px solid rgba(42, 57, 144, 0.2);
+  padding: 1.5rem;
+  border-radius: 1.5rem;
+  margin-top: 2rem;
+}
+
+.next-steps-info h4 {
+  color: var(--color-info) !important;
+  margin-bottom: 1rem !important;
+  font-weight: 600;
+}
+
+.next-steps-info ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.next-steps-info li {
+  margin-bottom: 0.5rem;
+  color: var(--color-info);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Agreements Section */
+.agreements-section {
+  margin-top: 2rem;
+}
+
+.agreement-checkbox {
+  margin-bottom: 1rem !important;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.agreement-checkbox .ant-checkbox-checked .ant-checkbox-inner {
+  background-color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+}
+
+.agreement-checkbox .ant-checkbox:hover .ant-checkbox-inner {
+  border-color: var(--color-primary) !important;
+}
+
+.link {
+  color: var(--color-primary) !important;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.link:hover {
+  color: var(--color-primary-dark) !important;
+  text-decoration: underline;
+}
+
+/* Navigation Buttons */
+.form-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 3rem;
+  gap: 1rem;
+}
+
+.nav-button {
+  border-radius: 1.5rem !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  height: auto !important;
+  padding: 0.75rem 2rem !important;
+  min-width: 140px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.nav-button.primary {
+  background: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  color: white !important;
+  margin-left: auto;
+  box-shadow: 0 8px 25px rgba(255, 217, 61, 0.3) !important;
+}
+
+.nav-button.primary:hover {
+  background: var(--color-primary-dark) !important;
+  border-color: var(--color-primary-dark) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 12px 35px rgba(255, 217, 61, 0.4) !important;
+}
+
+.nav-button.primary:active {
+  transform: translateY(0) !important;
+}
+
+.nav-button.secondary {
+  background: white !important;
+  border: 2px solid #e9ecef !important;
+  color: var(--color-secondary-light) !important;
+}
+
+.nav-button.secondary:hover {
+  border-color: var(--color-primary) !important;
+  background: rgba(255, 217, 61, 0.05) !important;
+  color: var(--color-secondary) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Loading State */
+.nav-button.ant-btn-loading {
+  opacity: 0.8;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Back to Login */
+.back-to-login {
+  text-align: center;
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(233, 236, 239, 0.5);
+}
+
+.back-to-login .ant-typography {
+  color: var(--color-secondary-light) !important;
+  font-size: 0.9rem;
+}
+
+.login-link {
+  color: var(--color-primary) !important;
+  font-weight: 600 !important;
+  padding: 0 !important;
+}
+
+.login-link:hover {
+  color: var(--color-primary-dark) !important;
+  background: rgba(255, 217, 61, 0.1) !important;
+}
+
+/* Step Content */
+.step-content {
+  min-height: 500px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  width: 100%; /* Add this */
+}
+
+/* Form Item Spacing */
+.ant-form-item {
+  margin-bottom: 1.5rem !important;
+}
+
+.ant-form-item-label {
+  padding-bottom: 0.5rem !important;
+}
+
+.ant-form-item-label > label {
+  color: var(--color-secondary) !important;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+/* Error States */
+.ant-form-item-has-error .custom-input {
+  border-color: var(--color-danger) !important;
+  background: rgba(255, 107, 107, 0.05) !important;
+}
+
+.ant-form-item-has-error .custom-select .ant-select-selector {
+  border-color: var(--color-danger) !important;
+  background: rgba(255, 107, 107, 0.05) !important;
+}
+
+.ant-form-item-has-error .ant-picker {
+  border-color: var(--color-danger) !important;
+  background: rgba(255, 107, 107, 0.05) !important;
+}
+
+.ant-form-item-explain-error {
+  color: var(--color-danger) !important;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+/* Responsive Design - Mobile First Approach */
+@media (max-width: 768px) {
+  .registration-container {
+    padding: 0.5rem;
+    max-width: 100%;
+  }
+
+  .registration-header {
+    margin-bottom: 1.5rem;
+    padding-top: 1rem;
+  }
+
+  .logo-container {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 1rem;
+  }
+
+  .logo-icon {
+    font-size: 1.75rem;
+  }
+
+  .registration-title {
+    font-size: 2rem !important;
+    margin-bottom: 0.25rem !important;
+  }
+
+  .registration-subtitle {
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+  }
+
+  .form-navigation {
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 2rem;
+  }
+
+  .nav-button.primary {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .nav-button.secondary {
+    width: 100%;
+  }
+
+  /* Make inputs more mobile friendly */
+  .custom-input,
+  .custom-select .ant-select-selector,
+  .ant-picker {
+    padding: 0.875rem 1rem !important;
+    font-size: 16px !important; /* Prevent zoom on iOS */
+  }
+
+  /* Adjust document upload grid for mobile */
+  .ant-row {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  .ant-row > .ant-col {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-bottom: 1rem;
+  }
+
+  /* Mobile-specific step content spacing */
+  .step-content {
+    min-height: auto;
+  }
+
+  .step-title {
+    font-size: 1.5rem !important;
+    margin-bottom: 0.25rem !important;
+  }
+
+  .step-subtitle {
+    font-size: 0.9rem !important;
+    margin-bottom: 1.5rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .registration-container {
+    padding: 0.25rem;
+  }
+
+  .registration-form {
+    padding: 1rem;
+    border-radius: 1rem;
+    margin: 1.5rem 0.25rem 0;
+  }
+
+  .registration-header {
+    padding-top: 0.5rem;
+  }
+
+  .registration-title {
+    font-size: 1.75rem !important;
+  }
+
+  .step-title {
+    font-size: 1.25rem !important;
+  }
+
+  .custom-input,
+  .custom-select .ant-select-selector,
+  .ant-picker {
+    padding: 0.75rem !important;
+  }
+
+  .document-item {
+    padding: 1rem;
+  }
+
+  .vehicle-requirements,
+  .next-steps-info,
+  .id-info-card {
+    padding: 1rem;
+    border-radius: 1rem;
+  }
+}
+
+/* Tablet and Desktop adjustments */
+@media (min-width: 769px) {
+  .registration-container {
+    max-width: 700px;
+    padding: 2rem;
+  }
+
+  .registration-form {
+    padding: 2.5rem;
+  }
+
+  .registration-header {
+    margin-bottom: 2.5rem;
+  }
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.step-content {
+  animation: fadeInUp 0.5s ease;
+}
+
+/* Focus Management */
+@media (prefers-reduced-motion: reduce) {
+  .logo-container {
+    animation: none;
+  }
+
+  .step-content {
+    animation: none;
+  }
+
+  * {
+    transition: none !important;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .custom-input,
+  .custom-select .ant-select-selector,
+  .ant-picker {
+    border-width: 3px !important;
+  }
+
+  .nav-button.primary {
+    background: var(--color-secondary) !important;
+    border-color: var(--color-secondary) !important;
+  }
+}
+
+/* Fix for province select and document section */
+.registration-container {
+  position: relative;
+  z-index: 1;
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 0;
+  width: 100%; /* Add this */
+}
+
+.registration-form {
+  width: 100%; /* Add this */
+  max-width: 100%; /* Add this */
+}
+
+/* Custom Select Styles - Updated */
+.custom-select {
+  width: 100% !important; /* Add this */
+}
+
+.custom-select .ant-select-selector {
+  width: 100% !important; /* Add this */
+  border-radius: 1.5rem !important;
+  border: 2px solid #e9ecef !important;
+  padding: 0.5rem 1rem !important;
+  height: auto !important;
+  min-height: 48px !important;
+  background: rgba(248, 249, 250, 0.8) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Document Section - Updated */
+.document-list {
+  width: 100%; /* Add this */
+}
+
+.document-item {
+  width: 100%; /* Add this */
+  margin-bottom: 1rem; /* Add this */
+  background: rgba(248, 249, 250, 0.6);
+  padding: 1.5rem;
+  border-radius: 1.5rem;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+  height: 100%;
+}
+
+.document-item:hover {
+  border-color: var(--color-primary);
+  background: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 217, 61, 0.15);
+}
+
+.document-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  color: var(--color-secondary);
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.document-header .anticon {
+  font-size: 1.25rem;
+  color: var(--color-primary);
+}
+
+.document-hint {
+  font-size: 0.75rem !important;
+  color: var(--color-secondary-light) !important;
+  margin-top: 0.5rem !important;
+  display: block;
+}
+
+/* Ensure form content stays full width */
+.step-content {
+  width: 100%; /* Add this */
+}
+
+@media (max-width: 768px) {
+  .registration-container,
+  .registration-form,
+  .step-content,
+  .document-list,
+  .document-item {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+/* Fix for province select width issue */
+.registration-wrapper {
+  overflow-x: hidden !important;
+  width: 100vw !important;
+}
+
+.registration-background {
+  overflow-x: hidden !important;
+  width: 100vw !important;
+}
+
+/* Ensure select dropdown doesn't cause width changes */
+.ant-select-dropdown {
+  position: fixed !important;
+  max-width: calc(100vw - 32px) !important;
+}
+
+/* Update custom select styles to prevent width changes */
+.custom-select {
+  width: 100% !important;
+  position: relative !important;
+}
+
+.custom-select .ant-select-selector {
+  width: 100% !important;
+}
+
+/* Force container width */
+.registration-container,
+.registration-form,
+.step-card,
+.ant-card-body,
+.step-content {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+}

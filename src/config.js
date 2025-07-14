@@ -1,5 +1,7 @@
 const config = {
-  apiBaseUrl: 'http://localhost:5000', // Update this to your backend URL
+  apiBaseUrl: 'https://vayebac.onrender.com', // Update this to your backend URL
+  GoogleMapsApiKey: 'AIzaSyBTI2nvB5i4FCN8vDk95w9_bfsbtiqjALk',
+  GoogleMapsId: 'd3e43e641e91974e1f1d3d33',
 };
 
 export default config;

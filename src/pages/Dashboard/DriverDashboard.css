@@ -1,20 +1,857 @@
-/* DriverDashboard.css */
+/* Updated DriverDashboard.css */
+:root {
+  --color-primary: #ffd93d;
+  --color-primary-dark: #ffb800;
+  --color-secondary: #1e2761;
+  --color-secondary-light: #2a3990;
+  --color-success: #4caf50;
+  --color-danger: #ff6b6b;
+  --color-warning: #ffd93d;
+  --color-info: #2a3990;
+  --color-light: #f8f9fa;
+  --color-dark: #1e2761;
+  /* NEW COLORS for enhanced floating buttons */
+  --color-chat: #00d4aa;
+  --color-report: #ff6b47;
+  --color-stats: #667eea;
+}
 
+/* Map Container - Always Visible, Remove Opacity */
+.map-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
+}
+
+/* Dynamic Island Earnings Display - Enhanced */
+.earnings-display {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border: 2px solid var(--color-primary);
+  border-radius: 25px;
+  padding: 12px 24px;
+  z-index: 1000;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 120px;
+  text-align: center;
+}
+
+.earnings-display:hover {
+  transform: translateX(-50%) translateY(-2px) scale(1.02);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 1);
+}
+
+.earnings-amount {
+  color: var(--color-secondary);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* Dynamic Island Modal Overlay */
+.dynamic-island-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 2000;
+  backdrop-filter: blur(8px);
+}
+
+/* Dynamic Island Modal - iPhone-style */
+.dynamic-island-modal {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(30, 39, 97, 0.95);
+  backdrop-filter: blur(30px);
+  border: 2px solid var(--color-primary);
+  border-radius: 35px;
+  padding: 20px 24px;
+  min-width: 320px;
+  max-width: 380px;
+  width: 90vw;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  animation: dynamicIslandExpand 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+@keyframes dynamicIslandExpand {
+  0% {
+    width: 120px;
+    height: 44px;
+    border-radius: 25px;
+    padding: 12px 24px;
+    background: rgba(255, 255, 255, 0.95);
+  }
+  100% {
+    width: 90vw;
+    max-width: 380px;
+    height: auto;
+    border-radius: 35px;
+    padding: 20px 24px;
+    background: rgba(30, 39, 97, 0.95);
+  }
+}
+
+/* Modal Navigation Buttons */
+.modal-nav-button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 18px;
+  border: none;
+  background: rgba(255, 217, 61, 0.2);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.modal-nav-button.left {
+  left: -50px;
+}
+
+.modal-nav-button.right {
+  right: -50px;
+}
+
+.modal-nav-button:hover {
+  background: rgba(255, 217, 61, 0.4);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.modal-nav-button:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+/* Dynamic Island Content */
+.dynamic-island-content {
+  color: white;
+  text-align: center;
+}
+
+/* Modal Header - Simple */
+.modal-header-simple {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.earnings-amount-large {
+  color: var(--color-primary);
+  font-size: 36px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.earnings-period {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+/* Pro Header */
+.pro-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+
+.pro-title {
+  color: var(--color-primary);
+  font-size: 24px;
+  font-weight: 700;
+}
+
+/* Earnings Stats - Simple */
+.earnings-stats-simple {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 20px;
+  padding: 0 10px;
+}
+
+.stat-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-row .stat-number {
+  color: var(--color-primary);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.stat-row .stat-text {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Trip Details */
+.trip-details {
+  margin-bottom: 20px;
+  display: flex;
+   background: rgba(255, 255, 255, 0.95);
+  flex-direction: column;
+   border-radius: 16px;
+     padding: 16px;
+  gap: 0px;
+   margin: 16px 0;
+}
+
+.trip-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+    color: var(--color-secondary);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.trip-info svg {
+  color: var(--color-secondary);
+}
+
+
+.points-earned {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--color-primary);
+  font-size: 14px;
+  font-weight: 600;
+  background: rgba(255, 217, 61, 0.1);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+/* Pro Content */
+.pro-content {
+  margin-bottom: 20px;
+}
+
+.points-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.points-number {
+  color: var(--color-primary);
+  font-size: 32px;
+  font-weight: 800;
+}
+
+.points-text {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* Progress Container */
+.progress-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-dark));
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 12px;
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* Action Button */
+.action-button {
+  width: 100%;
+  background: var(--color-primary);
+  color: var(--color-secondary);
+  border: none;
+  border-radius: 16px;
+  padding: 14px 20px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  letter-spacing: 0.5px;
+}
+
+.action-button:hover {
+  background: var(--color-primary-dark);
+  transform: translateY(-1px);
+}
+
+.action-button:active {
+  transform: translateY(0);
+}
+
+/* Page Indicators */
+.page-indicators {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.indicator.active {
+  background: var(--color-primary);
+  width: 24px;
+}
+
+.indicator:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* KEEP EXISTING: Old Modal Styles for Other Modals */
+.earnings-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 2000;
+  padding: 20px;
+  padding-top: 140px;
+}
+
+.earnings-modal {
+  background: white;
+  border-radius: 20px;
+  margin: 0 auto;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.earnings-modal-header {
+  background: var(--color-secondary);
+  padding: 20px;
+  text-align: center;
+}
+
+.earnings-modal-content {
+  padding: 30px 20px;
+  text-align: center;
+}
+
+.earnings-modal-content h3 {
+  color: var(--color-secondary);
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.earnings-stats {
+  margin-bottom: 30px;
+}
+
+.stat-item {
+  margin-bottom: 15px;
+}
+
+.stat-number {
+  display: block;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-secondary);
+  margin-bottom: 5px;
+}
+
+.stat-text {
+  color: #666;
+  font-size: 14px;
+}
+
+.view-summary-btn {
+  background: var(--color-primary);
+  color: var(--color-secondary);
+  border: none;
+  border-radius: 12px;
+  padding: 15px 30px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.view-summary-btn:hover {
+  background: var(--color-primary-dark);
+  transform: translateY(-2px);
+}
+
+/* Status Message - More Space from Go Button */
+.status-message {
+  position: fixed;
+  bottom: 220px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 1000;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.status-dot.online {
+  background: var(--color-success);
+  animation: pulse 2s infinite;
+}
+
+.status-dot.offline {
+  background: #adb5bd;
+}
+
+.status-message span {
+  color: var(--color-secondary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Go Button - Yellow Theme with Long Press */
+.go-button-container {
+  position: fixed;
+  bottom: 120px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+}
+
+.go-button {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: none;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--color-secondary);
+  cursor: pointer;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.go-button.offline {
+  background: var(--color-primary);
+  box-shadow: 0 8px 25px rgba(255, 217, 61, 0.4);
+}
+
+.go-button.online {
+  background: var(--color-danger);
+  color: white;
+  box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+}
+
+.go-button:hover {
+  transform: translateY(-3px) scale(1.05);
+}
+
+.go-button:active {
+  transform: translateY(-1px) scale(0.98);
+}
+
+.go-button.loading {
+  pointer-events: none;
+}
+
+.go-button.pressing {
+  transform: scale(0.95);
+}
+
+.progress-circle {
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  width: 86px;
+  height: 86px;
+  border-radius: 50%;
+  pointer-events: none;
+  transition: none;
+}
+
+.go-text {
+  position: relative;
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* KEEP EXISTING: Floating Stats */
+.floating-stats {
+  position: fixed;
+  right: 20px;
+  bottom: 150px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  z-index: 1000;
+}
+
+.stat-bubble {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+  min-width: 80px;
+}
+
+.stat-bubble.trips {
+  border-color: var(--color-primary);
+}
+
+.stat-bubble.time {
+  border-color: var(--color-success);
+}
+
+.stat-bubble .icon {
+  color: var(--color-secondary);
+}
+
+.stat-bubble .stat-value {
+  color: var(--color-secondary);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* NEW: Enhanced Floating Buttons Container - Right Side */
+.floating-buttons-container {
+  position: fixed;
+  right: 20px;
+  bottom: 200px; /* Moved down as requested */
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  z-index: 1000;
+}
+
+/* NEW: Enhanced Floating Button Base Style */
+.floating-button {
+  width: 56px;
+  height: 56px;
+  border-radius: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(20px);
+  position: relative;
+  overflow: hidden;
+}
+
+.floating-button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.2),
+    rgba(255, 255, 255, 0.05)
+  );
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.floating-button:hover {
+  transform: translateY(-4px) scale(1.08);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+}
+
+.floating-button:active {
+  transform: translateY(-2px) scale(1.02);
+}
+
+/* NEW: Map Report Button - Enhanced */
+.map-report-button {
+  background: linear-gradient(135deg, var(--color-report), #ff8a65);
+  color: white;
+  animation: floatGlow 3s ease-in-out infinite;
+}
+
+.map-report-button:hover {
+  box-shadow: 0 12px 40px rgba(255, 107, 71, 0.4);
+}
+
+/* NEW: Chat Button - New Design */
+.chat-button {
+  background: linear-gradient(135deg, var(--color-chat), #26d0ce);
+  color: white;
+  animation: floatGlow 3s ease-in-out infinite 0.5s;
+}
+
+.chat-button:hover {
+  box-shadow: 0 12px 40px rgba(0, 212, 170, 0.4);
+}
+
+/* NEW: Stats Button - Enhanced */
+.stats-button {
+  background: linear-gradient(135deg, var(--color-stats), #764ba2);
+  color: white;
+  animation: floatGlow 3s ease-in-out infinite 1s;
+}
+
+.stats-button:hover {
+  box-shadow: 0 12px 40px rgba(102, 126, 234, 0.4);
+}
+
+/* NEW: Floating Animation */
+@keyframes floatGlow {
+  0%,
+  100% {
+    transform: translateY(0px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  }
+  50% {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.15);
+  }
+}
+
+/* NEW: Icon Pulse Animation for Interactive Elements */
+.floating-button .icon-pulse {
+  animation: iconPulse 2s ease-in-out infinite;
+}
+
+@keyframes iconPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+/* NEW: Enhanced Map Report Drawer */
+.map-report-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.map-report-drawer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 60px;
+  background: white;
+  border-radius: 24px 24px 0 0;
+  padding: 24px;
+  animation: slideUp 0.3s ease-out;
+  box-shadow: 0 0 24px rgba(0, 0, 0, 0.1);
+}
+
+.drawer-title {
+  text-align: center;
+  margin-bottom: 24px;
+  color: #1e2761;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.report-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.report-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  border: none;
+  background: #f8f9fa;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.report-option:hover {
+  background: #ffe5cc;
+  transform: translateY(-2px);
+}
+
+.report-option span {
+  font-size: 0.9rem;
+  color: #1e2761;
+  font-weight: 500;
+}
+
+.contributions-section {
+  border-top: 1px solid #eee;
+  padding-top: 16px;
+}
+
+.contributions-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  border: none;
+  background: #f8f9fa;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #1e2761;
+  font-weight: 500;
+}
+
+.contributions-button:hover {
+  background: #eee;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Dashboard Container - Offline View */
 .dashboard-container {
   padding: 1.5rem;
-  padding-bottom: calc(1.5rem + 90px); /* Account for bottom dock */
-  min-height: calc(600px - 80px);
+  padding-bottom: calc(1.5rem + 90px);
+  min-height: calc(100vh - 80px);
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.dashboard-container.exiting {
+  opacity: 0;
 }
 
 /* Status Section */
 .status-section {
-  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  background: linear-gradient(
+    135deg,
+    var(--color-secondary),
+    var(--color-secondary-light)
+  );
   border-radius: 1.5rem;
   padding: 1.5rem;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 15px rgba(30, 39, 97, 0.2);
+  border: 2px solid var(--color-primary);
 }
 
 .status-header {
@@ -27,7 +864,7 @@
 .status-title {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #343a40;
+  color: white;
   margin: 0;
 }
 
@@ -45,18 +882,18 @@
 }
 
 .status-button-online {
-  background: linear-gradient(135deg, #51cf66 0%, #40c057 100%);
+  background: linear-gradient(135deg, var(--color-success) 0%, #45a049 100%);
   color: white;
-  box-shadow: 0 8px 25px rgba(81, 207, 102, 0.3);
+  box-shadow: 0 8px 25px rgba(76, 175, 80, 0.3);
 }
 
 .status-button-online:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 35px rgba(81, 207, 102, 0.4);
+  box-shadow: 0 12px 35px rgba(76, 175, 80, 0.4);
 }
 
 .status-button-offline {
-  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+  background: linear-gradient(135deg, var(--color-danger) 0%, #ee5a24 100%);
   color: white;
   box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
 }
@@ -64,10 +901,6 @@
 .status-button-offline:hover {
   transform: translateY(-2px);
   box-shadow: 0 12px 35px rgba(255, 107, 107, 0.4);
-}
-
-.status-button:active {
-  transform: translateY(0);
 }
 
 /* Stats Grid */
@@ -87,32 +920,30 @@
   overflow: hidden;
 }
 
-.stat-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), transparent);
-  pointer-events: none;
-}
-
 .stat-card:hover {
   transform: translateY(-3px);
   box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
 }
 
 .stat-card-green {
-  background: linear-gradient(135deg, #51cf66 0%, #40c057 100%);
+  background: linear-gradient(135deg, var(--color-success) 0%, #45a049 100%);
 }
 
 .stat-card-blue {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-secondary) 0%,
+    var(--color-secondary-light) 100%
+  );
 }
 
 .stat-card-purple {
-  background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    var(--color-primary-dark) 100%
+  );
+  color: var(--color-secondary);
 }
 
 .full-width {
@@ -148,16 +979,16 @@
 /* Current Status */
 .current-status {
   background: white;
-  border: 2px solid #f1f3f4;
+  border: 2px solid var(--color-primary);
   border-radius: 1.5rem;
   padding: 2rem 1.5rem;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 15px rgba(255, 217, 61, 0.1);
   transition: all 0.3s ease;
 }
 
 .current-status:hover {
-  border-color: #e9ecef;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  border-color: var(--color-primary-dark);
+  box-shadow: 0 8px 25px rgba(255, 217, 61, 0.2);
 }
 
 .status-content {
@@ -176,7 +1007,7 @@
 }
 
 .status-icon.searching {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  background: linear-gradient(135deg, var(--color-success) 0%, #45a049 100%);
   color: white;
   animation: pulse 2s infinite;
 }
@@ -189,7 +1020,7 @@
 .status-heading {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #343a40;
+  color: var(--color-secondary);
   margin: 0 0 0.5rem 0;
 }
 
@@ -198,93 +1029,6 @@
   font-size: 0.875rem;
   margin: 0;
   line-height: 1.5;
-}
-
-/* Quick Actions - Simplified */
-.quick-actions {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-}
-
-.action-button {
-  background: white;
-  border: 2px solid #f1f3f4;
-  border-radius: 1.5rem;
-  padding: 1.5rem 1rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  text-decoration: none;
-  color: #6c757d;
-  font-weight: 500;
-  font-size: 0.875rem;
-}
-
-.action-button:hover {
-  border-color: #4facfe;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-  color: #4facfe;
-}
-
-.action-button-danger:hover {
-  border-color: #ff6b6b;
-  color: #ff6b6b;
-}
-
-.action-button span {
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.logo-image2 {
-  width: 200%;
-  height: auto;
-  border-radius: 20%;
-}
-
-.logo-container {
-  background: #ffffff00;
-  width: 4rem;
-  height: 5rem;
-  border-radius: 20%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 1.5rem;
-  /* box-shadow: 0 10px 30px #FFD600; */
-  transition: all 0.3s ease;
-  animation: logoFloat 3s ease-in-out infinite;
-}
-
-/* Animations */
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
-  }
-}
-
-@keyframes searching {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-.searching {
-  animation: searching 2s ease-in-out infinite;
 }
 
 /* Status Indicators */
@@ -296,122 +1040,281 @@
 }
 
 .status-online {
-  background: #51cf66;
-  box-shadow: 0 0 0 4px rgba(81, 207, 102, 0.2);
+  background: var(--color-success);
+  box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.2);
 }
 
 .status-offline {
   background: #adb5bd;
 }
 
+/* Animations */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+}
+
+/* Logo */
+.logo-image2 {
+  width: 200%;
+  height: auto;
+  border-radius: 20%;
+}
+
+.logo-container {
+  background: transparent;
+  width: 4rem;
+  height: 5rem;
+  border-radius: 20%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  transition: all 0.3s ease;
+}
+
 /* Responsive Design */
 @media (max-width: 480px) {
   .dashboard-container {
     padding: 1rem;
-    padding-bottom: calc(1rem + 90px); /* Account for bottom dock */
+    padding-bottom: calc(1rem + 90px);
     gap: 1rem;
   }
-  
+
   .status-section {
     padding: 1rem;
   }
-  
+
   .status-title {
     font-size: 1.125rem;
   }
-  
+
   .status-button {
     padding: 0.875rem 1.5rem;
     font-size: 1rem;
   }
-  
+
   .stats-grid {
     gap: 0.75rem;
   }
-  
+
   .stat-card {
     padding: 1rem;
   }
-  
+
   .stat-value {
     font-size: 1.5rem;
   }
-  
+
   .current-status {
     padding: 1.5rem 1rem;
   }
-  
+
   .status-icon {
     width: 3rem;
     height: 3rem;
   }
-  
+
   .status-heading {
     font-size: 1.125rem;
   }
-  
-  .quick-actions {
-    justify-content: center;
-    gap: 0.75rem;
+
+  .floating-stats {
+    right: 15px;
+    bottom: 120px;
   }
-  
-  .action-button {
-    flex-direction: row;
-    justify-content: center;
-    padding: 1rem 1.5rem;
-    gap: 0.5rem;
-    min-width: 120px;
+
+  .stat-bubble {
+    padding: 10px 14px;
+    min-width: 70px;
+  }
+
+  .earnings-display {
+    top: 60px;
+    padding: 10px 20px;
+    min-width: 100px;
+  }
+
+  .earnings-amount {
+    font-size: 16px;
+  }
+
+  /* Mobile adjustments for Dynamic Island */
+  .dynamic-island-modal {
+    top: 60px;
+    min-width: 280px;
+    width: 85vw;
+    padding: 16px 20px;
+  }
+
+  .modal-nav-button {
+    width: 32px;
+    height: 32px;
+    border-radius: 16px;
+  }
+
+  .modal-nav-button.left {
+    left: -42px;
+  }
+
+  .modal-nav-button.right {
+    right: -42px;
+  }
+
+  .earnings-amount-large {
+    font-size: 30px;
+  }
+
+  /* Mobile adjustments for new floating buttons */
+  .floating-buttons-container {
+    right: 15px;
+    bottom: 180px;
+  }
+
+  .floating-button {
+    width: 52px;
+    height: 52px;
+    border-radius: 26px;
   }
 }
 
 /* Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
-  .status-icon.searching {
+  .status-icon.searching,
+  .status-dot-online,
+  .floating-button,
+  .icon-pulse,
+  .dynamicIslandExpand {
     animation: none;
   }
-  
-  .pulse {
-    animation: none;
-  }
-  
-  .searching {
-    animation: none;
-  }
-  
+
   .stat-card:hover,
-  .action-button:hover,
-  .status-button:hover {
+  .status-button:hover,
+  .floating-button:hover {
     transform: none;
   }
 }
+/* Fixed Corner Navigation Arrows for Dynamic Island */
 
-/* High Contrast Mode */
-@media (prefers-contrast: high) {
-  .current-status {
-    border-color: #000;
-  }
-  
-  .action-button {
-    border-color: #000;
-  }
-  
-  .action-button:hover {
-    border-color: #0066cc;
-    color: #0066cc;
-  }
+/* Top Corner Navigation Buttons - Larger and More Visible */
+.modal-nav-button {
+  position: absolute;
+  top: 16px; /* Moved down slightly for better positioning */
+  width: 40px; /* Larger size */
+  height: 40px;
+  border-radius: 20px;
+  border: 2px solid rgba(255, 217, 61, 0.4); /* Add border for visibility */
+  background: rgba(255, 217, 61, 0.2);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(15px);
+  z-index: 10;
+  font-size: 18px; /* Larger icon size */
+  font-weight: bold;
 }
 
-.geo-error-banner {
-  position: fixed;
-  top: 64px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #fff3cd;
-  color: #856404;
-  border: 1px solid #ffeeba;
-  padding: 8px 16px;
-  border-radius: 8px;
-  z-index: 2000;
-  font-size: 14px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+.modal-nav-button.left {
+  left: 16px; /* More spacing from edge */
+}
+
+.modal-nav-button.right {
+  right: 16px; /* More spacing from edge */
+}
+
+.modal-nav-button:hover {
+  background: rgba(255, 217, 61, 0.4);
+  border-color: rgba(255, 217, 61, 0.6);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(255, 217, 61, 0.3);
+}
+
+.modal-nav-button:active {
+  transform: scale(0.95);
+}
+
+/* Better arrow icons using CSS */
+.modal-nav-button.left::before {
+  content: "‹"; /* Better left arrow character */
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.modal-nav-button.right::before {
+  content: "›"; /* Better right arrow character */
+  font-size: 24px;
+  font-weight: 900;
+}
+
+/* Remove default content from buttons */
+.modal-nav-button svg {
+  display: none;
+}
+
+/* Hide arrows on first and last slides */
+.dynamic-island-modal[data-index="0"] .modal-nav-button.left {
+  opacity: 0.2;
+  pointer-events: none;
+}
+
+.dynamic-island-modal[data-index="2"] .modal-nav-button.right {
+  opacity: 0.2;
+  pointer-events: none;
+}
+
+/* Alternative: If you want triangular arrows instead */
+.modal-nav-button.triangle-left::before {
+  content: "";
+  width: 0;
+  height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-right: 12px solid currentColor;
+  border-left: none;
+}
+
+.modal-nav-button.triangle-right::before {
+  content: "";
+  width: 0;
+  height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-left: 12px solid currentColor;
+  border-right: none;
+}
+
+/* Mobile adjustments */
+@media (max-width: 480px) {
+  .modal-nav-button {
+    width: 36px;
+    height: 36px;
+    border-radius: 18px;
+    top: 14px;
+    font-size: 16px;
+  }
+
+  .modal-nav-button.left {
+    left: 16px;
+    margin-top: 12px;
+  }
+
+  .modal-nav-button.right {
+    right: 16px;
+    margin-top: 12px;
+  }
+
+  .modal-nav-button.left::before,
+  .modal-nav-button.right::before {
+    font-size: 20px;
+  }
 }
