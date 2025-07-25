@@ -1,0 +1,289 @@
+/* Accessibility.css */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body, html {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+.accessibility-container {
+  width: 100vw;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  display: flex;
+  flex-direction: column;
+  margin: 0 auto;
+  max-width: 100%;
+}
+
+/* Header Styles */
+.header {
+  background-color: white;
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e0e0e0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  min-height: 56px;
+  width: 100%;
+}
+
+.back-button {
+  background: none;
+  border: none;
+  padding: 8px;
+  margin-right: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.back-button:hover {
+  background-color: #f0f0f0;
+}
+
+.back-button svg {
+  color: #333;
+}
+
+.header-title {
+  font-size: 20px;
+  font-weight: 500;
+  color: #333;
+  flex: 1;
+}
+
+/* Content Styles */
+.content {
+  flex: 1;
+  padding: 20px;
+  width: 100%;
+}
+
+.description {
+  font-size: 16px;
+  color: #333;
+  line-height: 1.5;
+  margin-bottom: 32px;
+  padding: 0 4px;
+}
+
+.link {
+  color: #007AFF;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.link:hover {
+  text-decoration: none;
+}
+
+/* Settings List */
+.settings-list {
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.setting-item {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #e8e8e8;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.setting-item:last-child {
+  border-bottom: none;
+}
+
+.setting-item:hover {
+  background-color: #f8f9fa;
+}
+
+.setting-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16px;
+  flex-shrink: 0;
+}
+
+.setting-icon svg {
+  color: #666;
+}
+
+.setting-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.setting-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+  line-height: 1.3;
+}
+
+.setting-subtitle {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.4;
+}
+
+/* Navigation Items */
+.navigation-item .setting-arrow {
+  margin-left: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.setting-arrow svg {
+  color: #999;
+}
+
+/* Toggle Items */
+.toggle-item {
+  cursor: default;
+}
+
+.toggle-item .setting-content {
+  margin-right: 16px;
+}
+
+/* Toggle Switch Styles */
+.toggle-switch {
+  width: 52px;
+  height: 32px;
+  border-radius: 16px;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.toggle-switch.disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.toggle-switch.off {
+  background-color: #ccc;
+}
+
+.toggle-switch.on {
+  background: linear-gradient(135deg, #1e2761, #2a3990);
+}
+
+.toggle-slider {
+  width: 28px;
+  height: 28px;
+  background-color: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  transition: transform 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.toggle-switch.off .toggle-slider {
+  transform: translateX(2px);
+}
+
+.toggle-switch.on .toggle-slider {
+  transform: translateX(22px);
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+  .header {
+    padding: 10px 12px;
+  }
+  
+  .header-title {
+    font-size: 18px;
+  }
+  
+  .content {
+    padding: 16px;
+  }
+  
+  .description {
+    font-size: 15px;
+    margin-bottom: 24px;
+  }
+  
+  .setting-item {
+    padding: 16px;
+  }
+  
+  .setting-icon {
+    width: 36px;
+    height: 36px;
+    margin-right: 14px;
+  }
+  
+  .setting-title {
+    font-size: 15px;
+  }
+  
+  .setting-subtitle {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 320px) {
+  .header {
+    padding: 8px 10px;
+  }
+  
+  .header-title {
+    font-size: 16px;
+  }
+  
+  .content {
+    padding: 12px;
+  }
+  
+  .setting-item {
+    padding: 14px;
+  }
+  
+  .toggle-switch {
+    width: 48px;
+    height: 28px;
+  }
+  
+  .toggle-slider {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .toggle-switch.on .toggle-slider {
+    transform: translateX(20px);
+  }
+}

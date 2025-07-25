@@ -1,0 +1,781 @@
+/* WorkHubStyles.css - Unique Class Names & Fixed Visibility */
+
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap");
+
+/* Color Variables - Improved Contrast */
+:root {
+  --workhub-primary-yellow: #ffd93d;
+  --workhub-primary-navy: #1e2761;
+  --workhub-success-green: #4caf50;
+  --workhub-background-white: #ffffff;
+  --workhub-header-bg: #ffffff;
+  --workhub-card-bg: #ffffff;
+  --workhub-glass-bg: rgba(255, 255, 255, 0.95);
+  --workhub-card-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  --workhub-glass-border: rgba(226, 232, 240, 0.8);
+  --workhub-text-primary: #0a0a0a;
+  --workhub-text-secondary: #1e2761;
+  --workhub-text-muted: #2d3748;
+  --workhub-text-white: #ffffff;
+  --workhub-hover-glow: rgba(255, 217, 61, 0.3);
+  --workhub-navy-glow: rgba(30, 39, 97, 0.3);
+  --workhub-green-glow: rgba(76, 175, 80, 0.3);
+  --workhub-border-strong: #cbd5e0;
+  --workhub-header-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Layout */
+.workhub-container,
+.workhub-delivery-detail {
+  min-height: 100vh;
+  background: var(--workhub-background-white);
+  font-family: "Poppins", sans-serif;
+}
+
+/* Header */
+.workhub-header,
+.workhub-detail-header {
+  background: var(--workhub-header-bg);
+  border-bottom: 2px solid var(--workhub-border-strong);
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--workhub-header-shadow);
+}
+
+.workhub-header-title,
+.workhub-detail-header-title {
+  font-size: 26px;
+  font-weight: 900;
+  color: var(--workhub-primary-navy);
+  letter-spacing: -0.5px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Back Button */
+.workhub-back-btn {
+  width: 48px;
+  height: 48px;
+  border: 2px solid var(--workhub-primary-navy);
+  background: var(--workhub-background-white);
+  border-radius: 12px;
+  color: var(--workhub-primary-navy);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.workhub-back-btn:hover {
+  background: var(--workhub-primary-navy);
+  color: var(--workhub-text-white);
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px var(--workhub-navy-glow);
+  border-color: var(--workhub-primary-navy);
+}
+
+/* Help Button */
+.workhub-help-btn {
+  background: var(--workhub-primary-navy);
+  color: var(--workhub-text-white);
+  border: 2px solid var(--workhub-primary-navy);
+  padding: 12px 24px;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.workhub-help-btn:hover {
+  background: var(--workhub-primary-yellow);
+  color: var(--workhub-primary-navy);
+  border-color: var(--workhub-primary-yellow);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px var(--workhub-hover-glow);
+}
+
+.workhub-help-placeholder {
+  width: 48px;
+}
+
+/* Content Areas */
+.workhub-content,
+.workhub-detail-content {
+  padding: 32px 20px;
+  max-width: 450px;
+  margin: 0 auto;
+}
+
+/* Hero Section */
+.workhub-hero-section {
+  text-align: center;
+  margin-bottom: 40px;
+  background: var(--workhub-card-bg);
+  border: 2px solid var(--workhub-border-strong);
+  border-radius: 20px;
+  padding: 32px 24px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  position: relative;
+  overflow: hidden;
+}
+
+.workhub-hero-section::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: conic-gradient(
+    from 45deg,
+    transparent,
+    var(--workhub-hover-glow),
+    transparent
+  );
+  animation: workhub-rotate 15s linear infinite;
+  opacity: 0.1;
+}
+
+.workhub-hero-section > * {
+  position: relative;
+  z-index: 1;
+}
+
+.workhub-hero-image {
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.workhub-hero-image img {
+  max-width: 280px;
+  height: auto;
+  filter: drop-shadow(0 8px 25px rgba(0, 0, 0, 0.15));
+  animation: workhub-float 6s ease-in-out infinite;
+}
+
+.workhub-hero-text h2 {
+  font-size: 32px;
+  font-weight: 800;
+  margin-bottom: 12px;
+  color: var(--workhub-primary-navy);
+  letter-spacing: -1px;
+}
+
+.workhub-hero-text p {
+  font-size: 16px;
+  color: var(--workhub-text-secondary);
+  font-weight: 600;
+}
+
+/* Services Section */
+.workhub-services-section {
+  margin-bottom: 40px;
+}
+
+.workhub-services-section-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--workhub-primary-navy);
+  margin-bottom: 24px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.workhub-services-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Service Cards */
+.workhub-service-card {
+  background: var(--workhub-card-bg);
+  border: 2px solid var(--workhub-border-strong);
+  border-radius: 16px;
+  padding: 24px;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.12);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.workhub-service-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.8),
+    transparent
+  );
+  transition: left 0.5s;
+}
+
+.workhub-service-card:hover::before {
+  left: 100%;
+}
+
+.workhub-service-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+  border-color: var(--workhub-primary-yellow);
+}
+
+.workhub-service-icon {
+  width: 70px;
+  height: 70px;
+  background: var(--workhub-primary-navy);
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--workhub-text-white);
+  flex-shrink: 0;
+  box-shadow: 0 8px 25px var(--workhub-navy-glow);
+  position: relative;
+  font-size: 24px;
+}
+
+.workhub-service-icon::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(
+    135deg,
+    var(--workhub-primary-yellow),
+    transparent,
+    var(--workhub-primary-yellow)
+  );
+  border-radius: 20px;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.workhub-service-card:hover .workhub-service-icon::after {
+  opacity: 1;
+}
+
+.workhub-service-info {
+  flex: 1;
+}
+
+.workhub-service-info h4 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--workhub-text-primary);
+  margin-bottom: 6px;
+  letter-spacing: -0.3px;
+}
+
+.workhub-service-subtitle {
+  font-size: 14px;
+  color: var(--workhub-text-secondary);
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.workhub-service-description {
+  font-size: 13px;
+  color: var(--workhub-text-muted);
+  margin-bottom: 12px;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.workhub-service-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Status Badges */
+.workhub-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 14px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.workhub-status-badge.approved {
+  background: var(--workhub-success-green);
+  color: var(--workhub-text-white);
+  box-shadow: 0 4px 15px var(--workhub-green-glow);
+}
+
+.workhub-status-badge.available {
+  background: var(--workhub-primary-yellow);
+  color: var(--workhub-primary-navy);
+  box-shadow: 0 4px 15px var(--workhub-hover-glow);
+}
+
+.workhub-earnings-info {
+  font-size: 12px;
+  color: var(--workhub-text-muted);
+  font-weight: 600;
+}
+
+.workhub-service-arrow {
+  color: var(--workhub-primary-navy);
+  transition: all 0.3s ease;
+  font-size: 18px;
+}
+
+.workhub-service-card:hover .workhub-service-arrow {
+  color: var(--workhub-primary-yellow);
+  transform: translateX(4px);
+}
+
+/* Stats Section */
+.workhub-stats-section {
+  margin-bottom: 32px;
+}
+
+.workhub-stats-section-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--workhub-primary-navy);
+  margin-bottom: 20px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.workhub-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.workhub-stat-card {
+  background: var(--workhub-card-bg);
+  backdrop-filter: blur(16px);
+  border: 2px solid var(--workhub-border-strong);
+  border-radius: 16px;
+  padding: 20px 16px;
+  text-align: center;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.12);
+  transition: all 0.3s ease;
+}
+
+.workhub-stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.18);
+  border-color: var(--workhub-primary-yellow);
+}
+
+.workhub-stat-icon {
+  width: 40px;
+  height: 40px;
+  background: var(--workhub-primary-yellow);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--workhub-primary-navy);
+  margin: 0 auto 12px;
+  font-size: 18px;
+  box-shadow: 0 4px 15px var(--workhub-hover-glow);
+}
+
+.workhub-stat-value {
+  display: block;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--workhub-text-primary);
+  margin-bottom: 4px;
+}
+
+.workhub-stat-label {
+  font-size: 11px;
+  color: var(--workhub-text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Detail Page Styles */
+.workhub-service-hero {
+  text-align: center;
+  background: var(--workhub-card-bg);
+  backdrop-filter: blur(16px);
+  border: 2px solid var(--workhub-border-strong);
+  border-radius: 24px;
+  padding: 40px 24px;
+  margin-bottom: 32px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.workhub-service-icon-large {
+  width: 80px;
+  height: 80px;
+  background: var(--workhub-primary-navy);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--workhub-text-white);
+  margin: 0 auto 20px;
+  font-size: 32px;
+  box-shadow: 0 8px 25px var(--workhub-navy-glow);
+}
+
+.workhub-service-hero h2 {
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 12px;
+  color: var(--workhub-text-primary);
+}
+
+.workhub-service-description {
+  font-size: 16px;
+  color: var(--workhub-text-secondary);
+  margin-bottom: 20px;
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+.workhub-earnings-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--workhub-success-green);
+  color: var(--workhub-text-white);
+  padding: 12px 20px;
+  border-radius: 16px;
+  font-weight: 700;
+  font-size: 14px;
+  box-shadow: 0 4px 15px var(--workhub-green-glow);
+}
+
+/* Features Section */
+.workhub-features-section,
+.workhub-requirements-section {
+  margin-bottom: 32px;
+}
+
+.workhub-features-section-title,
+.workhub-requirements-section-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--workhub-primary-navy);
+  margin-bottom: 20px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.workhub-features-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.workhub-feature-card {
+  background: var(--workhub-card-bg);
+  backdrop-filter: blur(16px);
+  border: 2px solid var(--workhub-border-strong);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  gap: 16px;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.12);
+  transition: all 0.3s ease;
+}
+
+.workhub-feature-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.18);
+  border-color: var(--workhub-primary-yellow);
+}
+
+.workhub-feature-icon {
+  width: 48px;
+  height: 48px;
+  background: var(--workhub-primary-yellow);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--workhub-primary-navy);
+  font-size: 20px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 15px var(--workhub-hover-glow);
+}
+
+.workhub-feature-content h4 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--workhub-text-primary);
+  margin-bottom: 6px;
+}
+
+.workhub-feature-content p {
+  font-size: 14px;
+  color: var(--workhub-text-secondary);
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+/* Requirements - FIXED VISIBILITY */
+.workhub-requirements-list {
+  background: var(--workhub-background-white);
+  border: 2px solid var(--workhub-border-strong);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.12);
+}
+
+.workhub-requirement-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  margin-bottom: 12px;
+  background: var(--workhub-background-white);
+  border: 2px solid var(--workhub-border-strong);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.workhub-requirement-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+  border-color: var(--workhub-success-green);
+}
+
+.workhub-requirement-item:last-child {
+  margin-bottom: 0;
+}
+
+.workhub-check-icon {
+  width: 32px;
+  height: 32px;
+  background: var(--workhub-success-green);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--workhub-text-white);
+  font-size: 16px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px var(--workhub-green-glow);
+}
+
+/* FIXED: Requirements text visibility */
+.workhub-requirement-item span {
+  font-size: 16px;
+  color: var(--workhub-text-primary);
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* Action Buttons */
+.workhub-action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.workhub-apply-btn {
+  width: 100%;
+  padding: 18px;
+  background: var(--workhub-primary-yellow);
+  border: 2px solid var(--workhub-primary-yellow);
+  border-radius: 16px;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--workhub-primary-navy);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 8px 25px var(--workhub-hover-glow);
+}
+
+.workhub-apply-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 35px var(--workhub-hover-glow);
+  background: var(--workhub-primary-navy);
+  color: var(--workhub-text-white);
+}
+
+.workhub-learn-more-btn {
+  width: 100%;
+  padding: 16px;
+  background: var(--workhub-background-white);
+  border: 2px solid var(--workhub-primary-navy);
+  border-radius: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--workhub-primary-navy);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.workhub-learn-more-btn:hover {
+  background: var(--workhub-primary-navy);
+  color: var(--workhub-text-white);
+  box-shadow: 0 6px 20px var(--workhub-navy-glow);
+}
+
+/* Animations */
+@keyframes workhub-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes workhub-float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Responsive Design */
+@media (min-width: 768px) {
+  .workhub-content,
+  .workhub-detail-content {
+    max-width: 500px;
+    padding: 40px 24px;
+  }
+
+  .workhub-header,
+  .workhub-detail-header {
+    padding: 20px 32px;
+  }
+
+  .workhub-stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  .workhub-features-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  .workhub-service-card {
+    padding: 28px;
+  }
+
+  .workhub-hero-image img {
+    max-width: 320px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .workhub-content,
+  .workhub-detail-content {
+    max-width: 600px;
+    padding: 48px 32px;
+  }
+}
+
+/* Focus States for Accessibility */
+button:focus-visible,
+.workhub-service-card:focus-visible {
+  outline: 3px solid var(--workhub-primary-yellow);
+  outline-offset: 2px;
+}
+
+/* Accessibility - Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Touch Targets for Mobile */
+@media (hover: none) and (pointer: coarse) {
+  .workhub-service-card,
+  .workhub-stat-card,
+  .workhub-feature-card,
+  button {
+    min-height: 48px;
+  }
+
+  .workhub-back-btn,
+  .workhub-help-btn {
+    min-width: 48px;
+    min-height: 48px;
+  }
+}
+
+/* Loading States */
+.workhub-service-card.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.workhub-service-card.loading::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid var(--workhub-primary-yellow);
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: workhub-spin 1s linear infinite;
+}
+
+@keyframes workhub-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Print Styles */
+@media print {
+  .workhub-container,
+  .workhub-delivery-detail {
+    background: white !important;
+  }
+
+  .workhub-header,
+  .workhub-detail-header {
+    background: white !important;
+    color: black !important;
+    box-shadow: none !important;
+  }
+
+  .workhub-service-card,
+  .workhub-stat-card,
+  .workhub-feature-card {
+    break-inside: avoid;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  }
+}

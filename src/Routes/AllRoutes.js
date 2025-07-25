@@ -17,6 +17,26 @@ import Referrals from "../pages/Referrals/Referrals";
 import Account from "../pages/Account/Account";
 import ProfileManagement from "../pages/ProfileManagement/ProfileManagement";
 import Inbox from "../pages/Inbox/Inbox";
+import AppSettings from "../pages/AppSettingsDrawer/AppSettings";
+import Sound from "../pages/AppSettingsDrawer/SoundSettings/Sound";
+import Navigation from "../pages/AppSettingsDrawer/Navigation/Navigation";
+import Accessibility from "../pages/AppSettingsDrawer/Accessibility/Accessibility";
+import Communication from "../pages/AppSettingsDrawer/Accessibility/Communication";
+import Hearing from "../pages/AppSettingsDrawer/Accessibility/Hearing";
+import Notifications from "../pages/AppSettingsDrawer/Accessibility/Notifications";
+import Email from "../pages/AppSettingsDrawer/Accessibility/Email";
+import CommunicationSettings from "../pages/AppSettingsDrawer/Communication/Communication";
+import AutoResponse from "../pages/AppSettingsDrawer/AutoResponse/AutoResponse";
+import QuickResponse from "../pages/AppSettingsDrawer/QuickResponse/QuickResponse";
+import DarkMode from "../pages/AppSettingsDrawer/DarkMode/DarkMode";
+import PinVerification from "../pages/AppSettingsDrawer/PinVerification/PinVerification";
+import FollowTrip from "../pages/AppSettingsDrawer/FollowTrip/FollowTrip";
+import EmergencyContact from "../pages/AppSettingsDrawer/EmergencyContact/EmergencyContact";
+import SpeedLimit from "../pages/AppSettingsDrawer/SpeedLimit/SpeedLimit";
+import VideoRecording from "../pages/AppSettingsDrawer/VideoRecording/VideoRecording";
+import VehiclesPage from "../pages/Account/Vehicles/VehicleManagement";
+import WorkHub from "../pages/Account/WorkHub/WorkHub";
+import TaxInformation from "../pages/Tax/TaxInformation";
 function AllRoutes() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -80,10 +100,71 @@ function AllRoutes() {
             <Route path="/wallet" element={<Wallet />} />
             <Route path="/dashboard" element={<DriverDashboard />} />
             <Route path="/inbox" element={<Inbox />} />
-            <Route path="/account" element={<Account/>} />
-            <Route path="/profile-management" element={<ProfileManagement/>} />
-
+            <Route path="/account" element={<Account />} />
+            <Route path="/profile-management" element={<ProfileManagement />} />
             <Route path="/" element={<DriverLogin />} />
+
+            {/* App Settings */}
+            <Route path="/app-settings" element={<AppSettings />} />
+            <Route path="/app-settings/sounds-voice" element={<Sound />} />
+            <Route path="/app-settings/navigation" element={<Navigation />} />
+            <Route
+              path="/app-settings/accessibility"
+              element={<Accessibility />}
+            />
+            <Route
+              path="/app-settings/accessibility/communication"
+              element={<Communication />}
+            />
+            <Route
+              path="/app-settings/accessibility/hearing"
+              element={<Hearing />}
+            />
+            <Route
+              path="/app-settings/communication/push-notifications"
+              element={<Notifications />}
+            />
+            <Route
+              path="/app-settings/communication/email"
+              element={<Email />}
+            />
+            <Route
+              path="/app-settings/communication"
+              element={<CommunicationSettings />}
+            />
+            <Route
+              path="/app-settings/auto-responses"
+              element={<AutoResponse />}
+            />
+            <Route
+              path="/app-settings/quick-responses"
+              element={<QuickResponse />}
+            />
+            <Route path="/app-settings/night-mode" element={<DarkMode />} />
+            <Route
+              path="/app-settings/pin-verification"
+              element={<PinVerification />}
+            />
+            <Route
+              path="/app-settings/follow-my-trip"
+              element={<FollowTrip />}
+            />
+            <Route
+              path="/app-settings/emergency-contacts"
+              element={<EmergencyContact />}
+            />
+            <Route path="/app-settings/speed-limit" element={<SpeedLimit />} />
+            <Route
+              path="/app-settings/video-recording"
+              element={<VideoRecording />}
+            />
+
+            {/* Account Settings */}
+            <Route path="/account/vehicles" element={<VehiclesPage />} />
+            <Route path="/account/work-hub" element={<WorkHub />} />
+
+            {/* Tax Settings */}
+            <Route path="/account/tax-info" element={<TaxInformation />} />
           </Routes>
         </div>
       )}

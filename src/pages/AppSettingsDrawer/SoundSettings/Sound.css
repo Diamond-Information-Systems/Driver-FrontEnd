@@ -1,0 +1,257 @@
+/* SoundsVoice.css */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body, html {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+.sounds-voice-container {
+  width: 100vw;
+  height: 100vh;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+/* Header Styles */
+.header {
+  background-color: white;
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e0e0e0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  min-height: 56px;
+  width: 100%;
+}
+
+.back-button {
+  background: none;
+  border: none;
+  padding: 8px;
+  margin-right: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.back-button:hover {
+  background-color: #f0f0f0;
+}
+
+.back-button svg {
+  color: #333;
+}
+
+.header-title {
+  font-size: 20px;
+  font-weight: 500;
+  color: #333;
+  flex: 1;
+}
+
+/* Content Styles */
+.content {
+  flex: 1;
+  padding: 0;
+  width: 100%;
+}
+
+.section {
+  background-color: white;
+  margin-top: 16px;
+  width: 100%;
+}
+
+.section-header {
+  font-size: 13px;
+  font-weight: 500;
+  color: #888;
+  padding: 16px 20px 8px 20px;
+  background-color: #f5f5f5;
+  letter-spacing: 0.5px;
+}
+
+.setting-item {
+  padding: 16px 20px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.setting-item:last-child {
+  border-bottom: none;
+}
+
+.setting-label {
+  font-size: 16px;
+  color: #333;
+  font-weight: 400;
+}
+
+/* Toggle Item Styles */
+.toggle-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Volume Buttons */
+.volume-buttons {
+  display: flex;
+  margin-top: 12px;
+  gap: 0;
+}
+
+.volume-button {
+  flex: 1;
+  padding: 12px 16px;
+  background-color: #e0e0e0;
+  border: none;
+  font-size: 16px;
+  font-weight: 400;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.volume-button:first-child {
+  border-radius: 12px 0 0 12px;
+}
+
+.volume-button:last-child {
+  border-radius: 0 12px 12px 0;
+}
+
+.volume-button.active {
+  background-color: white;
+  color: #333;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.volume-button:not(.active):hover {
+  background-color: #d0d0d0;
+}
+
+/* Toggle Switch Styles */
+.toggle-switch {
+  width: 52px;
+  height: 32px;
+  border-radius: 16px;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.toggle-switch.off {
+  background-color: #ccc;
+}
+
+.toggle-switch.on {
+  background: linear-gradient(135deg, #1e2761, #2a3990);
+}
+
+.toggle-slider {
+  width: 28px;
+  height: 28px;
+  background-color: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  transition: transform 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.toggle-switch.off .toggle-slider {
+  transform: translateX(2px);
+}
+
+.toggle-switch.on .toggle-slider {
+  transform: translateX(22px);
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+  .header {
+    padding: 10px 12px;
+  }
+  
+  .header-title {
+    font-size: 18px;
+  }
+  
+  .section-header {
+    padding: 12px 16px 6px 16px;
+    font-size: 12px;
+  }
+  
+  .setting-item {
+    padding: 14px 16px;
+  }
+  
+  .setting-label {
+    font-size: 15px;
+  }
+  
+  .volume-button {
+    padding: 10px 12px;
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 320px) {
+  .header {
+    padding: 8px 10px;
+  }
+  
+  .header-title {
+    font-size: 16px;
+  }
+  
+  .setting-item {
+    padding: 12px 14px;
+  }
+  
+  .toggle-switch {
+    width: 48px;
+    height: 28px;
+  }
+  
+  .toggle-slider {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .toggle-switch.on .toggle-slider {
+    transform: translateX(20px);
+  }
+}
+
+/* Large screens */
+@media (min-width: 768px) {
+  .sounds-voice-container {
+    max-width: none;
+    margin: 0;
+    box-shadow: none;
+  }
+}

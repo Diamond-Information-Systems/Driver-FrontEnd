@@ -491,16 +491,17 @@ const toggleOnlineStatus = async () => {
           ]}
           userToken={user?.token} // Pass user token for backend requests
           activeTrip={activeTrip} // Pass active trip for navigation
+          //  onTripUpdate={(updatedTrip) => setActiveTrip(updatedTrip)}
         />
       </div>
 
       {/* Dynamic Island Earnings Display */}
-      <div
+      {/* <div
         className="earnings-display"
         onClick={handleEarningsClick}
       >
         <span className="earnings-amount">R{earnings.toFixed(2)}</span>
-      </div>
+      </div> */}
 
       {/* Dynamic Island Modal */}
       {showEarningsModal && (
@@ -721,7 +722,7 @@ const toggleOnlineStatus = async () => {
 
             <div className="contributions-section">
               <button className="contributions-button">
-                <History size={20} color="#667eea" />
+                <History size={20} color="#04050aff" />
                 <span>My Contributions</span>
               </button>
             </div>

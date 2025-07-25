@@ -1,0 +1,352 @@
+/* NightMode.css */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.night-mode-container {
+  width: 100vw;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  display: flex;
+  flex-direction: column;
+  margin: 0 auto;
+  max-width: 100%;
+}
+
+/* Header Styles */
+.header {
+  background-color: white;
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e0e0e0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  min-height: 56px;
+  width: 100%;
+}
+
+.back-button {
+  background: none;
+  border: none;
+  padding: 8px;
+  margin-right: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.back-button:hover {
+  background-color: #f0f0f0;
+}
+
+.back-button svg {
+  color: #333;
+}
+
+.header-title {
+  font-size: 20px;
+  font-weight: 500;
+  color: #333;
+  flex: 1;
+}
+
+/* Content Styles */
+.content {
+  flex: 1;
+  width: 100%;
+  padding: 20px;
+}
+
+.description {
+  font-size: 16px;
+  color: #666;
+  line-height: 1.5;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+/* Options Container */
+.options-container {
+  background-color: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 32px;
+}
+
+.option-item {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #e8e8e8;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  gap: 16px;
+}
+
+.option-item:last-child {
+  border-bottom: none;
+}
+
+.option-item:hover {
+  background-color: #f8f9fa;
+}
+
+.option-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.option-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+  line-height: 1.3;
+}
+
+.option-description {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.4;
+}
+
+/* Radio Button */
+.radio-button {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #ddd;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.radio-button.selected {
+  border-color: #2a3990;
+  background: linear-gradient(135deg, #1e2761, #2a3990);
+}
+
+.radio-inner {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: transparent;
+  transition: background-color 0.2s;
+}
+
+.radio-button.selected .radio-inner {
+  background-color: white;
+}
+
+/* Preview Section */
+.preview-section {
+  margin-bottom: 24px;
+}
+
+.preview-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.preview-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.preview-demo {
+  width: 200px;
+  height: 350px;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.preview-demo.light {
+  background-color: #ffffff;
+}
+
+.preview-demo.dark {
+  background-color: #1a1a1a;
+}
+
+.preview-header {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 12px;
+}
+
+.preview-demo.light .preview-header {
+  background-color: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.preview-demo.dark .preview-header {
+  background-color: #2a2a2a;
+  border-bottom: 1px solid #3a3a3a;
+}
+
+.preview-back-button {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.preview-demo.light .preview-back-button {
+  background-color: #333;
+}
+
+.preview-demo.dark .preview-back-button {
+  background-color: #fff;
+}
+
+.preview-title-text {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.preview-demo.light .preview-title-text {
+  color: #333;
+}
+
+.preview-demo.dark .preview-title-text {
+  color: #fff;
+}
+
+.preview-content {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.preview-item {
+  height: 40px;
+  border-radius: 8px;
+}
+
+.preview-item.short {
+  width: 60%;
+}
+
+.preview-demo.light .preview-item {
+  background-color: #f5f5f5;
+}
+
+.preview-demo.dark .preview-item {
+  background-color: #3a3a3a;
+}
+
+/* Info Section */
+.info-section {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 16px;
+  border-left: 4px solid #2a3990;
+}
+
+.info-text {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.5;
+}
+
+/* Responsive Design */
+@media (min-width: 768px) {
+  .night-mode-container {
+    max-width: 420px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding: 10px 12px;
+  }
+  
+  .header-title {
+    font-size: 18px;
+  }
+  
+  .content {
+    padding: 16px;
+  }
+  
+  .description {
+    font-size: 14px;
+  }
+  
+  .option-item {
+    padding: 16px;
+  }
+  
+  .option-title {
+    font-size: 15px;
+  }
+  
+  .option-description {
+    font-size: 13px;
+  }
+  
+  .preview-demo {
+    width: 180px;
+    height: 320px;
+  }
+  
+  .preview-header {
+    height: 50px;
+    padding: 0 12px;
+  }
+  
+  .preview-content {
+    padding: 12px;
+    gap: 10px;
+  }
+  
+  .preview-item {
+    height: 35px;
+  }
+}
+
+@media (max-width: 320px) {
+  .header {
+    padding: 8px 10px;
+  }
+  
+  .header-title {
+    font-size: 16px;
+  }
+  
+  .content {
+    padding: 12px;
+  }
+  
+  .option-item {
+    padding: 14px;
+  }
+  
+  .preview-demo {
+    width: 160px;
+    height: 280px;
+  }
+}

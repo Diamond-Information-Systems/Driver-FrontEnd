@@ -21,7 +21,6 @@ import { Badge } from "antd";
 import { useNavigate } from "react-router-dom";
 import "./BottomDock.css";
 import { DriverStatusContext } from "../context/DriverStatusContext";
-import AppSettings from "./AppSettingsDrawer/AppSettings"; // Import the new component
 
 const BottomDock = ({
   activeTab = "dashboard",
@@ -29,7 +28,6 @@ const BottomDock = ({
   quickActions = [],
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [showAppSettings, setShowAppSettings] = useState(false); // Add state for App Settings drawer
   const navigate = useNavigate();
   const { isOnline } = useContext(DriverStatusContext) || {};
 
@@ -74,14 +72,14 @@ const BottomDock = ({
       color: "red",
       badge: "2",
       badgeColor: "red",
-        route: "/inbox",
+      route: "/inbox",
     },
     {
       id: "referrals",
       icon: Share2,
       label: "Referrals",
       color: "#51cf66",
-       route: "/referrals",
+      route: "/referrals",
     },
     {
       id: "wallet",
@@ -95,14 +93,14 @@ const BottomDock = ({
       icon: UserCog,
       label: "Account",
       color: "#4facfe",
-      route: "/account", // Add route for account page
+      route: "/account",
     },
     {
-      id: "app-settings", // Add App Settings to the expanded actions
+      id: "app-settings",
       icon: Smartphone,
       label: "App Settings",
       color: "#a78bfa",
-      action: "drawer", // Special action type for drawer
+      route: "/app-settings", // Navigate to app settings page
     },
     {
       id: "help",
@@ -110,7 +108,7 @@ const BottomDock = ({
       label: "Help",
       color: "#6c757d",
       small: true,
-       route: "/help",
+      route: "/help",
     },
     {
       id: "logout",
@@ -126,7 +124,7 @@ const BottomDock = ({
     trips: "/trips",
     earnings: "/earnings",
     profile: "/profile",
-    account: "/account", // Add account route
+    account: "/account",
     logout: "/",
   };
 
@@ -143,47 +141,25 @@ const BottomDock = ({
   };
 
   const handleQuickAction = (actionId) => {
-    // Handle special actions
-    if (actionId === "app-settings") {
-      setShowAppSettings(true);
-      setIsExpanded(false);
-      return;
-    }
-
     onTabChange?.(actionId);
     setIsExpanded(false);
 
     // Find the action object by id
     const action = expandedActions.find((a) => a.id === actionId);
 
+    // Handle special logout action
+    if (actionId === "logout") {
+      // Add your logout logic here
+      console.log("Logout clicked");
+      navigate("/");
+      return;
+    }
+
     // Prefer action.route, fallback to tabRoutes
     if (action?.route) {
       navigate(action.route);
     } else if (tabRoutes[actionId]) {
       navigate(tabRoutes[actionId]);
-    }
-  };
-
-  // Handle App Settings menu item clicks
-  const handleAppSettingsMenuClick = (menuItemId) => {
-    console.log("App Settings menu clicked:", menuItemId);
-    // Handle the specific settings menu item
-    // You can add navigation or actions here based on menuItemId
-    
-    // Example: Navigate to specific settings pages
-    switch (menuItemId) {
-      case 'sounds-voice':
-        // Navigate to sounds settings
-        break;
-      case 'navigation':
-        // Navigate to navigation settings
-        break;
-      case 'night-mode':
-        // Toggle night mode
-        break;
-      // Add more cases as needed
-      default:
-        console.log(`Settings action not implemented: ${menuItemId}`);
     }
   };
 
@@ -228,13 +204,6 @@ const BottomDock = ({
           </div>
         </div>
       )}
-
-      {/* App Settings Drawer */}
-      <AppSettings
-        isOpen={showAppSettings}
-        onClose={() => setShowAppSettings(false)}
-        onMenuItemClick={handleAppSettingsMenuClick}
-      />
 
       {/* Main Dock Bar */}
       <div className="bottom-dock">

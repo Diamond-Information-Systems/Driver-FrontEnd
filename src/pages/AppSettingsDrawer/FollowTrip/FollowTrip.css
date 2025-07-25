@@ -1,0 +1,239 @@
+/* FollowTrip.css */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.follow-trip-container {
+  width: 100vw;
+  height: 100vh;
+  background-color: #f5f5f5;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Header */
+.header {
+  background-color: white;
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e0e0e0;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.back-button {
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+  position: absolute;
+  left: 16px;
+}
+
+.back-button:hover {
+  background-color: #f0f0f0;
+}
+
+.back-button svg {
+  color: #333;
+}
+
+.header-title {
+  font-size: 20px;
+  font-weight: 500;
+  color: #333;
+  width: 100%;
+  text-align: center;
+}
+
+/* Hero Section */
+.hero-section {
+  flex-shrink: 0;
+  background-color: #f5f5f5;
+  overflow: hidden;
+}
+
+.hero-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+}
+
+/* Content Section */
+.content-section {
+  flex: 1;
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 32px 24px 24px 24px;
+}
+
+.content-container {
+  flex: 1;
+}
+
+.main-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #333;
+  line-height: 1.2;
+  margin-bottom: 24px;
+  letter-spacing: -0.5px;
+}
+
+.description-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.description-text {
+  font-size: 16px;
+  color: #555;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+.instruction-text {
+  font-size: 16px;
+  color: #555;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+/* Button Section */
+.button-section {
+  margin-top: 40px;
+  flex-shrink: 0;
+}
+
+.choose-contact-button {
+  width: 100%;
+  padding: 16px;
+  background-color: #333;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.choose-contact-button:hover {
+  background-color: #555;
+  transform: translateY(-1px);
+}
+
+.choose-contact-button:active {
+  transform: translateY(0);
+}
+
+/* Responsive Design for iPhone 14 Pro Max (430x932) and similar */
+@media (max-width: 430px) and (max-height: 932px) {
+  .header {
+    padding: 10px 16px;
+  }
+  
+  .header-title {
+    font-size: 18px;
+  }
+  
+  .back-button {
+    left: 12px;
+  }
+  
+  .content-section {
+    padding: 28px 20px 20px 20px;
+  }
+  
+  .main-title {
+    font-size: 26px;
+    margin-bottom: 20px;
+  }
+  
+  .description-text,
+  .instruction-text {
+    font-size: 15px;
+  }
+  
+  .description-section {
+    gap: 18px;
+  }
+  
+  .button-section {
+    margin-top: 32px;
+  }
+  
+  .choose-contact-button {
+    padding: 15px;
+    font-size: 15px;
+  }
+}
+
+/* Responsive Design for smaller screens */
+@media (max-width: 375px) {
+  .content-section {
+    padding: 24px 18px 18px 18px;
+  }
+  
+  .main-title {
+    font-size: 24px;
+    margin-bottom: 18px;
+  }
+  
+  .description-text,
+  .instruction-text {
+    font-size: 14px;
+  }
+  
+  .description-section {
+    gap: 16px;
+  }
+  
+  .button-section {
+    margin-top: 28px;
+  }
+}
+
+/* For larger screens - center the container */
+@media (min-width: 768px) {
+  .follow-trip-container {
+    max-width: 430px;
+    margin: 0 auto;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* Landscape orientation adjustments */
+@media (orientation: landscape) and (max-height: 500px) {
+  .content-section {
+    padding: 20px 24px 16px 24px;
+  }
+  
+  .main-title {
+    font-size: 24px;
+    margin-bottom: 16px;
+  }
+  
+  .description-section {
+    gap: 14px;
+  }
+  
+  .button-section {
+    margin-top: 24px;
+  }
+}

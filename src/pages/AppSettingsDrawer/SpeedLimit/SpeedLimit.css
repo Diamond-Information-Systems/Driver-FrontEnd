@@ -1,0 +1,314 @@
+/* SpeedLimit.css */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.speed-limit-container {
+  width: 100vw;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  display: flex;
+  flex-direction: column;
+  margin: 0 auto;
+  max-width: 100%;
+}
+
+/* Header Styles */
+.header {
+  background-color: white;
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e0e0e0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  min-height: 56px;
+  width: 100%;
+}
+
+.back-button {
+  background: none;
+  border: none;
+  padding: 8px;
+  margin-right: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.back-button:hover {
+  background-color: #f0f0f0;
+}
+
+.back-button svg {
+  color: #333;
+}
+
+.header-title {
+  font-size: 20px;
+  font-weight: 500;
+  color: #333;
+  flex: 1;
+}
+
+/* Content */
+.content {
+  flex: 1;
+  width: 100%;
+}
+
+/* Setting Sections */
+.setting-section {
+  background-color: white;
+  margin-bottom: 16px;
+}
+
+/* Toggle Setting */
+.setting-item {
+  padding: 20px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.setting-item:last-child {
+  border-bottom: none;
+}
+
+.toggle-setting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: none;
+}
+
+.setting-content {
+  flex: 1;
+}
+
+.setting-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+}
+
+/* Toggle Switch Styles */
+.toggle-switch {
+  width: 52px;
+  height: 32px;
+  border-radius: 16px;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.toggle-switch.off {
+  background-color: #ccc;
+}
+
+.toggle-switch.on {
+  background: linear-gradient(135deg, #1e2761, #2a3990);
+}
+
+.toggle-slider {
+  width: 28px;
+  height: 28px;
+  background-color: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  transition: transform 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.toggle-switch.off .toggle-slider {
+  transform: translateX(2px);
+}
+
+.toggle-switch.on .toggle-slider {
+  transform: translateX(22px);
+}
+
+/* Section Headers */
+.section-header {
+  padding: 20px 20px 16px 20px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.section-subtitle {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.4;
+}
+
+/* Speed Categories */
+.speed-category {
+  padding: 24px 20px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.speed-category:last-child {
+  border-bottom: none;
+}
+
+.speed-category-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 16px;
+}
+
+.speed-options {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.speed-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.speed-text {
+  font-size: 16px;
+  color: #333;
+  font-weight: 400;
+}
+
+/* Radio Button */
+.radio-button {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #ddd;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.radio-button.selected {
+  border-color: #2a3990;
+  background: #333;
+}
+
+.radio-inner {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: transparent;
+  transition: background-color 0.2s;
+}
+
+.radio-button.selected .radio-inner {
+  background-color: white;
+}
+
+/* Responsive Design */
+@media (min-width: 768px) {
+  .speed-limit-container {
+    max-width: 420px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding: 10px 12px;
+  }
+  
+  .header-title {
+    font-size: 18px;
+  }
+  
+  .setting-item {
+    padding: 16px;
+  }
+  
+  .section-header {
+    padding: 16px 16px 12px 16px;
+  }
+  
+  .section-title {
+    font-size: 16px;
+  }
+  
+  .section-subtitle {
+    font-size: 13px;
+  }
+  
+  .speed-category {
+    padding: 20px 16px;
+  }
+  
+  .speed-category-title {
+    font-size: 15px;
+    margin-bottom: 14px;
+  }
+  
+  .speed-options {
+    gap: 24px;
+  }
+  
+  .speed-text {
+    font-size: 15px;
+  }
+  
+  .toggle-switch {
+    width: 48px;
+    height: 28px;
+  }
+  
+  .toggle-slider {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .toggle-switch.on .toggle-slider {
+    transform: translateX(20px);
+  }
+}
+
+@media (max-width: 320px) {
+  .header {
+    padding: 8px 10px;
+  }
+  
+  .header-title {
+    font-size: 16px;
+  }
+  
+  .setting-item {
+    padding: 14px;
+  }
+  
+  .section-header {
+    padding: 14px 14px 10px 14px;
+  }
+  
+  .speed-category {
+    padding: 18px 14px;
+  }
+  
+  .speed-options {
+    gap: 20px;
+  }
+}

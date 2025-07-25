@@ -109,3 +109,19 @@ export async function updateRideStatus(token, rideId, status) {
     throw error;
   }
 }
+
+
+// export const getRideById = async (token, rideId) => {
+//   const response = await fetch(`${config.apiBaseUrl}/rides/${rideId}`, {
+//     headers: {
+//       'Authorization': `Bearer ${token}`,
+//       'Content-Type': 'application/json',
+//     },
+//   });
+  
+//   if (!response.ok) {
+//     throw new Error('Failed to fetch ride');
+//   }
+  
+//   return response.json();
+// };

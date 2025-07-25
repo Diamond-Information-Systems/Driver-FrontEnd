@@ -26,7 +26,7 @@ const Account = () => {
       id: "vehicles",
       icon: Car,
       title: "Vehicles",
-      subtitle: "Toyota Agya KT38PZGP",
+      subtitle: "Polo Vivo KT49XPGP",
       route: "/account/vehicles",
     },
     {

@@ -10,7 +10,8 @@
 }
 
 /* Loading and Error States */
-.map-loading, .map-error {
+.map-loading,
+.map-error {
   position: absolute;
   top: 0;
   left: 0;
@@ -36,8 +37,12 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .error-content {
@@ -83,11 +88,11 @@
 }
 
 .location-status.loading {
-  color: #4285F4;
+  color: #4285f4;
 }
 
 .location-status.error {
-  color: #EA4335;
+  color: #ea4335;
   background: rgba(255, 235, 235, 0.95);
 }
 
@@ -100,8 +105,13 @@
 }
 
 @keyframes pulse-dot {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
 }
 
 /* Navigation Panel */
@@ -133,7 +143,7 @@
   align-items: center;
   gap: 10px;
   font-weight: 600;
-  color: #1976D2;
+  color: #1976d2;
 }
 
 .nav-icon {
@@ -156,7 +166,7 @@
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #1976D2 0%, #42A5F5 100%);
+  background: linear-gradient(90deg, #1976d2 0%, #42a5f5 100%);
   border-radius: 2px;
   transition: width 0.3s ease;
 }
@@ -171,7 +181,7 @@
 .maneuver-icon {
   width: 48px;
   height: 48px;
-  background: linear-gradient(135deg, #1976D2 0%, #42A5F5 100%);
+  background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -229,13 +239,17 @@
 }
 
 .stat-bubble::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(76, 175, 80, 0.05) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(76, 175, 80, 0.1) 0%,
+    rgba(76, 175, 80, 0.05) 100%
+  );
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -250,7 +264,7 @@
 }
 
 .stat-bubble .icon {
-  color: #4CAF50;
+  color: #4caf50;
   transition: all 0.3s ease;
   font-size: 20px;
 }
@@ -322,19 +336,19 @@
 .pulse-dot {
   width: 14px;
   height: 14px;
-  background: #1976D2;
+  background: #1976d2;
   border-radius: 50%;
   position: absolute;
   left: 9px;
   top: 9px;
   z-index: 2;
-  box-shadow: 0 0 8px #1976D2aa;
+  box-shadow: 0 0 8px #1976d2aa;
   border: 2px solid #fff;
 }
 
 .pulse-marker.navigating .pulse-dot {
-  background: #42A5F5;
-  box-shadow: 0 0 12px #42A5F5cc;
+  background: #42a5f5;
+  box-shadow: 0 0 12px #42a5f5cc;
 }
 
 .pulse-ring {
@@ -426,8 +440,194 @@
 }
 
 /* Hide Google Maps default controls for a cleaner look */
-.gm-style .gm-style-cc, 
-.gm-style .gmnoprint, 
+.gm-style .gm-style-cc,
+.gm-style .gmnoprint,
 .gm-style .gm-style-mtc {
   display: none !important;
+}
+
+/* NEW: Ride action popup styles */
+.ride-action-popup {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  backdrop-filter: blur(2px);
+}
+
+.popup-content {
+  background: white;
+  padding: 30px;
+  border-radius: 16px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  animation: popupSlideIn 0.3s ease-out;
+}
+
+@keyframes popupSlideIn {
+  0% {
+    transform: scale(0.9) translateY(20px);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+.popup-content h3 {
+  margin: 0 0 12px 0;
+  color: #333;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.popup-content p {
+  margin: 0 0 24px 0;
+  color: #666;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+/* NEW: Slide to confirm component */
+.slide-to-confirm {
+  margin-bottom: 20px;
+  position: relative;
+  touch-action: none;
+}
+
+.slide-to-confirm:active .slide-handle {
+  cursor: grabbing;
+}
+
+.slide-handle {
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.slide-handle:hover {
+  transform: scale(1.05);
+}
+
+.slide-handle:active {
+  transform: scale(0.95);
+}
+
+.slide-text {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+    sans-serif;
+  white-space: nowrap;
+}
+
+/* Cancel button */
+.popup-cancel {
+  background: transparent;
+  border: 2px solid #ddd;
+  color: #666;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 100px;
+}
+
+.popup-cancel:hover:not(:disabled) {
+  border-color: #999;
+  color: #333;
+}
+
+.popup-cancel:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
+  .popup-content {
+    padding: 20px;
+    margin: 20px;
+  }
+
+  .popup-content h3 {
+    font-size: 20px;
+  }
+
+  .popup-content p {
+    font-size: 14px;
+  }
+
+  .slide-to-confirm {
+    height: 50px;
+  }
+
+  .slide-handle {
+    width: 40px;
+    height: 40px;
+    top: 5px;
+  }
+
+  .slide-text {
+    font-size: 14px;
+  }
+
+  .location-status {
+    top: 10px;
+    left: 10px;
+    font-size: 12px;
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .slide-handle {
+    transform: none;
+  }
+
+  .slide-handle:hover {
+    transform: none;
+  }
+
+  .popup-cancel:hover {
+    border-color: #ddd;
+    color: #666;
+  }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .loading-spinner,
+  .pulse-ring,
+  .popupSlideIn {
+    animation: none;
+  }
+
+  .slide-handle {
+    transition: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .popup-content {
+    border: 2px solid #000;
+  }
+
+  .slide-to-confirm {
+    border: 2px solid #000;
+  }
+
+  .popup-cancel {
+    border-color: #000;
+    color: #000;
+  }
 }
