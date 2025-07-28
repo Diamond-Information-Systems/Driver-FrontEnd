@@ -53,6 +53,7 @@ const DashboardMap = ({
   const [directions, setDirections] = useState(null);
   const [isLocationLoading, setIsLocationLoading] = useState(true);
   const [locationError, setLocationError] = useState(null);
+  const [rideStatus, setRideStatus] = useState(null);
 
   // New state for ride completion logic
   const [showStartRidePopup, setShowStartRidePopup] = useState(false);
@@ -139,6 +140,7 @@ const DashboardMap = ({
       await updateRideStatus(userToken, activeTrip._id, "started");
       setShowStartRidePopup(false);
       hasShownStartPopup.current = true;
+      setRideStatus("started");
       console.log("Ride started successfully");
     } catch (err) {
       console.error("Failed to start ride:", err);
@@ -212,10 +214,7 @@ const DashboardMap = ({
     // Update previous status for next comparison
     previousTripStatus.current = currentStatus;
   }, [
-    map,
-    activeTrip?.status,
-    activeTrip?.dropoff?.location?.coordinates,
-    userLocation,
+  rideStatus
   ]);
 
   // Enhanced geolocation tracking
