@@ -175,7 +175,7 @@ const DashboardMap = ({
     const prevStatus = previousTripStatus.current;
 
     // Check if trip status just changed to "started"
-    if (currentStatus === "started" && prevStatus !== "started") {
+    if (rideStatus === "started") {
       console.log(
         "Trip status changed to 'started', navigating to dropoff location"
       );
