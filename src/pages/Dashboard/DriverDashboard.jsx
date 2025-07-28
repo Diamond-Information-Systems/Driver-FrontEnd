@@ -36,7 +36,11 @@ import vayeLogo from "../../assets/images/VayeLogoB.png";
 import { useSpring, animated } from "react-spring";
 import DashboardMap from "../../components/DashboardMap";
 import { DriverStatusContext } from "../../context/DriverStatusContext"; // <-- add this import
-import { getNearbyRequests, acceptRideRequest, setDriverAvailability } from "../../services/requestService";
+import {
+  getNearbyRequests,
+  acceptRideRequest,
+  setDriverAvailability,
+} from "../../services/requestService";
 import RideRequest from "../../components/RideRequest";
 import { useAuth } from "../../context/AuthContext"; //get user data from context
 
@@ -50,7 +54,7 @@ function mapApiRideToRequest(apiRide) {
         name: apiRide.rider.fullName,
         rating: apiRide.rider.averageRating,
         phoneNumber: apiRide.rider.phoneNumber || "",
-      }
+      },
     ],
     stops: [
       {
@@ -62,7 +66,7 @@ function mapApiRideToRequest(apiRide) {
         location: apiRide.dropoff.address,
         passengerName: apiRide.rider.fullName,
         estimatedPrice: null,
-      }
+      },
     ],
     estimatedTotalDistance: apiRide.estimatedTotalDistance || "",
     estimatedTotalDuration: apiRide.estimatedTotalDuration || "",
@@ -70,15 +74,14 @@ function mapApiRideToRequest(apiRide) {
   };
 }
 
-
-function DriverDashboard ({ onLogout = () => {} }) {
+function DriverDashboard({ onLogout = () => {} }) {
   // // Use context, fallback to local state if context is undefined
   // const driverStatus = useContext(DriverStatusContext);
   // const [localOnline, setLocalOnline] = useState(false);
   // const isOnline = driverStatus?.isOnline ?? localOnline;
   // const setIsOnline = driverStatus?.setIsOnline ?? setLocalOnline;
 
-  const[isOnline, setIsOnline] = useState(false); // Local state for online status
+  const [isOnline, setIsOnline] = useState(false); // Local state for online status
 
   const [activeTab, setActiveTab] = useState("dashboard");
   const [earnings, setEarnings] = useState(2847);
@@ -91,21 +94,21 @@ function DriverDashboard ({ onLogout = () => {} }) {
   // Dynamic Island Modal States
   const [showEarningsModal, setShowEarningsModal] = useState(false);
   const [earningsModalIndex, setEarningsModalIndex] = useState(0); // 0: Today, 1: Last Trip, 2: Vaye Pro
-  
+
   // Sample data for the modals
   const [lastTripData] = useState({
-    amount: 145.50,
+    amount: 145.5,
     date: "10 May",
     time: "19:03",
     points: 5,
-    isVayeGo: true
+    isVayeGo: true,
   });
-  
+
   const [vayeProData] = useState({
     currentPoints: 127,
     totalPoints: 200,
     nextTier: "Gold",
-    pointsNeeded: 73
+    pointsNeeded: 73,
   });
 
   const [isLongPressing, setIsLongPressing] = useState(false);
@@ -120,22 +123,20 @@ function DriverDashboard ({ onLogout = () => {} }) {
   const [activeTrip, setActiveTrip] = useState(null);
   const [declinedRequestIds, setDeclinedRequestIds] = useState([]);
 
-  
   // NEW STATE for new features only
   const [showMapReport, setShowMapReport] = useState(false);
   const [showChatModal, setShowChatModal] = useState(false);
   const [showStatsModal, setShowStatsModal] = useState(false);
 
+  const { user } = useAuth(); // Get user data from context
 
- const { user } = useAuth(); // Get user data from context
-
- //ride request handling
+  //ride request handling
   useEffect(() => {
     let intervalId;
     let timerId;
-  
+
     const token = user?.token;
-  
+
     const pollRequests = async () => {
       try {
         const requests = await getNearbyRequests(token);
@@ -145,17 +146,19 @@ function DriverDashboard ({ onLogout = () => {} }) {
             (r) => !declinedRequestIds.includes(r._id)
           );
           setRideRequests((prev) => {
-            const existingIds = prev.map(r => r._id);
-            const newOnes = filteredRequests.filter(r => !existingIds.includes(r._id));
+            const existingIds = prev.map((r) => r._id);
+            const newOnes = filteredRequests.filter(
+              (r) => !existingIds.includes(r._id)
+            );
             return [...prev, ...newOnes];
           });
-  
+
           if (filteredRequests.length > 0) {
             setShowRequest(true);
             setRequestTimer(20); // Reset timer
             if (intervalId) clearInterval(intervalId); // Prevent overlap
             setPollingInterval(null);
-  
+
             // Start countdown timer for request
             timerId = setInterval(() => {
               setRequestTimer((prev) => {
@@ -175,7 +178,7 @@ function DriverDashboard ({ onLogout = () => {} }) {
         // Optionally handle error
       }
     };
-  
+
     // Always clear previous interval before starting a new one
     if (isOnline) {
       if (pollingInterval) clearInterval(pollingInterval);
@@ -187,52 +190,52 @@ function DriverDashboard ({ onLogout = () => {} }) {
       if (timerId) clearInterval(timerId);
       setPollingInterval(null);
     }
-  
+
     return () => {
       if (intervalId) clearInterval(intervalId);
       if (timerId) clearInterval(timerId);
     };
-  // eslint-disable-next-line
+    // eslint-disable-next-line
   }, [isOnline, declinedRequestIds]);
 
   // Show the first request in the queue
   const currentRequest = rideRequests.length > 0 ? rideRequests[0] : null;
 
   // Accept handler
-const handleAcceptRequest = async () => {
-  const token = user?.token;
-  try {
-    const response = await acceptRideRequest(currentRequest._id, token);
+  const handleAcceptRequest = async () => {
+    const token = user?.token;
+    try {
+      const response = await acceptRideRequest(currentRequest._id, token);
+      setRideRequests((prev) => prev.slice(1)); // Remove the first request
+      setShowRequest(false);
+
+      // Store the accepted ride for navigation
+      if (response && response.ride) {
+        setActiveTrip(response.ride);
+      }
+
+      if (pollingInterval) clearInterval(pollingInterval);
+    } catch (err) {
+      setRideRequests((prev) => prev.slice(1));
+      setShowRequest(false);
+    }
+  };
+  console.log("Current trip:", activeTrip);
+  // Decline handler
+  const handleDeclineRequest = () => {
+    const token = user?.token;
+    if (currentRequest) {
+      setDeclinedRequestIds((prev) => [...prev, currentRequest._id]);
+    }
     setRideRequests((prev) => prev.slice(1)); // Remove the first request
     setShowRequest(false);
-
-    // Store the accepted ride for navigation
-    if (response && response.ride) {
-      setActiveTrip(response.ride);
+    // Resume polling if no more requests
+    if (rideRequests.length <= 1) {
+      if (pollingInterval) clearInterval(pollingInterval);
+      const intervalId = setInterval(() => getNearbyRequests(token), 4000);
+      setPollingInterval(intervalId);
     }
-
-    if (pollingInterval) clearInterval(pollingInterval);
-  } catch (err) {
-    setRideRequests((prev) => prev.slice(1));
-    setShowRequest(false);
-  }
-};
-
-// Decline handler
-const handleDeclineRequest = () => {
-  const token = user?.token;
-  if (currentRequest) {
-    setDeclinedRequestIds((prev) => [...prev, currentRequest._id]);
-  }
-  setRideRequests((prev) => prev.slice(1)); // Remove the first request
-  setShowRequest(false);
-  // Resume polling if no more requests
-  if (rideRequests.length <= 1) {
-    if (pollingInterval) clearInterval(pollingInterval);
-    const intervalId = setInterval(() => getNearbyRequests(token), 4000);
-    setPollingInterval(intervalId);
-  }
-};
+  };
 
   const handleStatusChange = (newStatus) => {
     if (newStatus !== isOnline) {
@@ -325,34 +328,34 @@ const handleDeclineRequest = () => {
     setupNotifications();
   }, []);
 
-const toggleOnlineStatus = async () => {
-  const newStatus = !isOnline;
-  handleStatusChange(newStatus);
+  const toggleOnlineStatus = async () => {
+    const newStatus = !isOnline;
+    handleStatusChange(newStatus);
 
-  // Save to localStorage
-  localStorage.setItem("driverOnlineStatus", newStatus.toString());
+    // Save to localStorage
+    localStorage.setItem("driverOnlineStatus", newStatus.toString());
 
-  // Update driver availability on backend
-  try {
-    const response = await setDriverAvailability(user?.token, newStatus);
-    // If backend returns the user object, sync isOnline with isAvailable
-    if (response && response.user && response.user.driverDetails) {
-      setIsOnline(response.user.driverDetails.isAvailable);
-    } else {
-      setIsOnline(newStatus); // fallback
+    // Update driver availability on backend
+    try {
+      const response = await setDriverAvailability(user?.token, newStatus);
+      // If backend returns the user object, sync isOnline with isAvailable
+      if (response && response.user && response.user.driverDetails) {
+        setIsOnline(response.user.driverDetails.isAvailable);
+      } else {
+        setIsOnline(newStatus); // fallback
+      }
+    } catch (err) {
+      // Optionally show error or revert UI
+      console.error("Failed to update availability:", err);
+      setIsOnline(!newStatus); // revert on error
     }
-  } catch (err) {
-    // Optionally show error or revert UI
-    console.error("Failed to update availability:", err);
-    setIsOnline(!newStatus); // revert on error
-  }
 
-  if (newStatus && !notificationsEnabled) {
-    NotificationService.requestPermissions().then((granted) =>
-      setNotificationsEnabled(granted)
-    );
-  }
-};
+    if (newStatus && !notificationsEnabled) {
+      NotificationService.requestPermissions().then((granted) =>
+        setNotificationsEnabled(granted)
+      );
+    }
+  };
 
   const handleTabChange = (tabId) => {
     if (tabId === "logout") {
@@ -370,7 +373,7 @@ const toggleOnlineStatus = async () => {
   };
 
   const handleModalNavigation = (direction) => {
-    if (direction === 'next') {
+    if (direction === "next") {
       setEarningsModalIndex((prev) => (prev + 1) % 3);
     } else {
       setEarningsModalIndex((prev) => (prev - 1 + 3) % 3);
@@ -400,7 +403,9 @@ const toggleOnlineStatus = async () => {
         return (
           <div className="dynamic-island-content">
             <div className="modal-header-simple">
-              <span className="earnings-amount-large">R{earnings.toFixed(2)}</span>
+              <span className="earnings-amount-large">
+                R{earnings.toFixed(2)}
+              </span>
               <span className="earnings-period">TODAY</span>
             </div>
             <div className="earnings-stats-simple">
@@ -415,18 +420,22 @@ const toggleOnlineStatus = async () => {
             </div>
           </div>
         );
-      
+
       case 1: // Last Trip
         return (
           <div className="dynamic-island-content">
             <div className="modal-header-simple">
-              <span className="earnings-amount-large">R{lastTripData.amount.toFixed(2)}</span>
+              <span className="earnings-amount-large">
+                R{lastTripData.amount.toFixed(2)}
+              </span>
               <span className="earnings-period">LAST TRIP</span>
             </div>
             <div className="trip-details">
               <div className="trip-info">
                 <Calendar size={16} />
-                <span>{lastTripData.date} • {lastTripData.time}</span>
+                <span>
+                  {lastTripData.date} • {lastTripData.time}
+                </span>
               </div>
               {lastTripData.isVayeGo && (
                 <div className="points-earned">
@@ -438,7 +447,7 @@ const toggleOnlineStatus = async () => {
             <button className="action-button">See Earnings Activity</button>
           </div>
         );
-      
+
       case 2: // Vaye Pro
         return (
           <div className="dynamic-island-content">
@@ -450,25 +459,33 @@ const toggleOnlineStatus = async () => {
             </div>
             <div className="pro-content">
               <div className="points-display">
-                <span className="points-number">{vayeProData.currentPoints}</span>
+                <span className="points-number">
+                  {vayeProData.currentPoints}
+                </span>
                 <span className="points-text">points</span>
               </div>
               <div className="progress-container">
                 <div className="progress-bar">
-                  <div 
-                    className="progress-fill" 
-                    style={{ width: `${(vayeProData.currentPoints / vayeProData.totalPoints) * 100}%` }}
+                  <div
+                    className="progress-fill"
+                    style={{
+                      width: `${
+                        (vayeProData.currentPoints / vayeProData.totalPoints) *
+                        100
+                      }%`,
+                    }}
                   ></div>
                 </div>
                 <span className="progress-text">
-                  Collect {vayeProData.pointsNeeded} more points to achieve {vayeProData.nextTier}
+                  Collect {vayeProData.pointsNeeded} more points to achieve{" "}
+                  {vayeProData.nextTier}
                 </span>
               </div>
             </div>
             <button className="action-button">See Progress</button>
           </div>
         );
-      
+
       default:
         return null;
     }
@@ -506,21 +523,21 @@ const toggleOnlineStatus = async () => {
       {/* Dynamic Island Modal */}
       {showEarningsModal && (
         <div className="dynamic-island-overlay" onClick={closeEarningsModal}>
-          <div 
-            className="dynamic-island-modal" 
+          <div
+            className="dynamic-island-modal"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Navigation Arrows */}
-            <button 
-              className="modal-nav-button left" 
-              onClick={() => handleModalNavigation('prev')}
+            <button
+              className="modal-nav-button left"
+              onClick={() => handleModalNavigation("prev")}
             >
               <ChevronLeft size={20} />
             </button>
-            
-            <button 
-              className="modal-nav-button right" 
-              onClick={() => handleModalNavigation('next')}
+
+            <button
+              className="modal-nav-button right"
+              onClick={() => handleModalNavigation("next")}
             >
               <ChevronRight size={20} />
             </button>
@@ -531,9 +548,11 @@ const toggleOnlineStatus = async () => {
             {/* Page Indicators */}
             <div className="page-indicators">
               {[0, 1, 2].map((index) => (
-                <div 
-                  key={index} 
-                  className={`indicator ${index === earningsModalIndex ? 'active' : ''}`}
+                <div
+                  key={index}
+                  className={`indicator ${
+                    index === earningsModalIndex ? "active" : ""
+                  }`}
                   onClick={() => setEarningsModalIndex(index)}
                 />
               ))}
@@ -622,19 +641,37 @@ const toggleOnlineStatus = async () => {
               <h3>PASSENGER CHAT</h3>
               <div className="earnings-stats">
                 <div className="stat-item">
-                  <span className="stat-text">Ready to communicate with your passenger</span>
+                  <span className="stat-text">
+                    Ready to communicate with your passenger
+                  </span>
                 </div>
-                <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
-                  <button 
-                    className="view-summary-btn" 
-                    style={{ flex: 1, background: 'var(--color-chat)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                <div
+                  style={{ display: "flex", gap: "12px", marginTop: "20px" }}
+                >
+                  <button
+                    className="view-summary-btn"
+                    style={{
+                      flex: 1,
+                      background: "var(--color-chat)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "8px",
+                    }}
                   >
                     <Send size={16} />
                     CHAT
                   </button>
-                  <button 
-                    className="view-summary-btn" 
-                    style={{ flex: 1, background: 'var(--color-success)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                  <button
+                    className="view-summary-btn"
+                    style={{
+                      flex: 1,
+                      background: "var(--color-success)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "8px",
+                    }}
                   >
                     <Phone size={16} />
                     CALL
@@ -672,7 +709,15 @@ const toggleOnlineStatus = async () => {
                   <span className="stat-text">rating</span>
                 </div>
               </div>
-              <button className="view-summary-btn" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              <button
+                className="view-summary-btn"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                }}
+              >
                 <TrendingUp size={16} />
                 VIEW DETAILED ANALYTICS
               </button>
@@ -748,6 +793,6 @@ const toggleOnlineStatus = async () => {
       />
     </div>
   );
-};
+}
 
 export default DriverDashboard;
