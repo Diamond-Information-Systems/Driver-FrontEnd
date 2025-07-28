@@ -101,7 +101,7 @@ const Inbox = ({ driverId }) => {
 
     socket.emit('send_message', newMessage);
     setMessages(prev => [...prev, { ...newMessage, sender: "me", time: new Date().toLocaleTimeString() }]);
-      setMessage("");
+    setMessage("");
     scrollToBottom();
   };
 
@@ -160,61 +160,61 @@ const Inbox = ({ driverId }) => {
   );
 
   const renderChatView = () => (
-      <div className="chat-view">
+    <div className="chat-view">
       {/* Header & Trip Info... */}
 
-        {/* Messages */}
-        <div className="messages-container">
+      {/* Messages */}
+      <div className="messages-container">
         {messages.map((msg, i) => (
           <div key={i} className={`message ${msg.sender === user._id ? "sent" : "received"}`}>
-              <div className="message-content">
+            <div className="message-content">
               <p>{msg.content}</p>
-                <div className="message-meta">
+              <div className="message-meta">
                   <span className="message-time">{msg.time}</span>
                   {msg.sender === "me" && msg.status && (
                     <div className={`message-status ${msg.status}`}>
                       {msg.status === "read" ? <CheckCheck size={12} /> : <Check size={12} />}
-                    </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             </div>
-          ))}
-          <div ref={messagesEndRef} />
-        </div>
+          </div>
+        ))}
+        <div ref={messagesEndRef} />
+      </div>
 
-        {/* Message Input */}
-        <div className="message-input-container">
-          <div className="message-input-wrapper">
-            <button className="attachment-btn">
-              <Paperclip size={18} />
-            </button>
-            
-            <div className="input-field">
-              <input
-                type="text"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Type a message..."
-                className="message-input"
-              />
-              <button className="emoji-btn">
-                <Smile size={18} />
-              </button>
-            </div>
-            
-            <button 
-              className={`send-btn ${message.trim() ? "active" : ""}`}
-              onClick={handleSendMessage}
-              disabled={!message.trim()}
-            >
-              <Send size={16} />
+      {/* Message Input */}
+      <div className="message-input-container">
+        <div className="message-input-wrapper">
+          <button className="attachment-btn">
+            <Paperclip size={18} />
+          </button>
+
+          <div className="input-field">
+            <input
+              type="text"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Type a message..."
+              className="message-input"
+            />
+            <button className="emoji-btn">
+              <Smile size={18} />
             </button>
           </div>
+
+          <button
+            className={`send-btn ${message.trim() ? "active" : ""}`}
+            onClick={handleSendMessage}
+            disabled={!message.trim()}
+          >
+            <Send size={16} />
+          </button>
         </div>
       </div>
-    );
+    </div>
+  );
 
   return (
     <div className="inbox-page">
