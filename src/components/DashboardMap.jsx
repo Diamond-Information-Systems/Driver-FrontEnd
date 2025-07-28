@@ -494,7 +494,7 @@ const DashboardMap = ({
         const [pickupLng, pickupLat] = pickup.location.coordinates;
         destination = { lat: pickupLat, lng: pickupLng };
       }
-    } else if (status === "started" || status === "in_progress") {
+    } else if (rideStatus === "started" || status === "in_progress") {
       if (dropoff?.location?.coordinates) {
         const [dropoffLng, dropoffLat] = dropoff.location.coordinates;
         destination = { lat: dropoffLat, lng: dropoffLng };
