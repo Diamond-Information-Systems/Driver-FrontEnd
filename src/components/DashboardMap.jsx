@@ -141,6 +141,7 @@ const DashboardMap = ({
       setShowStartRidePopup(false);
       hasShownStartPopup.current = true;
       setRideStatus("started");
+      activeTrip.status = "started"; // Update local trip status
       console.log("Ride started successfully");
     } catch (err) {
       console.error("Failed to start ride:", err);
@@ -494,7 +495,7 @@ const DashboardMap = ({
         const [pickupLng, pickupLat] = pickup.location.coordinates;
         destination = { lat: pickupLat, lng: pickupLng };
       }
-    } else if (rideStatus === "started" || status === "in_progress") {
+    } else if (status === "started" || status === "in_progress") {
       if (dropoff?.location?.coordinates) {
         const [dropoffLng, dropoffLat] = dropoff.location.coordinates;
         destination = { lat: dropoffLat, lng: dropoffLng };
