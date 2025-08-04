@@ -1,0 +1,695 @@
+/* PaymentManagement.css - Complete Payment System with Vaye Colors */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* Color Variables - Vaye Theme */
+:root {
+  --vaye-primary-yellow: #ffd93d;
+  --vaye-primary-navy: #1e2761;
+  --vaye-success-green: #4caf50;
+  --vaye-background-main: #f8fafc;
+  --vaye-background-card: #ffffff;
+  --vaye-text-primary: #0f172a;
+  --vaye-text-secondary: #475569;
+  --vaye-text-muted: #64748b;
+  --vaye-border-light: #e2e8f0;
+  --vaye-shadow-light: 0 4px 20px rgba(148, 163, 184, 0.12);
+  --vaye-shadow-medium: 0 8px 30px rgba(148, 163, 184, 0.18);
+  --vaye-shadow-strong: 0 12px 40px rgba(148, 163, 184, 0.25);
+  --vaye-red-attention: #ef4444;
+  --vaye-blue-bank: #3b82f6;
+  --vaye-header-bg: rgba(255, 255, 255, 0.95);
+  --vaye-glass-bg: rgba(255, 255, 255, 0.8);
+  --vaye-glass-border: rgba(226, 232, 240, 0.6);
+  --vaye-gradient-yellow: linear-gradient(135deg, #ffd93d 0%, #ffed4a 100%);
+  --vaye-gradient-navy: linear-gradient(135deg, #1e2761 0%, #2d3f8f 100%);
+  --vaye-gradient-card: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.8) 100%);
+}
+
+/* Reset and Base Styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  color: var(--vaye-text-primary);
+  line-height: 1.6;
+  font-weight: 400;
+  min-height: 100vh;
+}
+
+/* Layout Components */
+.vaye-payment-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  width: 100vw;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Header Styles - Glass Effect */
+.vaye-payment-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 16px;
+  background: var(--vaye-header-bg);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--vaye-glass-border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 8px 32px rgba(148, 163, 184, 0.15);
+  width: 100%;
+  margin: 0;
+}
+
+.vaye-payment-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--vaye-text-primary);
+  letter-spacing: -0.02em;
+  background: var(--vaye-gradient-navy);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.vaye-payment-back-btn {
+  background: var(--vaye-glass-bg);
+  border: 1px solid var(--vaye-glass-border);
+  padding: 12px;
+  cursor: pointer;
+  border-radius: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--vaye-text-primary);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 15px rgba(148, 163, 184, 0.1);
+}
+
+.vaye-payment-back-btn:hover {
+  background: var(--vaye-primary-yellow);
+  border-color: var(--vaye-primary-yellow);
+  color: var(--vaye-primary-navy);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 217, 61, 0.3);
+}
+
+/* Content Area */
+.vaye-payment-content {
+  padding: 24px 16px;
+  padding-bottom: 40px;
+  width: 100%;
+  max-width: 100vw;
+  margin: 0;
+}
+
+/* Full width for forms and edit pages */
+.vaye-payment-content.full-width {
+  padding: 0;
+  margin: 0;
+  width: 100vw;
+  max-width: 100vw;
+  background: var(--vaye-background-main);
+  min-height: calc(100vh - 80px);
+}
+
+/* Page Sections */
+.vaye-payment-section {
+  margin-bottom: 40px;
+}
+
+.vaye-payment-section-title {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--vaye-text-primary);
+  margin-bottom: 24px;
+  background: var(--vaye-gradient-navy);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.vaye-payment-section-subtitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--vaye-text-primary);
+  margin-bottom: 20px;
+}
+
+/* Payment Method Cards */
+.vaye-payment-method-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px;
+  margin-bottom: 16px;
+  background: var(--vaye-gradient-card);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--vaye-glass-border);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+  box-shadow: var(--vaye-shadow-light);
+  position: relative;
+  overflow: hidden;
+}
+
+.vaye-payment-method-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  transition: left 0.6s;
+}
+
+.vaye-payment-method-card:hover::before {
+  left: 100%;
+}
+
+.vaye-payment-method-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--vaye-shadow-strong);
+  background: var(--vaye-background-card);
+  border-color: var(--vaye-primary-yellow);
+}
+
+.vaye-payment-method-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+}
+
+.vaye-payment-icon {
+  width: 48px;
+  height: 48px;
+  background: var(--vaye-blue-bank);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 20px;
+  flex-shrink: 0;
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3);
+}
+
+.vaye-payment-icon.wallet {
+  background: var(--vaye-primary-yellow);
+  color: var(--vaye-primary-navy);
+  box-shadow: 0 6px 20px rgba(255, 217, 61, 0.3);
+}
+
+.vaye-payment-icon.mobile {
+  background: var(--vaye-success-green);
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.3);
+}
+
+.vaye-payment-details h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--vaye-text-primary);
+  margin-bottom: 4px;
+  letter-spacing: -0.02em;
+}
+
+.vaye-payment-details p {
+  font-size: 14px;
+  color: var(--vaye-text-secondary);
+  font-weight: 500;
+}
+
+.vaye-payment-chevron {
+  color: var(--vaye-text-muted);
+  transition: all 0.3s ease;
+  font-size: 20px;
+}
+
+.vaye-payment-method-card:hover .vaye-payment-chevron {
+  color: var(--vaye-primary-yellow);
+  transform: translateX(6px);
+}
+
+/* Bank Account Detail Page */
+.vaye-bank-detail {
+  background: var(--vaye-gradient-card);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--vaye-glass-border);
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: var(--vaye-shadow-light);
+  margin-bottom: 24px;
+}
+
+.vaye-bank-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.vaye-bank-icon-large {
+  width: 64px;
+  height: 64px;
+  background: var(--vaye-blue-bank);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 28px;
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+}
+
+.vaye-bank-icon-large.mobile {
+  background: var(--vaye-success-green);
+  box-shadow: 0 8px 25px rgba(76, 175, 80, 0.3);
+}
+
+.vaye-bank-icon-large.wallet {
+  background: var(--vaye-primary-yellow);
+  color: var(--vaye-primary-navy);
+  box-shadow: 0 8px 25px rgba(255, 217, 61, 0.3);
+}
+
+.vaye-bank-info h2 {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--vaye-text-primary);
+  margin-bottom: 6px;
+  letter-spacing: -0.02em;
+}
+
+.vaye-bank-account-number {
+  font-size: 16px;
+  color: var(--vaye-text-secondary);
+  font-weight: 500;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 1px;
+}
+
+/* Status Badge */
+.vaye-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--vaye-background-main);
+  border: 1px solid var(--vaye-border-light);
+  border-radius: 16px;
+  padding: 12px 20px;
+  margin-bottom: 24px;
+  width: fit-content;
+}
+
+.vaye-status-badge.default {
+  background: var(--vaye-gradient-yellow);
+  border-color: var(--vaye-primary-yellow);
+  color: var(--vaye-primary-navy);
+  box-shadow: 0 4px 15px rgba(255, 217, 61, 0.3);
+}
+
+.vaye-status-badge-icon {
+  font-size: 18px;
+}
+
+.vaye-status-badge-text {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+/* Edit Button */
+.vaye-edit-button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--vaye-glass-bg);
+  border: 1px solid var(--vaye-glass-border);
+  border-radius: 16px;
+  padding: 16px 24px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 24px;
+  color: var(--vaye-text-primary);
+  width: 100%;
+  justify-content: center;
+}
+
+.vaye-edit-button:hover {
+  background: var(--vaye-primary-yellow);
+  border-color: var(--vaye-primary-yellow);
+  color: var(--vaye-primary-navy);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 217, 61, 0.3);
+}
+
+.vaye-edit-button-icon {
+  font-size: 18px;
+}
+
+.vaye-edit-button-text {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* Warning Notice */
+.vaye-warning-notice {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 16px;
+  padding: 20px;
+  color: var(--vaye-text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* Info Section */
+.vaye-info-section {
+  background: var(--vaye-gradient-card);
+  border: 1px solid var(--vaye-glass-border);
+  border-radius: 20px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: var(--vaye-shadow-light);
+}
+
+.vaye-info-section h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--vaye-text-primary);
+  margin-bottom: 12px;
+}
+
+.vaye-info-section p {
+  font-size: 14px;
+  color: var(--vaye-text-secondary);
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+
+.vaye-info-section a {
+  color: var(--vaye-primary-navy);
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+/* Add Payment Method Button */
+.vaye-add-payment-btn {
+  width: 100%;
+  padding: 20px;
+  background: var(--vaye-gradient-yellow);
+  border: none;
+  border-radius: 20px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--vaye-primary-navy);
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  box-shadow: 0 8px 30px rgba(255, 217, 61, 0.3);
+  position: relative;
+  overflow: hidden;
+  margin-top: 24px;
+}
+
+.vaye-add-payment-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.6s;
+}
+
+.vaye-add-payment-btn:hover::before {
+  left: 100%;
+}
+
+.vaye-add-payment-btn:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(255, 217, 61, 0.4);
+}
+
+/* Form Styles */
+.vaye-payment-form {
+  background: var(--vaye-gradient-card);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--vaye-glass-border);
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: var(--vaye-shadow-light);
+  margin: 16px;
+  width: calc(100% - 32px);
+}
+
+/* Full width forms */
+.vaye-payment-form.full-width {
+  margin: 0;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+  background: var(--vaye-background-main);
+  padding: 24px 16px;
+  width: 100vw;
+  max-width: 100vw;
+  min-height: calc(100vh - 80px);
+}
+
+.vaye-form-group {
+  margin-bottom: 24px;
+}
+
+.vaye-form-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--vaye-text-primary);
+  margin-bottom: 8px;
+}
+
+.vaye-form-input,
+.vaye-form-select {
+  width: 100%;
+  padding: 16px 20px;
+  border: 1px solid var(--vaye-glass-border);
+  border-radius: 16px;
+  font-size: 16px;
+  background: var(--vaye-glass-bg);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  font-weight: 500;
+  color: var(--vaye-text-primary);
+}
+
+.vaye-form-input:focus,
+.vaye-form-select:focus {
+  outline: none;
+  border-color: var(--vaye-primary-yellow);
+  box-shadow: 0 0 0 4px rgba(255, 217, 61, 0.15);
+  background: var(--vaye-background-card);
+}
+
+/* Button Styles */
+.vaye-payment-button {
+  width: 100%;
+  padding: 18px;
+  background: var(--vaye-gradient-yellow);
+  border: none;
+  border-radius: 20px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--vaye-primary-navy);
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  box-shadow: 0 8px 30px rgba(255, 217, 61, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.vaye-payment-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.6s;
+}
+
+.vaye-payment-button:hover::before {
+  left: 100%;
+}
+
+.vaye-payment-button:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(255, 217, 61, 0.4);
+}
+
+.vaye-payment-button:active {
+  transform: translateY(-2px);
+}
+
+.vaye-payment-button.secondary {
+  background: var(--vaye-glass-bg);
+  color: var(--vaye-text-primary);
+  border: 1px solid var(--vaye-glass-border);
+  box-shadow: var(--vaye-shadow-light);
+}
+
+.vaye-payment-button.secondary:hover {
+  background: var(--vaye-background-card);
+  border-color: var(--vaye-primary-navy);
+  color: var(--vaye-primary-navy);
+}
+
+/* Responsive Design */
+@media (min-width: 576px) {
+  .vaye-payment-header {
+    padding: 18px 20px;
+  }
+  
+  .vaye-payment-content {
+    padding: 24px 20px;
+  }
+  
+  .vaye-payment-form.full-width {
+    padding: 24px 20px;
+  }
+}
+
+@media (min-width: 768px) {
+  .vaye-payment-header {
+    padding: 20px 24px;
+  }
+  
+  .vaye-payment-content {
+    padding: 32px 24px;
+  }
+  
+  .vaye-payment-content.full-width {
+    padding: 0;
+    width: 100vw;
+    max-width: 100vw;
+  }
+  
+  .vaye-payment-method-card {
+    padding: 28px;
+  }
+  
+  .vaye-bank-detail {
+    padding: 32px;
+    margin: 16px;
+  }
+  
+  .vaye-payment-form {
+    padding: 32px;
+    margin: 16px;
+  }
+  
+  .vaye-payment-form.full-width {
+    padding: 32px 24px;
+    margin: 0;
+    width: 100vw;
+    max-width: 100vw;
+  }
+}
+
+@media (min-width: 1024px) {
+  .vaye-payment-header {
+    padding: 24px 32px;
+  }
+  
+  .vaye-payment-content {
+    padding: 40px 32px;
+  }
+  
+  .vaye-payment-content.full-width {
+    padding: 0;
+    width: 100vw;
+    max-width: 100vw;
+  }
+  
+  .vaye-payment-form {
+    padding: 40px;
+    margin: 20px;
+  }
+  
+  .vaye-payment-form.full-width {
+    padding: 40px 32px;
+    margin: 0;
+    width: 100vw;
+    max-width: 100vw;
+  }
+}
+
+@media (min-width: 1200px) {
+  .vaye-payment-header {
+    padding: 24px 40px;
+  }
+  
+  .vaye-payment-content {
+    padding: 48px 40px;
+  }
+  
+  .vaye-payment-content.full-width {
+    padding: 0;
+    width: 100vw;
+    max-width: 100vw;
+  }
+  
+  .vaye-payment-form.full-width {
+    padding: 48px 40px;
+    margin: 0;
+    width: 100vw;
+    max-width: 100vw;
+  }
+}
+
+/* Focus States */
+button:focus-visible,
+.vaye-payment-method-card:focus-visible,
+.vaye-form-input:focus-visible,
+.vaye-form-select:focus-visible {
+  outline: 3px solid var(--vaye-primary-yellow);
+  outline-offset: 2px;
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Touch Targets */
+@media (hover: none) and (pointer: coarse) {
+  .vaye-payment-method-card,
+  .vaye-payment-button,
+  .vaye-payment-back-btn,
+  .vaye-edit-button {
+    min-height: 48px;
+  }
+}

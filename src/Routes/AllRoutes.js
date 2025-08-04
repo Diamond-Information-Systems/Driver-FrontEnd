@@ -37,6 +37,11 @@ import VideoRecording from "../pages/AppSettingsDrawer/VideoRecording/VideoRecor
 import VehiclesPage from "../pages/Account/Vehicles/VehicleManagement";
 import WorkHub from "../pages/Account/WorkHub/WorkHub";
 import TaxInformation from "../pages/Tax/TaxInformation";
+import Payment from "../pages/Account/Payment/Payment";
+import AddressForm from "../pages/Address/Address";
+import DocumentRequirements from "../pages/Documents/DocumentRequirements";
+import DocumentDetail from "../pages/Documents/DocumentDetail";
+import AccountManagement from "../pages/Account/AccountManagement/AccountManagement";
 function AllRoutes() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -165,6 +170,20 @@ function AllRoutes() {
 
             {/* Tax Settings */}
             <Route path="/account/tax-info" element={<TaxInformation />} />
+
+             {/* Payment Settings */}
+            <Route path="/account/payment" element={<Payment />} />
+
+             {/* Address Settings */}
+            <Route path="/account/address" element={<AddressForm />} />
+
+             {/* Document Settings */}
+            <Route path="/account/documents" element={<DocumentRequirements />} />
+       <Route path="/document-detail/:documentId" element={<DocumentDetail />} />
+
+  {/* Account Management Settings */}
+            <Route path="/account/manage" element={<AccountManagement />} />
+
           </Routes>
         </div>
       )}

@@ -1,0 +1,1056 @@
+/* DocumentRequirements.css - Vaye Document Requirements Styles */
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
+/* ===== COLOR VARIABLES - VAYE THEME ===== */
+:root {
+  --vaye-primary-yellow: #ffd93d;
+  --vaye-primary-navy: #1e2761;
+  --vaye-success-green: #4caf50;
+  --vaye-background-main: #f8fafc;
+  --vaye-background-card: #ffffff;
+  --vaye-text-primary: #0f172a;
+  --vaye-text-secondary: #475569;
+  --vaye-text-muted: #64748b;
+  --vaye-border-light: #e2e8f0;
+  --vaye-shadow-light: 0 4px 20px rgba(148, 163, 184, 0.12);
+  --vaye-shadow-medium: 0 8px 30px rgba(148, 163, 184, 0.18);
+  --vaye-shadow-strong: 0 12px 40px rgba(148, 163, 184, 0.25);
+  --vaye-red-attention: #ef4444;
+  --vaye-orange-pending: #f59e0b;
+  --vaye-header-bg: rgba(255, 255, 255, 0.95);
+  --vaye-glass-bg: rgba(255, 255, 255, 0.8);
+  --vaye-glass-border: rgba(226, 232, 240, 0.6);
+  --vaye-gradient-yellow: linear-gradient(135deg, #ffd93d 0%, #ffed4a 100%);
+  --vaye-gradient-navy: linear-gradient(135deg, #1e2761 0%, #2d3f8f 100%);
+  --vaye-gradient-card: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(248, 250, 252, 0.8) 100%
+  );
+}
+
+/* ===== MAIN DOCUMENT REQUIREMENTS PAGE STYLES ===== */
+
+/* Page Container */
+.vaye-doc-requirements-page-unique {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--vaye-text-primary);
+  line-height: 1.6;
+  font-weight: 400;
+  overflow-x: hidden;
+}
+
+/* Header Styles */
+.vaye-doc-header-unique {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--vaye-header-bg);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--vaye-glass-border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 4px 20px rgba(226, 232, 240, 0.3);
+  width: 100%;
+}
+
+.vaye-doc-back-btn-unique {
+  background: none;
+  border: none;
+  color: var(--vaye-text-primary);
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  height: 44px;
+  position: relative;
+}
+
+.vaye-doc-back-btn-unique svg {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 20px;
+  height: 20px;
+}
+
+.vaye-doc-back-btn-unique:hover {
+  background: var(--vaye-glass-bg);
+  transform: translateX(-2px);
+  box-shadow: 0 2px 8px rgba(148, 163, 184, 0.15);
+}
+
+.vaye-doc-back-btn-unique:hover svg {
+  transform: translateX(-1px);
+}
+
+.vaye-doc-back-btn-unique:active {
+  transform: translateX(0) scale(0.95);
+  background: rgba(226, 232, 240, 0.4);
+}
+
+.vaye-doc-header-title-unique {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--vaye-text-primary);
+  text-align: center;
+  flex: 1;
+}
+
+.vaye-doc-help-btn-unique {
+  background: var(--vaye-glass-bg);
+  border: 1px solid var(--vaye-glass-border);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--vaye-text-secondary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 36px;
+}
+
+.vaye-doc-help-btn-unique:hover {
+  background: var(--vaye-background-card);
+  border-color: var(--vaye-primary-navy);
+  color: var(--vaye-primary-navy);
+  transform: translateY(-1px);
+}
+
+/* Content Area */
+.vaye-doc-content-unique {
+  flex: 1;
+  padding: 20px 16px;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* ===== DRIVER REQUIREMENTS SECTION STYLES ===== */
+
+.vaye-driver-section-unique {
+  margin-bottom: 40px;
+}
+
+.vaye-section-title-unique {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--vaye-text-primary);
+  margin-bottom: 24px;
+  line-height: 1.2;
+}
+
+.vaye-doc-list-unique {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--vaye-border-light);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--vaye-shadow-light);
+}
+
+/* ===== VEHICLE REQUIREMENTS SECTION STYLES ===== */
+
+.vaye-vehicle-requirements-unique {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.vaye-vehicle-section-unique {
+  background: var(--vaye-background-card);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--vaye-shadow-light);
+}
+
+.vaye-vehicle-title-unique {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--vaye-text-primary);
+  padding: 20px 16px;
+  margin: 0;
+  background: var(--vaye-background-main);
+  border-bottom: 1px solid var(--vaye-border-light);
+}
+
+/* ===== DOCUMENT ITEM STYLES ===== */
+
+.vaye-doc-item-unique {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 16px;
+  background: var(--vaye-background-card);
+  border-bottom: 1px solid var(--vaye-border-light);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.vaye-doc-item-unique:last-child {
+  border-bottom: none;
+}
+
+.vaye-doc-item-unique.clickable {
+  cursor: pointer;
+}
+
+.vaye-doc-item-unique.clickable::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.5),
+    transparent
+  );
+  transition: left 0.6s;
+}
+
+.vaye-doc-item-unique.clickable:hover::before {
+  left: 100%;
+}
+
+.vaye-doc-item-unique.clickable:hover {
+  background: var(--vaye-background-main);
+  transform: translateX(4px);
+  box-shadow: 0 4px 15px rgba(148, 163, 184, 0.15);
+}
+
+.vaye-doc-item-unique.clickable:active {
+  transform: translateX(2px);
+}
+
+.vaye-doc-content-unique {
+  flex: 1;
+  min-width: 0;
+}
+
+.vaye-doc-title-unique {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--vaye-text-primary);
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+.vaye-doc-status-unique {
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* Document Status Styles */
+.vaye-doc-status-completed {
+  color: var(--vaye-success-green);
+}
+
+.vaye-doc-status-attention {
+  color: var(--vaye-red-attention);
+}
+
+.vaye-doc-status-review {
+  color: var(--vaye-text-muted);
+}
+
+.vaye-doc-status-default {
+  color: var(--vaye-text-secondary);
+}
+
+.vaye-doc-chevron-unique {
+  color: var(--vaye-text-muted);
+  transition: all 0.3s ease;
+  margin-left: 16px;
+  flex-shrink: 0;
+}
+
+/* ===== DOCUMENT DETAIL PAGE STYLES ===== */
+
+.vaye-doc-detail-page-unique {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--vaye-text-primary);
+  line-height: 1.6;
+  font-weight: 400;
+  overflow-x: hidden;
+}
+
+/* Document Detail Content */
+.vaye-doc-detail-content-unique {
+  flex: 1;
+  padding: 20px 16px 120px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.vaye-doc-detail-container-unique {
+  width: 100%;
+  max-width: 100%;
+}
+
+.vaye-doc-detail-title-unique {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--vaye-text-primary);
+  margin-bottom: 24px;
+  line-height: 1.2;
+}
+
+/* ===== EXAMPLE IMAGE PLACEHOLDER STYLES ===== */
+
+.vaye-doc-example-image-unique {
+  width: 100%;
+  margin-bottom: 24px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--vaye-shadow-light);
+}
+
+.vaye-doc-example-img-unique {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.vaye-doc-image-placeholder-unique {
+  background: var(--vaye-glass-bg);
+  border: 2px dashed var(--vaye-glass-border);
+  border-radius: 12px;
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--vaye-text-muted);
+}
+
+.vaye-doc-image-placeholder-unique p {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--vaye-text-secondary);
+}
+
+.vaye-doc-image-placeholder-unique span {
+  font-size: 14px;
+  color: var(--vaye-text-muted);
+}
+
+/* ===== DOCUMENT DESCRIPTION STYLES ===== */
+
+.vaye-doc-description-unique {
+  margin-bottom: 24px;
+}
+
+.vaye-doc-description-unique p {
+  font-size: 16px;
+  color: var(--vaye-text-secondary);
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.vaye-doc-description-unique p:last-child {
+  margin-bottom: 0;
+}
+
+/* ===== INSTRUCTIONS STYLES ===== */
+
+.vaye-doc-instructions-unique {
+  margin-bottom: 24px;
+}
+
+.vaye-doc-instruction-item-unique {
+  font-size: 15px;
+  color: var(--vaye-text-secondary);
+  line-height: 1.6;
+  margin-bottom: 16px;
+  padding-left: 16px;
+  position: relative;
+}
+
+.vaye-doc-instruction-item-unique::before {
+  content: "•";
+  color: var(--vaye-primary-yellow);
+  font-weight: bold;
+  position: absolute;
+  left: 0;
+}
+
+.vaye-doc-instruction-item-unique:last-child {
+  margin-bottom: 0;
+}
+
+/* ===== REQUIREMENTS STYLES ===== */
+
+.vaye-doc-requirements-unique {
+  background: var(--vaye-background-card);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+  border-left: 4px solid var(--vaye-primary-yellow);
+  box-shadow: var(--vaye-shadow-light);
+}
+
+.vaye-doc-requirements-title-unique {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--vaye-text-primary);
+  margin-bottom: 12px;
+}
+
+.vaye-doc-requirements-list-unique {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.vaye-doc-requirements-list-unique li {
+  font-size: 15px;
+  color: var(--vaye-text-secondary);
+  line-height: 1.6;
+  padding-left: 20px;
+  position: relative;
+  margin-bottom: 8px;
+}
+
+.vaye-doc-requirements-list-unique li::before {
+  content: "✓";
+  color: var(--vaye-success-green);
+  font-weight: bold;
+  position: absolute;
+  left: 0;
+}
+
+.vaye-doc-requirements-list-unique li:last-child {
+  margin-bottom: 0;
+}
+
+/* ===== WARNING STYLES ===== */
+
+.vaye-doc-warnings-unique {
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.vaye-doc-warning-item-unique {
+  font-size: 14px;
+  color: var(--vaye-red-attention);
+  line-height: 1.6;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.vaye-doc-warning-item-unique:last-child {
+  margin-bottom: 0;
+}
+
+/* ===== TIPS STYLES ===== */
+
+.vaye-doc-tips-unique {
+  margin-bottom: 24px;
+}
+
+.vaye-doc-tips-btn-unique {
+  background: none;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--vaye-text-primary);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.vaye-doc-tips-btn-unique:hover {
+  color: var(--vaye-primary-navy);
+}
+
+.vaye-doc-tips-btn-unique svg {
+  transition: transform 0.3s ease;
+}
+
+.vaye-doc-tips-btn-unique:hover svg {
+  transform: rotate(180deg);
+}
+
+/* ===== PREVIEW STYLES ===== */
+
+.vaye-doc-preview-unique {
+  background: var(--vaye-background-card);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+  text-align: center;
+  box-shadow: var(--vaye-shadow-light);
+  border: 2px solid var(--vaye-success-green);
+}
+
+.vaye-doc-preview-img-unique {
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.vaye-doc-preview-text-unique {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--vaye-success-green);
+  margin: 0;
+}
+
+/* ===== LOADING STYLES ===== */
+
+.vaye-doc-loading-unique {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.vaye-doc-spinner-unique {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--vaye-border-light);
+  border-top: 4px solid var(--vaye-primary-yellow);
+  border-radius: 50%;
+  animation: vaye-doc-spin-unique 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes vaye-doc-spin-unique {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.vaye-doc-loading-unique p {
+  font-size: 16px;
+  color: var(--vaye-text-secondary);
+  margin: 0;
+}
+
+/* ===== BOTTOM ACTIONS STYLES ===== */
+
+.vaye-doc-actions-unique {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--vaye-header-bg);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--vaye-glass-border);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 -4px 20px rgba(226, 232, 240, 0.3);
+}
+
+.vaye-doc-upload-btn-unique {
+  width: 100%;
+  padding: 16px;
+  background: var(--vaye-glass-bg);
+  border: 1px solid var(--vaye-glass-border);
+  border-radius: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--vaye-text-primary);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+  min-height: 56px;
+}
+
+.vaye-doc-upload-btn-unique:hover:not(:disabled) {
+  background: var(--vaye-background-card);
+  border-color: var(--vaye-primary-navy);
+  color: var(--vaye-primary-navy);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(148, 163, 184, 0.2);
+}
+
+.vaye-doc-upload-btn-unique:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.vaye-doc-camera-btn-unique {
+  width: 100%;
+  padding: 16px;
+  background: var(--vaye-gradient-yellow);
+  border: none;
+  border-radius: 16px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--vaye-primary-navy);
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  box-shadow: 0 6px 20px rgba(255, 217, 61, 0.3);
+  position: relative;
+  overflow: hidden;
+  min-height: 56px;
+}
+
+.vaye-doc-camera-btn-unique::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  transition: left 0.6s;
+}
+
+.vaye-doc-camera-btn-unique:hover:not(:disabled)::before {
+  left: 100%;
+}
+
+.vaye-doc-camera-btn-unique:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 217, 61, 0.4);
+}
+
+.vaye-doc-camera-btn-unique:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.vaye-doc-upload-btn-unique:disabled,
+.vaye-doc-camera-btn-unique:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+
+/* Small Mobile (320px - 479px) */
+@media (max-width: 479px) {
+  .vaye-doc-header-unique {
+    padding: 10px 12px;
+  }
+
+  .vaye-doc-back-btn-unique {
+    min-width: 40px;
+    height: 40px;
+    padding: 8px;
+  }
+
+  .vaye-doc-back-btn-unique svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .vaye-doc-help-btn-unique {
+    font-size: 14px;
+    padding: 6px 12px;
+    min-height: 32px;
+  }
+
+  .vaye-doc-content-unique {
+    padding: 16px 12px 120px;
+  }
+
+  .vaye-doc-detail-content-unique {
+    padding: 16px 12px 120px;
+  }
+
+  .vaye-section-title-unique {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+
+  .vaye-doc-detail-title-unique {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+
+  .vaye-vehicle-title-unique {
+    font-size: 20px;
+    padding: 16px 12px;
+  }
+
+  .vaye-doc-item-unique {
+    padding: 16px 12px;
+  }
+
+  .vaye-doc-title-unique {
+    font-size: 15px;
+  }
+
+  .vaye-doc-status-unique {
+    font-size: 13px;
+  }
+
+  .vaye-doc-actions-unique {
+    padding: 12px;
+  }
+
+  .vaye-doc-upload-btn-unique,
+  .vaye-doc-camera-btn-unique {
+    padding: 14px;
+    font-size: 15px;
+    min-height: 50px;
+    border-radius: 12px;
+  }
+}
+
+/* Mobile (480px - 767px) */
+@media (min-width: 480px) and (max-width: 767px) {
+  .vaye-doc-header-unique {
+    padding: 14px 16px;
+  }
+
+  .vaye-doc-content-unique {
+    padding: 24px 20px 120px;
+  }
+
+  .vaye-doc-detail-content-unique {
+    padding: 24px 20px 120px;
+  }
+
+  .vaye-section-title-unique {
+    font-size: 26px;
+  }
+
+  .vaye-doc-detail-title-unique {
+    font-size: 26px;
+  }
+
+  .vaye-vehicle-title-unique {
+    font-size: 22px;
+    padding: 18px 16px;
+  }
+
+  .vaye-doc-item-unique {
+    padding: 18px 16px;
+  }
+}
+
+/* Tablet Portrait (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .vaye-doc-content-unique {
+    padding: 32px 40px 120px;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .vaye-doc-detail-content-unique {
+    padding: 32px 40px 120px;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .vaye-doc-header-unique {
+    padding: 18px 40px;
+  }
+
+  .vaye-doc-back-btn-unique {
+    min-width: 48px;
+    height: 48px;
+    padding: 12px;
+  }
+
+  .vaye-doc-back-btn-unique svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .vaye-doc-help-btn-unique {
+    font-size: 16px;
+    padding: 10px 20px;
+    min-height: 40px;
+  }
+
+  .vaye-section-title-unique {
+    font-size: 32px;
+    margin-bottom: 28px;
+  }
+
+  .vaye-doc-detail-title-unique {
+    font-size: 32px;
+    margin-bottom: 28px;
+  }
+
+  .vaye-vehicle-title-unique {
+    font-size: 26px;
+    padding: 24px 20px;
+  }
+
+  .vaye-doc-item-unique {
+    padding: 24px 20px;
+  }
+
+  .vaye-doc-title-unique {
+    font-size: 18px;
+  }
+
+  .vaye-doc-status-unique {
+    font-size: 15px;
+  }
+
+  .vaye-doc-actions-unique {
+    padding: 20px 40px;
+    max-width: 700px;
+    margin: 0 auto;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
+/* Tablet Landscape & Desktop (1024px+) */
+@media (min-width: 1024px) {
+  .vaye-doc-content-unique {
+    padding: 40px 60px 120px;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .vaye-doc-detail-content-unique {
+    padding: 40px 60px 120px;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .vaye-doc-header-unique {
+    padding: 20px 60px;
+  }
+
+  .vaye-doc-back-btn-unique {
+    min-width: 52px;
+    height: 52px;
+    padding: 14px;
+  }
+
+  .vaye-doc-back-btn-unique svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .vaye-doc-help-btn-unique {
+    font-size: 17px;
+    padding: 12px 24px;
+    min-height: 44px;
+  }
+
+  .vaye-section-title-unique {
+    font-size: 36px;
+    margin-bottom: 32px;
+  }
+
+  .vaye-doc-detail-title-unique {
+    font-size: 36px;
+    margin-bottom: 32px;
+  }
+
+  .vaye-vehicle-title-unique {
+    font-size: 28px;
+    padding: 28px 24px;
+  }
+
+  .vaye-doc-item-unique {
+    padding: 28px 24px;
+  }
+
+  .vaye-doc-title-unique {
+    font-size: 19px;
+  }
+
+  .vaye-doc-status-unique {
+    font-size: 16px;
+  }
+
+  .vaye-doc-actions-unique {
+    padding: 24px 60px;
+    max-width: 800px;
+    margin: 0 auto;
+    left: 50%;
+    transform: translateX(-50%);
+    flex-direction: row;
+  }
+
+  .vaye-doc-upload-btn-unique,
+  .vaye-doc-camera-btn-unique {
+    padding: 18px 32px;
+    font-size: 17px;
+    min-height: 60px;
+  }
+}
+
+/* iPad Specific */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+  .vaye-doc-content-unique {
+    max-width: 650px;
+    padding: 36px 32px 120px;
+  }
+
+  .vaye-doc-detail-content-unique {
+    max-width: 650px;
+    padding: 36px 32px 120px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
+  .vaye-doc-content-unique {
+    max-width: 750px;
+    padding: 32px 40px 120px;
+  }
+
+  .vaye-doc-detail-content-unique {
+    max-width: 750px;
+    padding: 32px 40px 120px;
+  }
+}
+
+/* ===== ACCESSIBILITY & PREFERENCES ===== */
+
+/* Touch Optimization */
+@media (pointer: coarse) {
+  .vaye-doc-back-btn-unique,
+  .vaye-doc-help-btn-unique {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .vaye-doc-upload-btn-unique,
+  .vaye-doc-camera-btn-unique {
+    min-height: 56px;
+  }
+}
+
+/* High DPI Displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .vaye-doc-item-unique {
+    border-width: 0.5px;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .vaye-doc-item-unique,
+  .vaye-doc-back-btn-unique,
+  .vaye-doc-upload-btn-unique,
+  .vaye-doc-camera-btn-unique,
+  .vaye-doc-spinner-unique {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+
+  .vaye-doc-item-unique::before,
+  .vaye-doc-camera-btn-unique::before {
+    display: none;
+  }
+}
+
+@media (prefers-contrast: high) {
+  .vaye-doc-item-unique {
+    border-color: #000000;
+  }
+  
+  .vaye-doc-title-unique {
+    color: #000000;
+  }
+
+  .vaye-doc-chevron-unique {
+    color: #000000;
+  }
+}
+
+/* ===== SAFE AREA FOR IPHONE X+ ===== */
+
+@supports (padding: max(0px)) {
+  .vaye-doc-header-unique {
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+    padding-top: max(12px, env(safe-area-inset-top));
+  }
+
+  .vaye-doc-content-unique {
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+  }
+
+  .vaye-doc-detail-content-unique {
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+  }
+
+  .vaye-doc-actions-unique {
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+}
+
+/* ===== FOCUS STATES FOR KEYBOARD NAVIGATION ===== */
+
+.vaye-doc-back-btn-unique:focus-visible,
+.vaye-doc-help-btn-unique:focus-visible,
+.vaye-doc-item-unique.clickable:focus-visible,
+.vaye-doc-upload-btn-unique:focus-visible,
+.vaye-doc-camera-btn-unique:focus-visible,
+.vaye-doc-tips-btn-unique:focus-visible {
+  outline: 3px solid var(--vaye-primary-yellow);
+  outline-offset: 2px;
+}
+
+/* ===== ENHANCED HOVER EFFECTS ===== */
+
+.vaye-doc-item-unique.clickable:hover .vaye-doc-title-unique {
+  color: var(--vaye-primary-navy);
+}
+
+.vaye-doc-vehicle-section-unique:hover {
+  box-shadow: var(--vaye-shadow-medium);
+}
+
+/* ===== PRINT STYLES ===== */
+
+@media print {
+  .vaye-doc-header-unique,
+  .vaye-doc-actions-unique {
+    display: none;
+  }
+
+  .vaye-doc-requirements-page-unique,
+  .vaye-doc-detail-page-unique {
+    background: white;
+  }
+
+  .vaye-doc-content-unique,
+  .vaye-doc-detail-content-unique {
+    padding: 20px;
+  }
+}
+
+/* ===== END OF STYLES ===== */

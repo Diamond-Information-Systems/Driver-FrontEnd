@@ -1,0 +1,520 @@
+/* AddressForm.css - Vaye Address Form Styles with Unique Class Names */
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
+/* Color Variables - Vaye Theme */
+:root {
+  --vaye-primary-yellow: #ffd93d;
+  --vaye-primary-navy: #1e2761;
+  --vaye-success-green: #4caf50;
+  --vaye-background-main: #f8fafc;
+  --vaye-background-card: #ffffff;
+  --vaye-text-primary: #0f172a;
+  --vaye-text-secondary: #475569;
+  --vaye-text-muted: #64748b;
+  --vaye-border-light: #e2e8f0;
+  --vaye-shadow-light: 0 4px 20px rgba(148, 163, 184, 0.12);
+  --vaye-shadow-medium: 0 8px 30px rgba(148, 163, 184, 0.18);
+  --vaye-shadow-strong: 0 12px 40px rgba(148, 163, 184, 0.25);
+  --vaye-red-attention: #ef4444;
+  --vaye-header-bg: rgba(255, 255, 255, 0.95);
+  --vaye-glass-bg: rgba(255, 255, 255, 0.8);
+  --vaye-glass-border: rgba(226, 232, 240, 0.6);
+  --vaye-gradient-yellow: linear-gradient(135deg, #ffd93d 0%, #ffed4a 100%);
+  --vaye-gradient-navy: linear-gradient(135deg, #1e2761 0%, #2d3f8f 100%);
+  --vaye-gradient-card: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(248, 250, 252, 0.8) 100%
+  );
+}
+
+/* Page Container */
+.vaye-address-page-unique {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--vaye-text-primary);
+  line-height: 1.6;
+  font-weight: 400;
+  overflow-x: hidden;
+}
+
+/* Header */
+.vaye-address-header-unique {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--vaye-header-bg);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--vaye-glass-border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 4px 20px rgba(226, 232, 240, 0.3);
+  width: 100%;
+}
+
+.vaye-back-btn-unique {
+  background: none;
+  border: none;
+  color: var(--vaye-text-primary);
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  height: 44px;
+  position: relative;
+}
+
+.vaye-back-btn-unique svg {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 20px;
+  height: 20px;
+}
+
+.vaye-back-btn-unique:hover {
+  background: var(--vaye-glass-bg);
+  transform: translateX(-2px);
+  box-shadow: 0 2px 8px rgba(148, 163, 184, 0.15);
+}
+
+.vaye-back-btn-unique:hover svg {
+  transform: translateX(-1px);
+}
+
+.vaye-back-btn-unique:active {
+  transform: translateX(0) scale(0.95);
+  background: rgba(226, 232, 240, 0.4);
+}
+
+.vaye-save-btn-unique {
+  background: none;
+  border: none;
+  font-size: 17px;
+  font-weight: 600;
+  color: #007AFF;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  min-height: 40px;
+}
+
+.vaye-save-btn-unique:hover:not(:disabled) {
+  background: rgba(0, 122, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+.vaye-save-btn-unique:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.vaye-save-btn-unique:disabled {
+  color: var(--vaye-text-muted);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.vaye-save-btn-unique.success {
+  color: var(--vaye-success-green);
+  font-weight: 700;
+}
+
+/* Content Area */
+.vaye-address-content-unique {
+  flex: 1;
+  padding: 20px 16px;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Form Container */
+.vaye-address-form-unique {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Form Groups */
+.vaye-form-group-unique {
+  margin-bottom: 24px;
+  width: 100%;
+}
+
+.vaye-form-row-unique {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.vaye-form-field-unique {
+  width: 100%;
+}
+
+/* Labels */
+.vaye-form-label-unique {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--vaye-text-primary);
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+/* Input Fields */
+.vaye-form-input-unique {
+  width: 100%;
+  padding: 16px 20px;
+  border: none;
+  border-radius: 12px;
+  font-size: 17px;
+  background: var(--vaye-glass-bg);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 500;
+  color: var(--vaye-text-primary);
+  box-shadow: var(--vaye-shadow-light);
+  border: 1px solid var(--vaye-glass-border);
+  min-height: 56px;
+  -webkit-appearance: none;
+  appearance: none;
+  font-family: inherit;
+}
+
+.vaye-form-input-unique:focus {
+  outline: none;
+  border-color: var(--vaye-primary-yellow);
+  box-shadow: 0 0 0 4px rgba(255, 217, 61, 0.15), var(--vaye-shadow-medium);
+  background: var(--vaye-background-card);
+  transform: translateY(-2px);
+}
+
+.vaye-form-input-unique::placeholder {
+  color: var(--vaye-text-muted);
+  font-weight: 400;
+}
+
+.vaye-form-input-unique:focus-visible {
+  outline: 3px solid var(--vaye-primary-yellow);
+  outline-offset: 2px;
+}
+
+/* Error State */
+.vaye-form-input-unique.error {
+  border-color: var(--vaye-red-attention);
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15), var(--vaye-shadow-light);
+  background: rgba(239, 68, 68, 0.02);
+}
+
+.vaye-form-input-unique.error:focus {
+  border-color: var(--vaye-red-attention);
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.25), var(--vaye-shadow-medium);
+}
+
+/* Success State */
+.vaye-form-input-unique.success {
+  border-color: var(--vaye-success-green);
+  box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.15), var(--vaye-shadow-light);
+}
+
+/* Responsive Design */
+
+/* Small Mobile (320px - 479px) */
+@media (max-width: 479px) {
+  .vaye-address-header-unique {
+    padding: 10px 12px;
+  }
+
+  .vaye-back-btn-unique {
+    min-width: 40px;
+    height: 40px;
+    padding: 8px;
+  }
+
+  .vaye-back-btn-unique svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .vaye-save-btn-unique {
+    font-size: 16px;
+    padding: 6px 12px;
+    min-height: 36px;
+  }
+
+  .vaye-address-content-unique {
+    padding: 16px 12px;
+  }
+
+  .vaye-form-label-unique {
+    font-size: 15px;
+  }
+
+  .vaye-form-input-unique {
+    padding: 14px 16px;
+    font-size: 16px;
+    min-height: 52px;
+    border-radius: 10px;
+  }
+
+  .vaye-form-group-unique {
+    margin-bottom: 20px;
+  }
+
+  .vaye-form-row-unique {
+    gap: 12px;
+  }
+}
+
+/* Mobile (480px - 767px) */
+@media (min-width: 480px) and (max-width: 767px) {
+  .vaye-address-header-unique {
+    padding: 14px 16px;
+  }
+
+  .vaye-address-content-unique {
+    padding: 24px 20px;
+  }
+
+  .vaye-form-input-unique {
+    padding: 18px 22px;
+    min-height: 58px;
+  }
+
+  .vaye-form-group-unique {
+    margin-bottom: 26px;
+  }
+
+  .vaye-form-row-unique {
+    gap: 18px;
+  }
+}
+
+/* Tablet Portrait (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .vaye-address-content-unique {
+    padding: 32px 40px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .vaye-address-header-unique {
+    padding: 18px 40px;
+  }
+
+  .vaye-form-input-unique {
+    padding: 20px 24px;
+    font-size: 18px;
+    min-height: 60px;
+    border-radius: 14px;
+  }
+
+  .vaye-form-label-unique {
+    font-size: 17px;
+  }
+
+  .vaye-form-group-unique {
+    margin-bottom: 28px;
+  }
+
+  .vaye-form-row-unique {
+    gap: 20px;
+  }
+
+  .vaye-back-btn-unique {
+    min-width: 44px;
+    height: 44px;
+  }
+
+  .vaye-save-btn-unique {
+    font-size: 18px;
+    padding: 10px 20px;
+    min-height: 44px;
+  }
+}
+
+/* Tablet Landscape & Desktop (1024px+) */
+@media (min-width: 1024px) {
+  .vaye-address-content-unique {
+    padding: 40px 60px;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .vaye-address-header-unique {
+    padding: 20px 60px;
+  }
+
+  .vaye-form-input-unique {
+    padding: 22px 28px;
+    font-size: 18px;
+    min-height: 64px;
+    border-radius: 16px;
+  }
+
+  .vaye-form-label-unique {
+    font-size: 18px;
+  }
+
+  .vaye-form-group-unique {
+    margin-bottom: 32px;
+  }
+
+  .vaye-form-row-unique {
+    gap: 24px;
+  }
+
+  .vaye-back-btn-unique {
+    min-width: 48px;
+    height: 48px;
+    padding: 12px;
+  }
+
+  .vaye-back-btn-unique svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .vaye-save-btn-unique {
+    font-size: 19px;
+    padding: 12px 24px;
+    min-height: 48px;
+  }
+}
+
+/* iPad Specific */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+  .vaye-address-content-unique {
+    max-width: 580px;
+    padding: 36px 32px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
+  .vaye-address-content-unique {
+    max-width: 650px;
+    padding: 32px 40px;
+  }
+}
+
+/* Touch Optimization */
+@media (pointer: coarse) {
+  .vaye-form-input-unique {
+    min-height: 56px;
+  }
+
+  .vaye-back-btn-unique,
+  .vaye-save-btn-unique {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* High DPI Displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .vaye-form-input-unique {
+    border-width: 0.5px;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .vaye-form-input-unique,
+  .vaye-close-btn-unique,
+  .vaye-save-btn-unique {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (prefers-contrast: high) {
+  .vaye-form-input-unique {
+    border-color: #000000;
+  }
+  
+  .vaye-form-label-unique {
+    color: #000000;
+  }
+}
+
+/* Loading State */
+.vaye-address-form-unique.loading .vaye-form-input-unique {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.vaye-address-form-unique.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 24px;
+  height: 24px;
+  margin: -12px 0 0 -12px;
+  border: 3px solid var(--vaye-primary-yellow);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: vaye-spin-unique 1s linear infinite;
+}
+
+@keyframes vaye-spin-unique {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Safe Area for iPhone X+ */
+@supports (padding: max(0px)) {
+  .vaye-address-header-unique {
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+    padding-top: max(12px, env(safe-area-inset-top));
+  }
+
+  .vaye-address-content-unique {
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+  }
+}
+
+/* Enhanced Hover Effects */
+.vaye-form-input-unique:hover:not(:focus) {
+  border-color: rgba(255, 217, 61, 0.5);
+  transform: translateY(-1px);
+  box-shadow: var(--vaye-shadow-medium);
+}
+
+/* Animation for smooth state changes */
+.vaye-form-input-unique.error {
+  animation: vaye-shake-unique 0.4s ease-in-out;
+}
+
+@keyframes vaye-shake-unique {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  75% { transform: translateX(2px); }
+}
+
+/* Focus within form group */
+.vaye-form-group-unique:focus-within .vaye-form-label-unique {
+  color: var(--vaye-primary-navy);
+  transform: translateY(-1px);
+  transition: all 0.3s ease;
+}
+
+/* Ensure full width coverage */
+.vaye-address-page-unique,
+.vaye-address-header-unique,
+.vaye-address-content-unique,
+.vaye-address-form-unique {
+  width: 100%;
+  max-width: 100%;
+}
