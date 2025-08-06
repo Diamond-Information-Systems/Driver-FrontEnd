@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useMemo, useCallback } from "react";
 import {
   Car,
   MapPin,
@@ -130,43 +130,79 @@ function DriverDashboard({ onLogout = () => {} }) {
 
   const { user } = useAuth(); // Get user data from context
 
+  // Memoize stable props to prevent unnecessary re-renders (moved before useEffect)
+  const userToken = useMemo(() => user?.token, [user?.token]);
+  
+  const mapMarkers = useMemo(() => [
+    {
+      position: mapCenter,
+      icon: {
+        url: "/driver-marker.png",
+        scaledSize: { width: 40, height: 40 },
+      },
+    },
+  ], [mapCenter]);
+
+  // Memoize the trip update handler
+  const handleTripUpdate = useCallback((updatedTrip) => {
+    console.log("📍 Trip update received:", updatedTrip);
+    if (updatedTrip) {
+      setActiveTrip(updatedTrip);
+      // If trip is completed or cancelled, clear it
+      if (updatedTrip.status === 'completed' || updatedTrip.status === 'cancelled') {
+        console.log("🏁 Trip finished, clearing activeTrip after update");
+        setTimeout(() => {
+          setActiveTrip(null);
+        }, 100); // Small delay to ensure state updates properly
+      }
+    } else {
+      // If updatedTrip is null, clear the active trip
+      setActiveTrip(null);
+    }
+  }, []); // No dependencies needed since we only use setActiveTrip
+
   //ride request handling
   useEffect(() => {
+    console.log("🔄 Polling effect triggered - isOnline:", isOnline, "activeTrip:", !!activeTrip, "showRequest:", showRequest, "token:", !!userToken);
+    
     let intervalId;
     let timerId;
 
-    const token = user?.token;
-
     const pollRequests = async () => {
       try {
-        const requests = await getNearbyRequests(token);
+        const requests = await getNearbyRequests(userToken);
         if (requests && requests.length > 0) {
           // Filter out declined requests
           const filteredRequests = requests.filter(
             (r) => !declinedRequestIds.includes(r._id)
           );
-          setRideRequests((prev) => {
-            const existingIds = prev.map((r) => r._id);
-            const newOnes = filteredRequests.filter(
-              (r) => !existingIds.includes(r._id)
-            );
-            return [...prev, ...newOnes];
-          });
-
+          
           if (filteredRequests.length > 0) {
+            setRideRequests(filteredRequests);
             setShowRequest(true);
             setRequestTimer(20); // Reset timer
-            if (intervalId) clearInterval(intervalId); // Prevent overlap
+            
+            // Stop polling immediately when request is found
+            if (intervalId) {
+              clearInterval(intervalId);
+              intervalId = null;
+            }
             setPollingInterval(null);
 
             // Start countdown timer for request
             timerId = setInterval(() => {
               setRequestTimer((prev) => {
                 if (prev <= 1) {
+                  // Countdown finished - decline the request automatically
                   setShowRequest(false);
+                  setRideRequests([]); // Clear requests
                   clearInterval(timerId);
-                  intervalId = setInterval(pollRequests, 4000); // Resume polling
-                  setPollingInterval(intervalId);
+                  
+                  // Only resume polling if still online and no active trip
+                  if (isOnline && !activeTrip) {
+                    intervalId = setInterval(pollRequests, 4000);
+                    setPollingInterval(intervalId);
+                  }
                   return 20;
                 }
                 return prev - 1;
@@ -175,66 +211,100 @@ function DriverDashboard({ onLogout = () => {} }) {
           }
         }
       } catch (err) {
-        // Optionally handle error
+        console.error("Error polling for requests:", err);
       }
     };
 
-    // Always clear previous interval before starting a new one
-    if (isOnline) {
-      if (pollingInterval) clearInterval(pollingInterval);
-      intervalId = setInterval(pollRequests, 4000); // Poll every 4 seconds
-      setPollingInterval(intervalId);
-    } else {
-      setShowRequest(false);
+    // Only start polling if online, no active trip, and no current request showing
+    if (isOnline && !activeTrip && !showRequest) {
+      // Clear any existing intervals first
       if (pollingInterval) clearInterval(pollingInterval);
       if (timerId) clearInterval(timerId);
-      setPollingInterval(null);
+      
+      // Start polling
+      intervalId = setInterval(pollRequests, 4000);
+      setPollingInterval(intervalId);
+      
+      console.log("✅ Started polling for ride requests - isOnline:", isOnline, "activeTrip:", !!activeTrip, "showRequest:", showRequest);
+    } else {
+      // Stop polling if conditions aren't met
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+        setPollingInterval(null);
+      }
+      if (timerId) {
+        clearInterval(timerId);
+      }
+      
+      // Clear request display if going offline or have active trip
+      if (!isOnline || activeTrip) {
+        setShowRequest(false);
+        setRideRequests([]);
+      }
+      
+      console.log("❌ Stopped polling - isOnline:", isOnline, "activeTrip:", !!activeTrip, "showRequest:", showRequest);
     }
 
     return () => {
       if (intervalId) clearInterval(intervalId);
       if (timerId) clearInterval(timerId);
     };
-    // eslint-disable-next-line
-  }, [isOnline, declinedRequestIds]);
+  }, [isOnline, activeTrip, showRequest, declinedRequestIds, userToken]); // Use stable userToken
+
+  // Handle trip completion to resume polling
+  useEffect(() => {
+    // If we had an active trip and now it's completed/cancelled, clear it
+    if (activeTrip && (activeTrip.status === 'completed' || activeTrip.status === 'cancelled')) {
+      console.log("Trip completed/cancelled, clearing activeTrip");
+      setActiveTrip(null);
+      // Polling will resume automatically via the main useEffect when activeTrip becomes null
+    }
+  }, [activeTrip?.status]);
 
   // Show the first request in the queue
   const currentRequest = rideRequests.length > 0 ? rideRequests[0] : null;
 
   // Accept handler
   const handleAcceptRequest = async () => {
-    const token = user?.token;
     try {
-      const response = await acceptRideRequest(currentRequest._id, token);
-      setRideRequests((prev) => prev.slice(1)); // Remove the first request
+      const response = await acceptRideRequest(currentRequest._id, userToken);
+      
+      // Clear the request display immediately
+      setRideRequests([]);
       setShowRequest(false);
+      
+      // Stop any polling since we now have an active trip
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+        setPollingInterval(null);
+      }
 
       // Store the accepted ride for navigation
       if (response && response.ride) {
         setActiveTrip(response.ride);
       }
 
-      if (pollingInterval) clearInterval(pollingInterval);
+      console.log("Request accepted, polling stopped");
     } catch (err) {
-      setRideRequests((prev) => prev.slice(1));
+      console.error("Error accepting request:", err);
+      // On error, clear the request and resume polling if still online
+      setRideRequests([]);
       setShowRequest(false);
     }
   };
-  console.log("Current trip:", activeTrip);
+  
   // Decline handler
   const handleDeclineRequest = () => {
-    const token = user?.token;
     if (currentRequest) {
       setDeclinedRequestIds((prev) => [...prev, currentRequest._id]);
     }
-    setRideRequests((prev) => prev.slice(1)); // Remove the first request
+    
+    // Clear the current request
+    setRideRequests([]);
     setShowRequest(false);
-    // Resume polling if no more requests
-    if (rideRequests.length <= 1) {
-      if (pollingInterval) clearInterval(pollingInterval);
-      const intervalId = setInterval(() => getNearbyRequests(token), 4000);
-      setPollingInterval(intervalId);
-    }
+    
+    console.log("Request declined, polling will resume automatically");
+    // Note: Polling will resume automatically via useEffect when showRequest becomes false
   };
 
   const handleStatusChange = (newStatus) => {
@@ -299,8 +369,13 @@ function DriverDashboard({ onLogout = () => {} }) {
   useEffect(() => {
     // Restore online status from localStorage
     const savedStatus = localStorage.getItem("driverOnlineStatus");
+    console.log("📱 Restoring driver status from localStorage:", savedStatus);
     if (savedStatus === "true") {
       setIsOnline(true);
+      console.log("📱 Set driver status to online from localStorage");
+    } else {
+      setIsOnline(false);
+      console.log("📱 Set driver status to offline (default or from localStorage)");
     }
   }, []);
 
@@ -330,6 +405,9 @@ function DriverDashboard({ onLogout = () => {} }) {
 
   const toggleOnlineStatus = async () => {
     const newStatus = !isOnline;
+    
+    // Update state immediately to stop polling
+    setIsOnline(newStatus);
     handleStatusChange(newStatus);
 
     // Save to localStorage
@@ -337,17 +415,18 @@ function DriverDashboard({ onLogout = () => {} }) {
 
     // Update driver availability on backend
     try {
-      const response = await setDriverAvailability(user?.token, newStatus);
+      const response = await setDriverAvailability(userToken, newStatus);
       // If backend returns the user object, sync isOnline with isAvailable
       if (response && response.user && response.user.driverDetails) {
         setIsOnline(response.user.driverDetails.isAvailable);
-      } else {
-        setIsOnline(newStatus); // fallback
       }
+      // Note: If backend response doesn't have the expected structure, 
+      // we keep the newStatus we already set
     } catch (err) {
-      // Optionally show error or revert UI
+      // On error, revert the UI state
       console.error("Failed to update availability:", err);
       setIsOnline(!newStatus); // revert on error
+      localStorage.setItem("driverOnlineStatus", (!newStatus).toString());
     }
 
     if (newStatus && !notificationsEnabled) {
@@ -497,18 +576,10 @@ function DriverDashboard({ onLogout = () => {} }) {
       <div className="map-container visible">
         <DashboardMap
           center={mapCenter}
-          markers={[
-            {
-              position: mapCenter,
-              icon: {
-                url: "/driver-marker.png",
-                scaledSize: { width: 40, height: 40 },
-              },
-            },
-          ]}
-          userToken={user?.token} // Pass user token for backend requests
-          activeTrip={activeTrip} // Pass active trip for navigation
-          //  onTripUpdate={(updatedTrip) => setActiveTrip(updatedTrip)}
+          markers={mapMarkers}
+          userToken={userToken}
+          activeTrip={activeTrip}
+          onTripUpdate={handleTripUpdate}
         />
       </div>
 

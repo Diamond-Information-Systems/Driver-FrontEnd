@@ -4,6 +4,7 @@ import React, {
   useRef,
   useMemo,
   useCallback,
+  memo,
 } from "react";
 import {
   GoogleMap,
@@ -16,6 +17,8 @@ import {
   updateDriverLocation,
   updateRideStatus,
   submitPassengerRating,
+  completeRide,
+  cancelRide,
 } from "../services/requestService";
 import TripSummary from "./TripSummary";
 
@@ -43,6 +46,7 @@ const DashboardMap = ({
   markers,
   userToken,
   activeTrip,
+  onTripUpdate,
 }) => {
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: config.GoogleMapsApiKey,
@@ -60,10 +64,12 @@ const DashboardMap = ({
   // New state for ride completion logic
   const [showStartRidePopup, setShowStartRidePopup] = useState(false);
   const [showCompleteRidePopup, setShowCompleteRidePopup] = useState(false);
+  const [showCancelRidePopup, setShowCancelRidePopup] = useState(false);
   const [isUpdatingRideStatus, setIsUpdatingRideStatus] = useState(false);
   const [isSimulationMode, setIsSimulationMode] = useState(false); // Track simulation mode
   const [showTripSummary, setShowTripSummary] = useState(false); // Trip summary modal
   const [completedTrip, setCompletedTrip] = useState(null); // Store completed trip data
+  const [navigationInstructions, setNavigationInstructions] = useState([]); // Turn-by-turn instructions
 
   // Refs for cleanup and tracking
   const markerRef = useRef(null);
@@ -74,6 +80,53 @@ const DashboardMap = ({
   const hasShownStartPopup = useRef(false);
   const hasShownCompletePopup = useRef(false);
   const previousTripStatus = useRef(null); // Track previous status for navigation
+  const previousActiveTrip = useRef(null);
+
+  // Memoized pickup and dropoff coordinates to prevent recalculations
+  const pickupCoords = useMemo(() => {
+    if (!activeTrip?.pickup?.location?.coordinates) return null;
+    const [lng, lat] = activeTrip.pickup.location.coordinates;
+    return { lat, lng };
+  }, [activeTrip?.pickup?.location?.coordinates]);
+
+  const dropoffCoords = useMemo(() => {
+    if (!activeTrip?.dropoff?.location?.coordinates) return null;
+    const [lng, lat] = activeTrip.dropoff.location.coordinates;
+    return { lat, lng };
+  }, [activeTrip?.dropoff?.location?.coordinates]);
+
+  // Stable activeTrip ID to prevent unnecessary effects
+  const activeTripId = useMemo(() => activeTrip?._id, [activeTrip?._id]);
+
+  // Stable current destination for directions calculation
+  const currentDestination = useMemo(() => {
+    if (!activeTrip || !currentTripStatus) return null;
+    
+    if (currentTripStatus === "accepted" || currentTripStatus === "arrived") {
+      return pickupCoords;
+    } else if (currentTripStatus === "started" || currentTripStatus === "in_progress") {
+      return dropoffCoords;
+    }
+    return null;
+  }, [currentTripStatus, pickupCoords, dropoffCoords, activeTrip]);
+
+  // Memoized map center to prevent unnecessary re-renders
+  const mapCenter = useMemo(() => {
+    return userLocation || center;
+  }, [userLocation, center]);
+
+  // Performance monitoring: Log when component re-renders
+  useEffect(() => {
+    console.log("🎯 DashboardMap re-rendered with:", {
+      hasActiveTrip: !!activeTrip,
+      activeTripId,
+      currentTripStatus,
+      hasUserLocation: !!userLocation,
+      hasMap: !!map,
+      isLoaded,
+      timestamp: new Date().toISOString()
+    });
+  });
 
   // Initialize local trip status when activeTrip changes
   useEffect(() => {
@@ -127,14 +180,30 @@ const DashboardMap = ({
     return R * c;
   }, []);
 
-  // Enhanced location update function
+  // Enhanced location update function with throttling
   const updateLocationToBackend = useCallback(
     async (latitude, longitude) => {
       if (!userToken || isUpdatingLocationRef.current) return;
+      
+      // Throttle updates - don't send if we just sent one recently
+      const now = Date.now();
+      const timeSinceLastUpdate = now - (lastSentCoords.current?.timestamp || 0);
+      const MIN_UPDATE_INTERVAL = 3000; // 3 seconds minimum between updates
+      
+      if (timeSinceLastUpdate < MIN_UPDATE_INTERVAL) {
+        console.log("Throttling location update - too recent");
+        return;
+      }
+      
       isUpdatingLocationRef.current = true;
       try {
         await updateDriverLocation(userToken, [longitude, latitude]);
-        lastSentCoords.current = { lat: latitude, lng: longitude };
+        lastSentCoords.current = { 
+          lat: latitude, 
+          lng: longitude,
+          timestamp: now 
+        };
+        console.log("Location updated to backend:", { latitude, longitude });
       } catch (err) {
         console.error("Failed to update driver location:", err);
         setLocationError("Failed to update location");
@@ -168,7 +237,8 @@ const DashboardMap = ({
     if (!activeTrip || isUpdatingRideStatus) return;
     setIsUpdatingRideStatus(true);
     try {
-      await updateRideStatus(userToken, activeTrip._id, "completed");
+      // Use the dedicated complete endpoint instead of generic status update
+      const result = await completeRide(userToken, activeTrip._id);
       setShowCompleteRidePopup(false);
       hasShownCompletePopup.current = true;
       setCurrentTripStatus("completed"); // Update local status
@@ -176,37 +246,70 @@ const DashboardMap = ({
       // Prepare trip data for summary and show the summary modal
       const tripSummaryData = {
         ...activeTrip,
+        ...result.ride, // Include any updated data from the backend
         endTime: new Date().toISOString(),
         startTime: activeTrip.startTime || new Date(Date.now() - 15 * 60000).toISOString(), // Default to 15 min ago if no start time
-        distance: activeTrip.distance || Math.random() * 10 + 2, // Mock distance for demo
-        fare: activeTrip.fare || Math.random() * 50 + 10, // Mock fare for demo
+        distance: result.ride?.distance || activeTrip.distance || Math.random() * 10 + 2, // Use backend data if available
+        fare: result.ride?.price || activeTrip.fare || Math.random() * 50 + 10, // Use backend data if available
       };
       
       setCompletedTrip(tripSummaryData);
       setShowTripSummary(true);
       
-      console.log("Ride completed successfully");
+      // Note: onTripUpdate will be called when the trip summary is closed
+      // to ensure the summary is displayed before the parent clears the activeTrip
+      
+      console.log("Ride completed successfully with dedicated API:", result);
     } catch (err) {
       console.error("Failed to complete ride:", err);
       setLocationError("Failed to complete ride");
     } finally {
       setIsUpdatingRideStatus(false);
     }
-  }, [activeTrip, userToken, isUpdatingRideStatus]);
+  }, [activeTrip, userToken, isUpdatingRideStatus, onTripUpdate]);
 
-  // Simulation functions for testing
+  // Handle cancelling the ride
+  const handleCancelRide = useCallback(async () => {
+    if (!activeTrip || isUpdatingRideStatus) return;
+    setIsUpdatingRideStatus(true);
+    try {
+      // Use the dedicated cancel endpoint
+      const result = await cancelRide(userToken, activeTrip._id);
+      setShowCancelRidePopup(false);
+      setCurrentTripStatus("cancelled"); // Update local status
+      
+      // Reset all popup flags and simulation state
+      hasShownStartPopup.current = false;
+      hasShownCompletePopup.current = false;
+      setShowStartRidePopup(false);
+      setShowCompleteRidePopup(false);
+      setIsSimulationMode(false);
+      
+      // Notify parent component that trip is cancelled
+      if (onTripUpdate) {
+        onTripUpdate({ ...activeTrip, status: 'cancelled', ...result.ride });
+      }
+      
+      console.log("Ride cancelled successfully with dedicated API:", result);
+    } catch (err) {
+      console.error("Failed to cancel ride:", err);
+      setLocationError("Failed to cancel ride");
+    } finally {
+      setIsUpdatingRideStatus(false);
+    }
+  }, [activeTrip, userToken, isUpdatingRideStatus, onTripUpdate]);
+
+  // Optimized simulation functions for testing
   const simulateMovementToPickup = useCallback(() => {
-    if (!activeTrip?.pickup?.location?.coordinates) return;
-    
-    const [pickupLng, pickupLat] = activeTrip.pickup.location.coordinates;
+    if (!pickupCoords) return;
     
     // Calculate a position very close to pickup (within arrival threshold)
     const offsetLat = 0.00002; // Very small offset to simulate being "at" pickup
     const offsetLng = 0.00002;
     
     const simulatedLocation = {
-      lat: pickupLat + offsetLat,
-      lng: pickupLng + offsetLng
+      lat: pickupCoords.lat + offsetLat,
+      lng: pickupCoords.lng + offsetLng
     };
     
     console.log('Simulating movement to pickup location:', simulatedLocation);
@@ -221,28 +324,20 @@ const DashboardMap = ({
     // Set the simulated location
     setUserLocation(simulatedLocation);
     
-    // Update the map to show the new location
-    if (map) {
-      map.panTo(simulatedLocation);
-      map.setZoom(18); // Zoom in to show precision
-    }
-    
-    // Update backend with simulated location
+    // Update backend with simulated location (no automatic map panning)
     updateLocationToBackend(simulatedLocation.lat, simulatedLocation.lng);
-  }, [activeTrip, map, updateLocationToBackend]);
+  }, [pickupCoords, updateLocationToBackend]);
 
   const simulateMovementToDropoff = useCallback(() => {
-    if (!activeTrip?.dropoff?.location?.coordinates) return;
-    
-    const [dropoffLng, dropoffLat] = activeTrip.dropoff.location.coordinates;
+    if (!dropoffCoords) return;
     
     // Calculate a position very close to dropoff (within arrival threshold)
     const offsetLat = 0.00002; // Very small offset to simulate being "at" dropoff
     const offsetLng = 0.00002;
     
     const simulatedLocation = {
-      lat: dropoffLat + offsetLat,
-      lng: dropoffLng + offsetLng
+      lat: dropoffCoords.lat + offsetLat,
+      lng: dropoffCoords.lng + offsetLng
     };
     
     console.log('Simulating movement to dropoff location:', simulatedLocation);
@@ -257,15 +352,9 @@ const DashboardMap = ({
     // Set the simulated location
     setUserLocation(simulatedLocation);
     
-    // Update the map to show the new location
-    if (map) {
-      map.panTo(simulatedLocation);
-      map.setZoom(18); // Zoom in to show precision
-    }
-    
-    // Update backend with simulated location
+    // Update backend with simulated location (no automatic map panning)
     updateLocationToBackend(simulatedLocation.lat, simulatedLocation.lng);
-  }, [activeTrip, map, updateLocationToBackend]);
+  }, [dropoffCoords, updateLocationToBackend]);
 
   // Function to reset simulation and resume real geolocation
   const resetSimulation = useCallback(() => {
@@ -285,19 +374,33 @@ const DashboardMap = ({
       await submitPassengerRating(userToken, ratingData);
       
       console.log("Rating submitted successfully");
+      
+      // Store completed trip data before closing summary
+      const completedTripData = completedTrip;
+      
       setShowTripSummary(false);
       setCompletedTrip(null);
+      
+      // Notify parent component that trip is completed (after rating submission)
+      if (onTripUpdate && completedTripData) {
+        onTripUpdate({ ...completedTripData, status: 'completed' });
+      }
     } catch (error) {
       console.error("Failed to submit rating:", error);
       throw error; // Re-throw to let TripSummary component handle the error
     }
-  }, [userToken]);
+  }, [userToken, onTripUpdate, completedTrip]);
 
   // Handle trip summary close
   const handleTripSummaryClose = useCallback(() => {
     setShowTripSummary(false);
     setCompletedTrip(null);
-  }, []);
+    
+    // Now notify parent component that trip is completed (after summary is closed)
+    if (onTripUpdate && completedTrip) {
+      onTripUpdate({ ...completedTrip, status: 'completed' });
+    }
+  }, [onTripUpdate, completedTrip]);
 
   // NEW: Navigate to dropoff when trip is started
   useEffect(() => {
@@ -305,39 +408,14 @@ const DashboardMap = ({
 
     // Check if currentTripStatus just changed to "started"
     if (currentTripStatus === "started" && previousTripStatus.current !== "started") {
-      console.log("Trip status changed to 'started', navigating to dropoff location");
-      
-      if (activeTrip.dropoff?.location?.coordinates) {
-        const [dropoffLng, dropoffLat] = activeTrip.dropoff.location.coordinates;
-        const dropoffLocation = { lat: dropoffLat, lng: dropoffLng };
-
-        // If we have user location, fit bounds to show both user and dropoff
-        if (userLocation) {
-          const bounds = new window.google.maps.LatLngBounds();
-          bounds.extend(userLocation);
-          bounds.extend(dropoffLocation);
-          
-          // Add some padding and fit the bounds
-          map.fitBounds(bounds, {
-            top: 100,
-            right: 50,
-            bottom: 100,
-            left: 50,
-          });
-          
-          console.log("Map bounds adjusted to show route from current location to dropoff");
-        } else {
-          // If no user location, just pan to dropoff
-          map.panTo(dropoffLocation);
-          map.setZoom(16);
-          console.log("Map panned to dropoff location");
-        }
-      }
+      console.log("Trip status changed to 'started' - directions will show route to dropoff");
+      // Note: We're not automatically panning the map anymore - user can manually navigate
+      // The directions will show the route, but the map will stay focused on the driver
     }
 
     // Update previous status for next comparison
     previousTripStatus.current = currentTripStatus;
-  }, [map, activeTrip, userLocation, currentTripStatus]);
+  }, [map, activeTrip, currentTripStatus]);
 
   // Enhanced geolocation tracking
   useEffect(() => {
@@ -359,13 +437,19 @@ const DashboardMap = ({
       
       const { latitude, longitude, accuracy } = position.coords;
       const newLocation = { lat: latitude, lng: longitude };
-      setUserLocation(newLocation);
-      setLocationError(null);
-      setIsLocationLoading(false);
+      
+      // Only update state if location changed significantly
+      const shouldUpdateState = !userLocation || 
+        getDistanceMeters(userLocation.lat, userLocation.lng, latitude, longitude) > 5; // 5 meter threshold
+      
+      if (shouldUpdateState) {
+        setUserLocation(newLocation);
+        setLocationError(null);
+        setIsLocationLoading(false);
+      }
 
-      // Update backend on first load or if moved significantly
-      const shouldUpdate =
-        !lastSentCoords.current ||
+      // Update backend only if moved significantly from last sent coordinates
+      const shouldUpdateBackend = !lastSentCoords.current ||
         getDistanceMeters(
           lastSentCoords.current.lat,
           lastSentCoords.current.lng,
@@ -373,7 +457,7 @@ const DashboardMap = ({
           longitude
         ) > LOCATION_UPDATE_THRESHOLD;
 
-      if (shouldUpdate) {
+      if (shouldUpdateBackend) {
         await updateLocationToBackend(latitude, longitude);
       }
     };
@@ -406,174 +490,109 @@ const DashboardMap = ({
     };
   }, [getDistanceMeters, updateLocationToBackend, isSimulationMode]);
 
-  // Enhanced arrival detection and popup management with DEBUG
+  // Optimized arrival detection with distance calculations memoization
+  const distanceToPickup = useMemo(() => {
+    if (!userLocation || !pickupCoords) return Infinity;
+    return getDistanceMeters(
+      userLocation.lat,
+      userLocation.lng,
+      pickupCoords.lat,
+      pickupCoords.lng
+    );
+  }, [userLocation, pickupCoords, getDistanceMeters]);
+
+  const distanceToDropoff = useMemo(() => {
+    if (!userLocation || !dropoffCoords) return Infinity;
+    return getDistanceMeters(
+      userLocation.lat,
+      userLocation.lng,
+      dropoffCoords.lat,
+      dropoffCoords.lng
+    );
+  }, [userLocation, dropoffCoords, getDistanceMeters]);
+
+  // Enhanced arrival detection and popup management (optimized)
   useEffect(() => {
-    console.log("=== POPUP DEBUG ===");
-    console.log("activeTrip:", activeTrip);
-    console.log("currentTripStatus:", currentTripStatus);
-    console.log("userLocation:", userLocation);
-    console.log("showStartRidePopup:", showStartRidePopup);
-    console.log("showCompleteRidePopup:", showCompleteRidePopup);
-    console.log("hasShownStartPopup.current:", hasShownStartPopup.current);
-    console.log("hasShownCompletePopup.current:", hasShownCompletePopup.current);
-
-    if (!activeTrip || !userLocation) {
-      console.log("Missing activeTrip or userLocation");
-      return;
-    }
-
-    // Debug start ride popup conditions
-    if (currentTripStatus === "arrived") {
-      console.log("Status is arrived - checking start popup conditions");
-      console.log("hasShownStartPopup.current:", hasShownStartPopup.current);
-      console.log("pickup coordinates:", activeTrip.pickup?.location?.coordinates);
-      if (activeTrip.pickup?.location?.coordinates) {
-        const [pickupLng, pickupLat] = activeTrip.pickup.location.coordinates;
-        const distanceToPickup = getDistanceMeters(
-          userLocation.lat,
-          userLocation.lng,
-          pickupLat,
-          pickupLng
-        );
-        console.log("Distance to pickup:", distanceToPickup, "meters");
-        console.log(
-          "Should show start popup:",
-          !hasShownStartPopup.current && distanceToPickup < ARRIVAL_THRESHOLD
-        );
-      }
-    }
-
-    // Debug complete ride popup conditions
-    if (
-      currentTripStatus === "started" ||
-      currentTripStatus === "in_progress"
-    ) {
-      console.log(
-        "Status is started/in_progress - checking complete popup conditions"
-      );
-      console.log("hasShownCompletePopup.current:", hasShownCompletePopup.current);
-      console.log("dropoff coordinates:", activeTrip.dropoff?.location?.coordinates);
-      if (activeTrip.dropoff?.location?.coordinates) {
-        const [dropoffLng, dropoffLat] = activeTrip.dropoff.location.coordinates;
-        const distanceToDropoff = getDistanceMeters(
-          userLocation.lat,
-          userLocation.lng,
-          dropoffLat,
-          dropoffLng
-        );
-        console.log("Distance to dropoff:", distanceToDropoff, "meters");
-        console.log(
-          "Should show complete popup:",
-          !hasShownCompletePopup.current &&
-            distanceToDropoff < ARRIVAL_THRESHOLD
-        );
-      }
-    }
+    // Skip if no active trip or location
+    if (!activeTrip || !userLocation) return;
 
     // Handle pickup location arrival (show start ride popup)
     if (
       currentTripStatus === "arrived" &&
       !hasShownStartPopup.current &&
-      activeTrip.pickup?.location?.coordinates
+      pickupCoords &&
+      distanceToPickup < ARRIVAL_THRESHOLD
     ) {
-      const [pickupLng, pickupLat] = activeTrip.pickup.location.coordinates;
-      const distanceToPickup = getDistanceMeters(
-        userLocation.lat,
-        userLocation.lng,
-        pickupLat,
-        pickupLng
-      );
-
-      if (distanceToPickup < ARRIVAL_THRESHOLD) {
-        setShowStartRidePopup(true);
-      }
+      console.log("Showing start ride popup - distance to pickup:", distanceToPickup);
+      setShowStartRidePopup(true);
+      hasShownStartPopup.current = true;
     }
 
     // Handle dropoff location arrival (show complete ride popup)
     if (
-      (currentTripStatus === "started" ||
-        currentTripStatus === "in_progress") &&
+      (currentTripStatus === "started" || currentTripStatus === "in_progress") &&
       !hasShownCompletePopup.current &&
-      activeTrip.dropoff?.location?.coordinates
+      dropoffCoords &&
+      distanceToDropoff < ARRIVAL_THRESHOLD
     ) {
-      const [dropoffLng, dropoffLat] = activeTrip.dropoff.location.coordinates;
-      const distanceToDropoff = getDistanceMeters(
-        userLocation.lat,
-        userLocation.lng,
-        dropoffLat,
-        dropoffLng
-      );
-
-      if (distanceToDropoff < ARRIVAL_THRESHOLD) {
-        setShowCompleteRidePopup(true);
-      }
+      console.log("Showing complete ride popup - distance to dropoff:", distanceToDropoff);
+      setShowCompleteRidePopup(true);
+      hasShownCompletePopup.current = true;
     }
 
-    // Auto-update to "arrived" status when within threshold (existing logic)
+    // Auto-update to "arrived" status when within threshold
     if (
       currentTripStatus === "accepted" &&
-      activeTrip.pickup?.location?.coordinates
+      pickupCoords &&
+      distanceToPickup < ARRIVAL_THRESHOLD
     ) {
-      const [pickupLng, pickupLat] = activeTrip.pickup.location.coordinates;
-      const distanceToPickup = getDistanceMeters(
-        userLocation.lat,
-        userLocation.lng,
-        pickupLat,
-        pickupLng
-      );
-
-      if (distanceToPickup < ARRIVAL_THRESHOLD) {
-        updateRideStatus(userToken, activeTrip._id, "arrived")
-          .then(() => {
-            setCurrentTripStatus("arrived"); // Update local status
-            console.log("Successfully updated ride status to arrived");
-          })
-          .catch((err) => {
-            console.error("Failed to update ride status to arrived:", err);
-          });
-      }
+      updateRideStatus(userToken, activeTrip._id, "arrived")
+        .then(() => {
+          setCurrentTripStatus("arrived");
+          console.log("Auto-updated ride status to arrived - distance:", distanceToPickup);
+        })
+        .catch((err) => {
+          console.error("Failed to auto-update ride status to arrived:", err);
+        });
     }
-  }, [userLocation, activeTrip, userToken, getDistanceMeters, currentTripStatus]);
+  }, [
+    currentTripStatus,
+    activeTripId, // Use stable ID instead of full object
+    distanceToPickup,
+    distanceToDropoff,
+    pickupCoords,
+    dropoffCoords,
+    userToken,
+  ]);
 
-  // Reset popup flags when trip changes
+  // Optimized trip reset when trip changes
   useEffect(() => {
-    console.log("Trip ID changed, resetting popup flags. New trip ID:", activeTrip?._id);
-    hasShownStartPopup.current = false;
-    hasShownCompletePopup.current = false;
-    setShowStartRidePopup(false);
-    setShowCompleteRidePopup(false);
-    setCurrentTripStatus(activeTrip?.status || null); // Reset to initial status
-    previousTripStatus.current = null; // Reset status tracking
-    setIsSimulationMode(false); // Reset simulation mode
-    setShowTripSummary(false); // Hide trip summary
-    setCompletedTrip(null); // Clear completed trip data
-  }, [activeTrip?._id]);
+    // Only reset if the trip ID actually changed
+    if (previousActiveTrip.current?._id !== activeTripId) {
+      console.log("Trip ID changed, resetting popup flags. New trip ID:", activeTripId);
+      
+      hasShownStartPopup.current = false;
+      hasShownCompletePopup.current = false;
+      setShowStartRidePopup(false);
+      setShowCompleteRidePopup(false);
+      setShowCancelRidePopup(false);
+      setCurrentTripStatus(activeTrip?.status || null);
+      previousTripStatus.current = null;
+      setIsSimulationMode(false);
+      setShowTripSummary(false);
+      setCompletedTrip(null);
+      
+      // Update the previous trip reference
+      previousActiveTrip.current = activeTrip;
+    }
+  }, [activeTripId, activeTrip?.status]); // Only depend on ID and status
 
-  // Enhanced directions calculation
+  // Optimized directions calculation
   useEffect(() => {
-    if (!activeTrip || !userLocation || !window.google) {
+    // Skip if no required data or google maps not loaded
+    if (!activeTrip || !userLocation || !window.google || !currentDestination) {
       setDirections(null);
-      return;
-    }
-
-    let destination = null;
-    const { pickup, dropoff } = activeTrip;
-
-    // Determine destination based on current trip status
-    if (currentTripStatus === "accepted" || currentTripStatus === "arrived") {
-      if (pickup?.location?.coordinates) {
-        const [pickupLng, pickupLat] = pickup.location.coordinates;
-        destination = { lat: pickupLat, lng: pickupLng };
-      }
-    } else if (currentTripStatus === "started" || currentTripStatus === "in_progress") {
-      if (dropoff?.location?.coordinates) {
-        const [dropoffLng, dropoffLat] = dropoff.location.coordinates;
-        destination = { lat: dropoffLat, lng: dropoffLng };
-      }
-    }
-
-    if (!destination) {
-      setDirections(null);
+      setNavigationInstructions([]);
       return;
     }
 
@@ -585,7 +604,7 @@ const DashboardMap = ({
     directionsServiceRef.current.route(
       {
         origin: userLocation,
-        destination,
+        destination: currentDestination,
         travelMode: window.google.maps.TravelMode.DRIVING,
         avoidHighways: false,
         avoidTolls: false,
@@ -593,52 +612,68 @@ const DashboardMap = ({
       (result, status) => {
         if (status === window.google.maps.DirectionsStatus.OK) {
           setDirections(result);
+          
+          // Extract turn-by-turn navigation instructions
+          const steps = result.routes[0]?.legs[0]?.steps || [];
+          const instructions = steps.map((step, index) => ({
+            instruction: step.instructions.replace(/<[^>]*>/g, ''), // Remove HTML tags
+            distance: step.distance?.text || '',
+            duration: step.duration?.text || '',
+            maneuver: step.maneuver || 'straight'
+          }));
+          setNavigationInstructions(instructions);
+          console.log('Navigation instructions extracted for destination:', currentDestination);
         } else {
           console.warn("Directions request failed:", status);
           setDirections(null);
+          setNavigationInstructions([]);
         }
       }
     );
-  }, [activeTrip, userLocation, currentTripStatus]);
+  }, [activeTripId, userLocation, currentDestination]); // Use optimized dependencies
 
-  // Enhanced user location marker
+  // Optimized user location marker effect
   useEffect(() => {
     if (!isLoaded || !map || !userLocation || !window.google) return;
 
     try {
       const { AdvancedMarkerElement } = window.google.maps.marker;
 
-      const createMarkerElement = () => {
-        const element = document.createElement("div");
-        element.className = "user-location-marker";
-        element.innerHTML = `
-          <div class="pulse-marker">
-            <div class="pulse-dot"></div>
-            <div class="pulse-ring"></div>
-          </div>
-        `;
-        return element;
-      };
-
+      // Only create new marker element if marker doesn't exist
       if (!markerRef.current) {
+        const createMarkerElement = () => {
+          const element = document.createElement("div");
+          element.className = "user-location-marker";
+          element.innerHTML = `
+            <div class="pulse-marker">
+              <div class="pulse-dot"></div>
+              <div class="pulse-ring"></div>
+            </div>
+          `;
+          return element;
+        };
+
         markerRef.current = new AdvancedMarkerElement({
           position: userLocation,
           map: map,
           title: "Your location",
           content: createMarkerElement(),
         });
+        
+        // Only pan to user location on initial marker creation when no active trip
+        if (!activeTripId) {
+          map.panTo(userLocation);
+        }
+        
+        console.log("Created new user location marker");
       } else {
+        // Just update the marker position without recreation
         markerRef.current.position = userLocation;
-      }
-
-      // Only pan to user location if trip is not started (to avoid interfering with dropoff navigation)
-      if (!activeTrip || currentTripStatus !== "started") {
-        map.panTo(userLocation);
       }
     } catch (error) {
       console.error("Error updating user location marker:", error);
     }
-  }, [isLoaded, map, userLocation, currentTripStatus]);
+  }, [isLoaded, map, userLocation, activeTripId]); // Use stable activeTripId instead of activeTrip
 
   // Cleanup on unmount
   useEffect(() => {
@@ -649,8 +684,8 @@ const DashboardMap = ({
     };
   }, []);
 
-  // Slider component for ride actions
-  const SlideToConfirm = ({
+  // Memoized Slider component for ride actions
+  const SlideToConfirm = memo(({
     onConfirm,
     text,
     confirmText,
@@ -768,7 +803,7 @@ const DashboardMap = ({
         </div>
       </div>
     );
-  };
+  });
 
   // Loading and error states
   if (loadError) {
@@ -868,6 +903,23 @@ const DashboardMap = ({
                 🔄 Resume Real Location
               </button>
             )}
+            {activeTrip && currentTripStatus !== 'completed' && currentTripStatus !== 'cancelled' && (
+              <button
+                onClick={() => setShowCancelRidePopup(true)}
+                style={{
+                  padding: '8px 12px',
+                  backgroundColor: '#dc3545',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  marginTop: '4px'
+                }}
+              >
+                ❌ Cancel Ride
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -938,6 +990,33 @@ const DashboardMap = ({
         </div>
       )}
 
+      {/* Cancel Ride Popup */}
+      {showCancelRidePopup && (
+        <div className="ride-action-popup" style={{ zIndex: 9999 }}>
+          <div className="popup-content">
+            <h3>Cancel This Ride?</h3>
+            <p>
+              This will cancel the ride and make you available for new requests. 
+              The passenger will be notified.
+            </p>
+            <SlideToConfirm
+              onConfirm={handleCancelRide}
+              text="Slide to Cancel Ride"
+              confirmText="Cancelling..."
+              bgColor="#dc3545"
+              disabled={isUpdatingRideStatus}
+            />
+            <button
+              className="popup-cancel"
+              onClick={() => setShowCancelRidePopup(false)}
+              disabled={isUpdatingRideStatus}
+            >
+              Keep Ride
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Trip Summary Modal */}
       {showTripSummary && completedTrip && (
         <TripSummary
@@ -947,10 +1026,36 @@ const DashboardMap = ({
         />
       )}
 
+      {/* Navigation Instructions Panel */}
+      {navigationInstructions.length > 0 && activeTrip && (currentTripStatus === "accepted" || currentTripStatus === "started" || currentTripStatus === "in_progress") && (
+        <div className="navigation-instructions">
+          <div className="navigation-header">
+            <h4>Turn-by-turn Navigation</h4>
+            <span className="next-instruction">Next: {navigationInstructions[0]?.instruction || 'Continue straight'}</span>
+          </div>
+          <div className="instructions-list">
+            {navigationInstructions.slice(0, 3).map((step, index) => (
+              <div key={index} className={`instruction-item ${index === 0 ? 'current' : ''}`}>
+                <div className="instruction-icon">
+                  {step.maneuver === 'turn-left' ? '⬅️' : 
+                   step.maneuver === 'turn-right' ? '➡️' : 
+                   step.maneuver === 'straight' ? '⬆️' : 
+                   step.maneuver === 'merge' ? '🔀' : '⬆️'}
+                </div>
+                <div className="instruction-text">
+                  <div className="instruction-main">{step.instruction}</div>
+                  <div className="instruction-distance">{step.distance}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <GoogleMap
         mapContainerStyle={mapContainerStyle}
         zoom={16}
-        center={userLocation || center}
+        center={mapCenter}
         onLoad={setMap}
         options={mapOptions}
       >
@@ -973,4 +1078,36 @@ const DashboardMap = ({
   );
 };
 
-export default DashboardMap;
+// Custom comparison function for memo to prevent unnecessary re-renders
+const arePropsEqual = (prevProps, nextProps) => {
+  // Compare primitive values
+  if (
+    prevProps.userToken !== nextProps.userToken ||
+    prevProps.center !== nextProps.center
+  ) {
+    return false;
+  }
+
+  // Compare activeTrip by ID and status (most common changes)
+  const prevTrip = prevProps.activeTrip;
+  const nextTrip = nextProps.activeTrip;
+  
+  if (prevTrip?._id !== nextTrip?._id || prevTrip?.status !== nextTrip?.status) {
+    return false;
+  }
+
+  // Compare markers array length and position
+  if (prevProps.markers?.length !== nextProps.markers?.length) {
+    return false;
+  }
+  
+  if (prevProps.markers?.[0]?.position?.lat !== nextProps.markers?.[0]?.position?.lat ||
+      prevProps.markers?.[0]?.position?.lng !== nextProps.markers?.[0]?.position?.lng) {
+    return false;
+  }
+
+  // onTripUpdate is always stable with useCallback, so no need to compare
+  return true;
+};
+
+export default memo(DashboardMap, arePropsEqual);

@@ -133,6 +133,50 @@ export async function submitPassengerRating(token, ratingData) {
   }
 }
 
+// Complete a ride using the dedicated complete endpoint
+export async function completeRide(token, rideId) {
+  try {
+    const response = await fetch(`${config.apiBaseUrl}/api/rides/complete/${rideId}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to complete ride");
+    }
+
+    return await response.json();
+  } catch (error) {
+    throw error;
+  }
+}
+
+// Cancel a ride using the dedicated cancel endpoint
+export async function cancelRide(token, rideId) {
+  try {
+    const response = await fetch(`${config.apiBaseUrl}/api/rides/cancel/${rideId}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to cancel ride");
+    }
+
+    return await response.json();
+  } catch (error) {
+    throw error;
+  }
+}
+
 
 // export const getRideById = async (token, rideId) => {
 //   const response = await fetch(`${config.apiBaseUrl}/rides/${rideId}`, {
