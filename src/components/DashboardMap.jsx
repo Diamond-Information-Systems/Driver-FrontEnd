@@ -53,12 +53,13 @@ const DashboardMap = ({
   const [directions, setDirections] = useState(null);
   const [isLocationLoading, setIsLocationLoading] = useState(true);
   const [locationError, setLocationError] = useState(null);
-  const [rideStatus, setRideStatus] = useState(null);
+  const [currentTripStatus, setCurrentTripStatus] = useState(null); // Local status tracking
 
   // New state for ride completion logic
   const [showStartRidePopup, setShowStartRidePopup] = useState(false);
   const [showCompleteRidePopup, setShowCompleteRidePopup] = useState(false);
   const [isUpdatingRideStatus, setIsUpdatingRideStatus] = useState(false);
+  const [isSimulationMode, setIsSimulationMode] = useState(false); // Track simulation mode
 
   // Refs for cleanup and tracking
   const markerRef = useRef(null);
@@ -69,6 +70,14 @@ const DashboardMap = ({
   const hasShownStartPopup = useRef(false);
   const hasShownCompletePopup = useRef(false);
   const previousTripStatus = useRef(null); // Track previous status for navigation
+
+  // Initialize local trip status when activeTrip changes
+  useEffect(() => {
+    if (activeTrip?.status) {
+      setCurrentTripStatus(activeTrip.status);
+      console.log("Initialized local trip status:", activeTrip.status);
+    }
+  }, [activeTrip?.status]);
 
   // Memoized map options with improved styling
   const mapOptions = useMemo(
@@ -140,8 +149,7 @@ const DashboardMap = ({
       await updateRideStatus(userToken, activeTrip._id, "started");
       setShowStartRidePopup(false);
       hasShownStartPopup.current = true;
-      setRideStatus("started");
-      activeTrip.status = "started"; // Update local trip status
+      setCurrentTripStatus("started"); // Update local status
       console.log("Ride started successfully");
     } catch (err) {
       console.error("Failed to start ride:", err);
@@ -159,6 +167,7 @@ const DashboardMap = ({
       await updateRideStatus(userToken, activeTrip._id, "completed");
       setShowCompleteRidePopup(false);
       hasShownCompletePopup.current = true;
+      setCurrentTripStatus("completed"); // Update local status
       console.log("Ride completed successfully");
     } catch (err) {
       console.error("Failed to complete ride:", err);
@@ -168,12 +177,94 @@ const DashboardMap = ({
     }
   }, [activeTrip, userToken, isUpdatingRideStatus]);
 
+  // Simulation functions for testing
+  const simulateMovementToPickup = useCallback(() => {
+    if (!activeTrip?.pickup?.location?.coordinates) return;
+    
+    const [pickupLng, pickupLat] = activeTrip.pickup.location.coordinates;
+    
+    // Calculate a position very close to pickup (within arrival threshold)
+    const offsetLat = 0.00002; // Very small offset to simulate being "at" pickup
+    const offsetLng = 0.00002;
+    
+    const simulatedLocation = {
+      lat: pickupLat + offsetLat,
+      lng: pickupLng + offsetLng
+    };
+    
+    console.log('Simulating movement to pickup location:', simulatedLocation);
+    
+    // Enable simulation mode and stop real geolocation
+    setIsSimulationMode(true);
+    if (watchIdRef.current) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = null;
+    }
+    
+    // Set the simulated location
+    setUserLocation(simulatedLocation);
+    
+    // Update the map to show the new location
+    if (map) {
+      map.panTo(simulatedLocation);
+      map.setZoom(18); // Zoom in to show precision
+    }
+    
+    // Update backend with simulated location
+    updateLocationToBackend(simulatedLocation.lat, simulatedLocation.lng);
+  }, [activeTrip, map, updateLocationToBackend]);
+
+  const simulateMovementToDropoff = useCallback(() => {
+    if (!activeTrip?.dropoff?.location?.coordinates) return;
+    
+    const [dropoffLng, dropoffLat] = activeTrip.dropoff.location.coordinates;
+    
+    // Calculate a position very close to dropoff (within arrival threshold)
+    const offsetLat = 0.00002; // Very small offset to simulate being "at" dropoff
+    const offsetLng = 0.00002;
+    
+    const simulatedLocation = {
+      lat: dropoffLat + offsetLat,
+      lng: dropoffLng + offsetLng
+    };
+    
+    console.log('Simulating movement to dropoff location:', simulatedLocation);
+    
+    // Enable simulation mode and stop real geolocation
+    setIsSimulationMode(true);
+    if (watchIdRef.current) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = null;
+    }
+    
+    // Set the simulated location
+    setUserLocation(simulatedLocation);
+    
+    // Update the map to show the new location
+    if (map) {
+      map.panTo(simulatedLocation);
+      map.setZoom(18); // Zoom in to show precision
+    }
+    
+    // Update backend with simulated location
+    updateLocationToBackend(simulatedLocation.lat, simulatedLocation.lng);
+  }, [activeTrip, map, updateLocationToBackend]);
+
+  // Function to reset simulation and resume real geolocation
+  const resetSimulation = useCallback(() => {
+    console.log("Resetting simulation mode - resuming real geolocation");
+    setIsSimulationMode(false);
+    setIsLocationLoading(true);
+    
+    // The geolocation effect will restart when isSimulationMode becomes false
+  }, []);
+
   // NEW: Navigate to dropoff when trip is started
   useEffect(() => {
     if (!map || !activeTrip || !window.google) return;
 
-    // Check if rideStatus just changed to "started"
-    if (rideStatus === "started" && previousTripStatus.current !== "started") {
+    // Check if currentTripStatus just changed to "started"
+    if (currentTripStatus === "started" && previousTripStatus.current !== "started") {
       console.log("Trip status changed to 'started', navigating to dropoff location");
       
       if (activeTrip.dropoff?.location?.coordinates) {
@@ -205,11 +296,17 @@ const DashboardMap = ({
     }
 
     // Update previous status for next comparison
-    previousTripStatus.current = rideStatus;
-  }, [map, activeTrip, userLocation, rideStatus]);
+    previousTripStatus.current = currentTripStatus;
+  }, [map, activeTrip, userLocation, currentTripStatus]);
 
   // Enhanced geolocation tracking
   useEffect(() => {
+    // Don't start geolocation if we're in simulation mode
+    if (isSimulationMode) {
+      console.log("Simulation mode active - skipping real geolocation");
+      return;
+    }
+
     if (!("geolocation" in navigator)) {
       setLocationError("Geolocation is not supported");
       setIsLocationLoading(false);
@@ -217,6 +314,9 @@ const DashboardMap = ({
     }
 
     const handleLocationSuccess = async (position) => {
+      // Don't update location if we're in simulation mode
+      if (isSimulationMode) return;
+      
       const { latitude, longitude, accuracy } = position.coords;
       const newLocation = { lat: latitude, lng: longitude };
       setUserLocation(newLocation);
@@ -249,48 +349,28 @@ const DashboardMap = ({
       setLocationError(errorMessages[error.code] || "Location error");
     };
 
-    watchIdRef.current = navigator.geolocation.watchPosition(
-      handleLocationSuccess,
-      handleLocationError,
-      GEOLOCATION_OPTIONS
-    );
+    // Only start watching if not already watching and not in simulation mode
+    if (!watchIdRef.current) {
+      watchIdRef.current = navigator.geolocation.watchPosition(
+        handleLocationSuccess,
+        handleLocationError,
+        GEOLOCATION_OPTIONS
+      );
+    }
 
     return () => {
       if (watchIdRef.current) {
         navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
       }
     };
-  }, [getDistanceMeters, updateLocationToBackend]);
-
-  // Force popup test - TEMPORARY for testing
-  useEffect(() => {
-    if (!activeTrip) return;
-
-    // Force show start popup when status is "arrived" and not already shown
-    if (activeTrip.status === "arrived" && !hasShownStartPopup.current) {
-      console.log("Forcing start popup to show for status:", activeTrip.status);
-      setShowStartRidePopup(true);
-    }
-
-    // Force show complete popup when status is "started" or "in_progress" and not already shown
-    // if (
-    //   (activeTrip.status === "started" ||
-    //     activeTrip.status === "in_progress") &&
-    //   !hasShownCompletePopup.current
-    // ) {
-    //   console.log(
-    //     "Forcing complete popup to show for status:",
-    //     activeTrip.status
-    //   );
-    //   setShowCompleteRidePopup(true);
-    // }
-  }, [activeTrip?.status]);
+  }, [getDistanceMeters, updateLocationToBackend, isSimulationMode]);
 
   // Enhanced arrival detection and popup management with DEBUG
   useEffect(() => {
     console.log("=== POPUP DEBUG ===");
     console.log("activeTrip:", activeTrip);
-    console.log("activeTrip.status:", activeTrip?.status);
+    console.log("currentTripStatus:", currentTripStatus);
     console.log("userLocation:", userLocation);
     console.log("showStartRidePopup:", showStartRidePopup);
     console.log("showCompleteRidePopup:", showCompleteRidePopup);
@@ -303,7 +383,7 @@ const DashboardMap = ({
     }
 
     // Debug start ride popup conditions
-    if (activeTrip.status === "arrived") {
+    if (currentTripStatus === "arrived") {
       console.log("Status is arrived - checking start popup conditions");
       console.log("hasShownStartPopup.current:", hasShownStartPopup.current);
       console.log("pickup coordinates:", activeTrip.pickup?.location?.coordinates);
@@ -325,8 +405,8 @@ const DashboardMap = ({
 
     // Debug complete ride popup conditions
     if (
-      activeTrip.status === "started" ||
-      activeTrip.status === "in_progress"
+      currentTripStatus === "started" ||
+      currentTripStatus === "in_progress"
     ) {
       console.log(
         "Status is started/in_progress - checking complete popup conditions"
@@ -352,7 +432,7 @@ const DashboardMap = ({
 
     // Handle pickup location arrival (show start ride popup)
     if (
-      activeTrip.status === "arrived" &&
+      currentTripStatus === "arrived" &&
       !hasShownStartPopup.current &&
       activeTrip.pickup?.location?.coordinates
     ) {
@@ -371,8 +451,8 @@ const DashboardMap = ({
 
     // Handle dropoff location arrival (show complete ride popup)
     if (
-      (activeTrip.status === "started" ||
-        activeTrip.status === "in_progress") &&
+      (currentTripStatus === "started" ||
+        currentTripStatus === "in_progress") &&
       !hasShownCompletePopup.current &&
       activeTrip.dropoff?.location?.coordinates
     ) {
@@ -391,7 +471,7 @@ const DashboardMap = ({
 
     // Auto-update to "arrived" status when within threshold (existing logic)
     if (
-      activeTrip.status === "accepted" &&
+      currentTripStatus === "accepted" &&
       activeTrip.pickup?.location?.coordinates
     ) {
       const [pickupLng, pickupLat] = activeTrip.pickup.location.coordinates;
@@ -405,6 +485,7 @@ const DashboardMap = ({
       if (distanceToPickup < ARRIVAL_THRESHOLD) {
         updateRideStatus(userToken, activeTrip._id, "arrived")
           .then(() => {
+            setCurrentTripStatus("arrived"); // Update local status
             console.log("Successfully updated ride status to arrived");
           })
           .catch((err) => {
@@ -412,7 +493,7 @@ const DashboardMap = ({
           });
       }
     }
-  }, [userLocation, activeTrip, userToken, getDistanceMeters]);
+  }, [userLocation, activeTrip, userToken, getDistanceMeters, currentTripStatus]);
 
   // Reset popup flags when trip changes
   useEffect(() => {
@@ -421,28 +502,10 @@ const DashboardMap = ({
     hasShownCompletePopup.current = false;
     setShowStartRidePopup(false);
     setShowCompleteRidePopup(false);
-    setRideStatus(null); // Reset ride status
+    setCurrentTripStatus(activeTrip?.status || null); // Reset to initial status
     previousTripStatus.current = null; // Reset status tracking
+    setIsSimulationMode(false); // Reset simulation mode
   }, [activeTrip?._id]);
-
-  // Simple popup trigger based on status - BACKUP mechanism
-  useEffect(() => {
-    if (!activeTrip) return;
-    console.log("Status check - Current status:", activeTrip.status);
-
-    // Show start popup for "arrived" status
-    if (activeTrip.status === "arrived" && !showStartRidePopup && !hasShownStartPopup.current) {
-      console.log("BACKUP: Showing start popup for arrived status");
-      setShowStartRidePopup(true);
-    }
-
-    // Show complete popup for "started" or "in_progress" status
-    if ((activeTrip.status === "started" || activeTrip.status === "in_progress") &&
-        !showCompleteRidePopup && !hasShownCompletePopup.current) {
-      console.log("BACKUP: Showing complete popup for started/in_progress status");
-      setShowCompleteRidePopup(true);
-    }
-  }, [activeTrip?.status, showStartRidePopup, showCompleteRidePopup]);
 
   // Enhanced directions calculation
   useEffect(() => {
@@ -452,17 +515,15 @@ const DashboardMap = ({
     }
 
     let destination = null;
-    const { status, pickup, dropoff } = activeTrip;
-    // Use local rideStatus if available, otherwise fall back to activeTrip.status
-    const currentStatus = rideStatus || status;
+    const { pickup, dropoff } = activeTrip;
 
-    // Determine destination based on trip status
-    if (currentStatus === "accepted" || currentStatus === "arrived") {
+    // Determine destination based on current trip status
+    if (currentTripStatus === "accepted" || currentTripStatus === "arrived") {
       if (pickup?.location?.coordinates) {
         const [pickupLng, pickupLat] = pickup.location.coordinates;
         destination = { lat: pickupLat, lng: pickupLng };
       }
-    } else if (currentStatus === "started" || currentStatus === "in_progress") {
+    } else if (currentTripStatus === "started" || currentTripStatus === "in_progress") {
       if (dropoff?.location?.coordinates) {
         const [dropoffLng, dropoffLat] = dropoff.location.coordinates;
         destination = { lat: dropoffLat, lng: dropoffLng };
@@ -496,7 +557,7 @@ const DashboardMap = ({
         }
       }
     );
-  }, [activeTrip, userLocation, rideStatus]);
+  }, [activeTrip, userLocation, currentTripStatus]);
 
   // Enhanced user location marker
   useEffect(() => {
@@ -529,14 +590,13 @@ const DashboardMap = ({
       }
 
       // Only pan to user location if trip is not started (to avoid interfering with dropoff navigation)
-      const currentStatus = rideStatus || activeTrip?.status;
-      if (!activeTrip || currentStatus !== "started") {
+      if (!activeTrip || currentTripStatus !== "started") {
         map.panTo(userLocation);
       }
     } catch (error) {
       console.error("Error updating user location marker:", error);
     }
-  }, [isLoaded, map, userLocation, activeTrip?.status, rideStatus]);
+  }, [isLoaded, map, userLocation, currentTripStatus]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -691,33 +751,84 @@ const DashboardMap = ({
 
   return (
     <div className="map-container">
-      {/* DEBUG: Manual popup triggers - REMOVE IN PRODUCTION */}
-      <div style={{
-        position: 'absolute',
-        top: '10px',
-        left: '10px',
-        zIndex: 10000,
-        background: 'white',
-        padding: '10px',
-        borderRadius: '5px',
-        boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
-      }}>
-        <div>Status: {activeTrip?.status || 'No active trip'}</div>
-        <div>Start Popup: {showStartRidePopup ? 'YES' : 'NO'}</div>
-        <div>Complete Popup: {showCompleteRidePopup ? 'YES' : 'NO'}</div>
-        <button
-          onClick={() => setShowStartRidePopup(true)}
-          style={{ margin: '5px', padding: '5px 10px' }}
-        >
-          Force Start Popup
-        </button>
-        <button
-          onClick={() => setShowCompleteRidePopup(true)}
-          style={{ margin: '5px', padding: '5px 10px' }}
-        >
-          Force Complete Popup
-        </button>
-      </div>
+      {/* Trip Simulation Controls */}
+      {activeTrip && (
+        <div style={{
+          position: 'absolute',
+          top: '10px',
+          left: '10px',
+          zIndex: 10000,
+          background: 'white',
+          padding: '15px',
+          borderRadius: '8px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          minWidth: '250px'
+        }}>
+          <div style={{ marginBottom: '10px', fontWeight: 'bold' }}>
+            Trip Simulation
+          </div>
+          <div style={{ fontSize: '12px', marginBottom: '5px' }}>
+            Status: {currentTripStatus || 'Unknown'}
+          </div>
+          <div style={{ 
+            fontSize: '12px', 
+            marginBottom: '10px',
+            color: isSimulationMode ? '#ff6b35' : '#4CAF50'
+          }}>
+            Mode: {isSimulationMode ? '🎮 Simulation' : '📍 Real Location'}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {(currentTripStatus === 'accepted') && (
+              <button
+                onClick={() => simulateMovementToPickup()}
+                style={{
+                  padding: '8px 12px',
+                  backgroundColor: '#2196F3',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '12px'
+                }}
+              >
+                🚗 Simulate Drive to Pickup
+              </button>
+            )}
+            {(currentTripStatus === 'started' || currentTripStatus === 'in_progress') && (
+              <button
+                onClick={() => simulateMovementToDropoff()}
+                style={{
+                  padding: '8px 12px',
+                  backgroundColor: '#4CAF50',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '12px'
+                }}
+              >
+                🎯 Simulate Drive to Dropoff
+              </button>
+            )}
+            {isSimulationMode && (
+              <button
+                onClick={() => resetSimulation()}
+                style={{
+                  padding: '8px 12px',
+                  backgroundColor: '#ff6b35',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '12px'
+                }}
+              >
+                🔄 Resume Real Location
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Location status indicator */}
       {isLocationLoading && (
