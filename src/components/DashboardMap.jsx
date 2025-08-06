@@ -15,7 +15,9 @@ import config from "../config";
 import {
   updateDriverLocation,
   updateRideStatus,
+  submitPassengerRating,
 } from "../services/requestService";
+import TripSummary from "./TripSummary";
 
 const LIBRARIES = ["marker"];
 const DEFAULT_CENTER = { lat: -25.7479, lng: 28.2293 };
@@ -60,6 +62,8 @@ const DashboardMap = ({
   const [showCompleteRidePopup, setShowCompleteRidePopup] = useState(false);
   const [isUpdatingRideStatus, setIsUpdatingRideStatus] = useState(false);
   const [isSimulationMode, setIsSimulationMode] = useState(false); // Track simulation mode
+  const [showTripSummary, setShowTripSummary] = useState(false); // Trip summary modal
+  const [completedTrip, setCompletedTrip] = useState(null); // Store completed trip data
 
   // Refs for cleanup and tracking
   const markerRef = useRef(null);
@@ -168,6 +172,19 @@ const DashboardMap = ({
       setShowCompleteRidePopup(false);
       hasShownCompletePopup.current = true;
       setCurrentTripStatus("completed"); // Update local status
+      
+      // Prepare trip data for summary and show the summary modal
+      const tripSummaryData = {
+        ...activeTrip,
+        endTime: new Date().toISOString(),
+        startTime: activeTrip.startTime || new Date(Date.now() - 15 * 60000).toISOString(), // Default to 15 min ago if no start time
+        distance: activeTrip.distance || Math.random() * 10 + 2, // Mock distance for demo
+        fare: activeTrip.fare || Math.random() * 50 + 10, // Mock fare for demo
+      };
+      
+      setCompletedTrip(tripSummaryData);
+      setShowTripSummary(true);
+      
       console.log("Ride completed successfully");
     } catch (err) {
       console.error("Failed to complete ride:", err);
@@ -257,6 +274,29 @@ const DashboardMap = ({
     setIsLocationLoading(true);
     
     // The geolocation effect will restart when isSimulationMode becomes false
+  }, []);
+
+  // Handle rating submission
+  const handleRatingSubmission = useCallback(async (ratingData) => {
+    try {
+      // Submit the rating to the backend
+      console.log("Submitting rating:", ratingData);
+      
+      await submitPassengerRating(userToken, ratingData);
+      
+      console.log("Rating submitted successfully");
+      setShowTripSummary(false);
+      setCompletedTrip(null);
+    } catch (error) {
+      console.error("Failed to submit rating:", error);
+      throw error; // Re-throw to let TripSummary component handle the error
+    }
+  }, [userToken]);
+
+  // Handle trip summary close
+  const handleTripSummaryClose = useCallback(() => {
+    setShowTripSummary(false);
+    setCompletedTrip(null);
   }, []);
 
   // NEW: Navigate to dropoff when trip is started
@@ -505,6 +545,8 @@ const DashboardMap = ({
     setCurrentTripStatus(activeTrip?.status || null); // Reset to initial status
     previousTripStatus.current = null; // Reset status tracking
     setIsSimulationMode(false); // Reset simulation mode
+    setShowTripSummary(false); // Hide trip summary
+    setCompletedTrip(null); // Clear completed trip data
   }, [activeTrip?._id]);
 
   // Enhanced directions calculation
@@ -894,6 +936,15 @@ const DashboardMap = ({
             </button>
           </div>
         </div>
+      )}
+
+      {/* Trip Summary Modal */}
+      {showTripSummary && completedTrip && (
+        <TripSummary
+          trip={completedTrip}
+          onClose={handleTripSummaryClose}
+          onSubmitRating={handleRatingSubmission}
+        />
       )}
 
       <GoogleMap

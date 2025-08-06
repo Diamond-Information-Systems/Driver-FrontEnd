@@ -110,6 +110,29 @@ export async function updateRideStatus(token, rideId, status) {
   }
 }
 
+// Submit passenger rating by driver
+export async function submitPassengerRating(token, ratingData) {
+  try {
+    const response = await fetch(`${config.apiBaseUrl}/api/rides/rate-passenger`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(ratingData),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to submit passenger rating");
+    }
+
+    return await response.json();
+  } catch (error) {
+    throw error;
+  }
+}
+
 
 // export const getRideById = async (token, rideId) => {
 //   const response = await fetch(`${config.apiBaseUrl}/rides/${rideId}`, {
