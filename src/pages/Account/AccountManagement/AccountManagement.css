@@ -1571,4 +1571,249 @@
   }
 }
 
+/* ===== PROFILE EDIT FORM STYLES ===== */
+
+.vaye-profile-edit-form {
+  padding: 24px;
+  background: var(--vaye-background-card);
+  border-radius: 16px;
+  box-shadow: var(--vaye-shadow-light);
+  margin-top: 16px;
+  border: 1px solid var(--vaye-border-light);
+}
+
+.vaye-form-group {
+  margin-bottom: 24px;
+}
+
+.vaye-form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--vaye-text-primary);
+  margin-bottom: 8px;
+  letter-spacing: -0.01em;
+}
+
+.vaye-form-group input[type="text"],
+.vaye-form-group input[type="tel"] {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid var(--vaye-border-light);
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--vaye-text-primary);
+  background: var(--vaye-background-card);
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.vaye-form-group input[type="text"]:focus,
+.vaye-form-group input[type="tel"]:focus {
+  outline: none;
+  border-color: var(--vaye-primary-yellow);
+  box-shadow: 0 0 0 3px rgba(255, 217, 61, 0.1);
+  transform: translateY(-1px);
+}
+
+.vaye-form-group input[type="file"] {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px dashed var(--vaye-border-light);
+  border-radius: 12px;
+  font-size: 14px;
+  color: var(--vaye-text-secondary);
+  background: var(--vaye-background-main);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.vaye-form-group input[type="file"]:hover {
+  border-color: var(--vaye-primary-yellow);
+  background: rgba(255, 217, 61, 0.05);
+}
+
+.vaye-form-group input[type="file"]:focus {
+  outline: none;
+  border-color: var(--vaye-primary-yellow);
+  box-shadow: 0 0 0 3px rgba(255, 217, 61, 0.1);
+}
+
+.vaye-form-helper {
+  display: block;
+  font-size: 12px;
+  color: var(--vaye-text-muted);
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+.vaye-file-name {
+  font-size: 13px;
+  color: var(--vaye-success-green);
+  margin-top: 8px;
+  padding: 6px 12px;
+  background: rgba(76, 175, 80, 0.1);
+  border-radius: 8px;
+  border-left: 3px solid var(--vaye-success-green);
+}
+
+.vaye-form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--vaye-border-light);
+}
+
+.vaye-btn-primary {
+  background: var(--vaye-gradient-yellow);
+  color: var(--vaye-text-primary);
+  border: none;
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: var(--vaye-shadow-light);
+  min-width: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vaye-btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--vaye-shadow-medium);
+}
+
+.vaye-btn-primary:active {
+  transform: translateY(0);
+}
+
+.vaye-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.vaye-btn-secondary {
+  background: transparent;
+  color: var(--vaye-text-secondary);
+  border: 2px solid var(--vaye-border-light);
+  padding: 12px 26px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 120px;
+}
+
+.vaye-btn-secondary:hover:not(:disabled) {
+  border-color: var(--vaye-text-secondary);
+  background: rgba(71, 85, 105, 0.05);
+}
+
+.vaye-btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.vaye-form-error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-left: 4px solid var(--vaye-red-attention);
+  color: var(--vaye-red-attention);
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+.vaye-form-success {
+  background: rgba(76, 175, 80, 0.1);
+  border: 1px solid rgba(76, 175, 80, 0.2);
+  border-left: 4px solid var(--vaye-success-green);
+  color: var(--vaye-success-green);
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .vaye-profile-edit-form {
+    padding: 20px 16px;
+    margin: 12px;
+    border-radius: 12px;
+  }
+  
+  .vaye-form-actions {
+    flex-direction: column;
+  }
+  
+  .vaye-btn-primary,
+  .vaye-btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ===== DRIVER STATISTICS STYLES ===== */
+
+.vaye-driver-stats-unique {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 16px;
+  padding: 16px;
+  background: rgba(255, 217, 61, 0.1);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 217, 61, 0.2);
+}
+
+.vaye-stat-item-unique {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.vaye-stat-number {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--vaye-text-primary);
+  line-height: 1.2;
+}
+
+.vaye-stat-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--vaye-text-secondary);
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+@media (max-width: 768px) {
+  .vaye-driver-stats-unique {
+    gap: 16px;
+    padding: 12px;
+  }
+  
+  .vaye-stat-number {
+    font-size: 16px;
+  }
+  
+  .vaye-stat-label {
+    font-size: 11px;
+  }
+}
+
 /* ===== END OF STYLES ===== */

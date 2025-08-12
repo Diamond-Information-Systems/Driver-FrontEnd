@@ -10,6 +10,7 @@ import "../App.css";
 import DriverRegistration from "../pages/Auth/DriverRegistration";
 import Earnings from "../pages/Earnings/Earnings";
 import Profile from "../pages/Profile/Profile";
+import ProfileEdit from "../pages/Profile/ProfileEdit";
 import Trips from "../pages/Trips/Trips";
 import Wallet from "../pages/Wallet/Wallet";
 import Help from "../pages/Help/Help";
@@ -100,6 +101,7 @@ function AllRoutes() {
             <Route path="/help" element={<Help />} />
             <Route path="/earnings" element={<Earnings />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/profile/edit" element={<ProfileEdit />} />
             <Route path="/referrals" element={<Referrals />} />
             <Route path="/trips" element={<Trips />} />
             <Route path="/wallet" element={<Wallet />} />

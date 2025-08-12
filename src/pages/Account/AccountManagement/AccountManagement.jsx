@@ -1,6 +1,8 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import "./AccountManagement.css";
+import { getProfile, updateProfile, uploadDocument } from "../../../services/profileService";
+import { useAuth } from "../../../context/AuthContext";
 
 // Mock user data
 const mockUserData = {
@@ -32,10 +34,57 @@ const mockUserData = {
 const AccountManagement = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
+  const { user: authResponse } = useAuth();
+
+  // Extract user data from auth response structure
+  const authUser = authResponse?.user || null;
+  
+  //log user data
+  console.log("Auth Response:", authResponse);
+  console.log("Extracted User:", authUser);
 
   // State management
   const [activeTab, setActiveTab] = useState("home");
-  const [userData, setUserData] = useState(mockUserData);
+  const [userData, setUserData] = useState(authUser || mockUserData);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileError, setProfileError] = useState("");
+  const [profileSuccess, setProfileSuccess] = useState("");
+  const [editMode, setEditMode] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [driverDocs, setDriverDocs] = useState({});
+  
+  // Load profile from backend
+  useEffect(() => {
+    if (authUser) {
+      // Merge real user data with fallback values for missing fields
+      const mergedUserData = {
+        ...mockUserData, // Fallback values
+        ...authUser,     // Real user data overrides
+      };
+      setUserData(mergedUserData);
+      setEditName(authUser.name || "");
+      setEditPhone(authUser.phone || "");
+    } else {
+      // Fallback: load from API if not in context
+      setProfileLoading(true);
+      getProfile(authResponse?.token)
+        .then((data) => {
+          const mergedData = {
+            ...mockUserData,
+            ...userData,
+            ...data
+          };
+          setUserData(mergedData);
+          setEditName(data.name || "");
+          setEditPhone(data.phone || "");
+        })
+        .catch(() => setProfileError("Failed to load profile."))
+        .finally(() => setProfileLoading(false));
+    }
+    // eslint-disable-next-line
+  }, [authUser]);
+  
   const [showModal, setShowModal] = useState(null);
   const [twoFactorSetup, setTwoFactorSetup] = useState({
     step: 1,
@@ -116,7 +165,40 @@ const AccountManagement = () => {
           />
         );
       case "personal":
-        return <PersonalInfoTab userData={userData} />;
+        return (
+          <PersonalInfoTab
+            userData={userData}
+            editMode={editMode}
+            setEditMode={setEditMode}
+            editName={editName}
+            setEditName={setEditName}
+            editPhone={editPhone}
+            setEditPhone={setEditPhone}
+            driverDocs={driverDocs}
+            setDriverDocs={setDriverDocs}
+            onSave={async () => {
+              setProfileLoading(true);
+              setProfileError("");
+              setProfileSuccess("");
+              try {
+                await updateProfile({ name: editName, phone: editPhone }, authResponse?.token);
+                for (const [docType, file] of Object.entries(driverDocs)) {
+                  if (file) await uploadDocument(docType, file, authResponse?.token);
+                }
+                setUserData({ ...userData, name: editName, phone: editPhone });
+                setProfileSuccess("Profile updated successfully.");
+                setEditMode(false);
+              } catch {
+                setProfileError("Failed to update profile.");
+              } finally {
+                setProfileLoading(false);
+              }
+            }}
+            profileLoading={profileLoading}
+            profileError={profileError}
+            profileSuccess={profileSuccess}
+          />
+        );
       case "security":
         return <SecurityTab userData={userData} onOpenModal={openModal} />;
       case "privacy":
@@ -225,9 +307,9 @@ const HomeTab = ({ userData, onPhotoUpload, isUploading, onTabSwitch }) => (
           <div className="vaye-avatar-loading-unique">
             <div className="vaye-spinner-unique"></div>
           </div>
-        ) : userData.avatar ? (
+        ) : userData.profileImage || userData.avatar ? (
           <img
-            src={userData.avatar}
+            src={userData.profileImage || userData.avatar}
             alt="Profile"
             className="vaye-avatar-img-unique"
           />
@@ -289,6 +371,28 @@ const HomeTab = ({ userData, onPhotoUpload, isUploading, onTabSwitch }) => (
 
       <h2 className="vaye-profile-name-unique">{userData.name}</h2>
       <p className="vaye-profile-email-unique">{userData.email}</p>
+      
+      {/* Driver Statistics */}
+      {userData.totalTrips !== undefined && (
+        <div className="vaye-driver-stats-unique">
+          <div className="vaye-stat-item-unique">
+            <span className="vaye-stat-number">{userData.totalTrips}</span>
+            <span className="vaye-stat-label">Trips</span>
+          </div>
+          {userData.rating > 0 && (
+            <div className="vaye-stat-item-unique">
+              <span className="vaye-stat-number">{userData.rating}⭐</span>
+              <span className="vaye-stat-label">Rating</span>
+            </div>
+          )}
+          {userData.memberSince && (
+            <div className="vaye-stat-item-unique">
+              <span className="vaye-stat-number">{userData.memberSince}</span>
+              <span className="vaye-stat-label">Member since</span>
+            </div>
+          )}
+        </div>
+      )}
     </div>
 
     {/* Quick Actions */}
@@ -436,72 +540,89 @@ const HomeTab = ({ userData, onPhotoUpload, isUploading, onTabSwitch }) => (
   </div>
 );
 
-// Personal Info Tab Component
-const PersonalInfoTab = ({ userData }) => (
+// Personal Info Tab Component (Redesigned, Accessible, Modern)
+const PersonalInfoTab = ({ userData, editMode, setEditMode, editName, setEditName, editPhone, setEditPhone, driverDocs, setDriverDocs, onSave, profileLoading, profileError, profileSuccess }) => (
   <div className="vaye-personal-tab-unique">
-    <h2 className="vaye-tab-title-unique">Personal info</h2>
-
-    <div className="vaye-info-section-unique">
-      <div className="vaye-info-item-unique">
-        <h3>Name</h3>
-        <p>{userData.name}</p>
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M9 18L15 12L9 6"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+    <h2 className="vaye-tab-title-unique">Personal Information</h2>
+    {profileError && <div className="vaye-form-error">{profileError}</div>}
+    {profileSuccess && <div className="vaye-form-success">{profileSuccess}</div>}
+    {editMode ? (
+      <form className="vaye-profile-edit-form" onSubmit={e => { e.preventDefault(); onSave(); }}>
+        <div className="vaye-form-group">
+          <label htmlFor="editName">Full Name</label>
+          <input
+            id="editName"
+            type="text"
+            value={editName}
+            onChange={e => setEditName(e.target.value)}
+            required
+            placeholder="Enter your full name"
+            autoFocus
           />
-        </svg>
-      </div>
-
-      <div className="vaye-info-item-unique">
-        <h3>Email</h3>
-        <p>{userData.email}</p>
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M9 18L15 12L9 6"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+        </div>
+        <div className="vaye-form-group">
+          <label htmlFor="editPhone">Phone Number</label>
+          <input
+            id="editPhone"
+            type="tel"
+            value={editPhone}
+            onChange={e => setEditPhone(e.target.value)}
+            required
+            placeholder="e.g. +27 82 123 4567"
           />
-        </svg>
-      </div>
-
-      <div className="vaye-info-item-unique">
-        <h3>Phone</h3>
-        <p>{userData.phone}</p>
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M9 18L15 12L9 6"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+        </div>
+        <div className="vaye-form-group">
+          <label htmlFor="licenseUpload">Driver's License</label>
+          <input
+            id="licenseUpload"
+            type="file"
+            accept="application/pdf,image/*"
+            onChange={e => setDriverDocs({ ...driverDocs, license: e.target.files[0] })}
+            aria-describedby="licenseHelp"
           />
-        </svg>
+          <small id="licenseHelp" className="vaye-form-helper">PDF, JPG, or PNG. Max 5MB.</small>
+          {driverDocs.license && <div className="vaye-file-name">Selected: {driverDocs.license.name}</div>}
+        </div>
+        <div className="vaye-form-group">
+          <label htmlFor="idUpload">National ID / Passport</label>
+          <input
+            id="idUpload"
+            type="file"
+            accept="application/pdf,image/*"
+            onChange={e => setDriverDocs({ ...driverDocs, id: e.target.files[0] })}
+            aria-describedby="idHelp"
+          />
+          <small id="idHelp" className="vaye-form-helper">PDF, JPG, or PNG. Max 5MB.</small>
+          {driverDocs.id && <div className="vaye-file-name">Selected: {driverDocs.id.name}</div>}
+        </div>
+        <div className="vaye-form-actions">
+          <button type="submit" className="vaye-btn-primary" disabled={profileLoading} aria-busy={profileLoading}>
+            {profileLoading ? 'Saving...' : 'Save Changes'}
+          </button>
+          <button type="button" className="vaye-btn-secondary" onClick={() => setEditMode(false)} disabled={profileLoading}>
+            Cancel
+          </button>
+        </div>
+      </form>
+    ) : (
+      <div className="vaye-info-section-unique">
+        <div className="vaye-info-item-unique">
+          <h3>Name</h3>
+          <p>{userData.name}</p>
+        </div>
+        <div className="vaye-info-item-unique">
+          <h3>Email</h3>
+          <p>{userData.email}</p>
+        </div>
+        <div className="vaye-info-item-unique">
+          <h3>Phone</h3>
+          <p>{userData.phone}</p>
+        </div>
+        <button className="vaye-btn-primary" onClick={() => setEditMode(true)}>
+          Edit Profile
+        </button>
       </div>
-    </div>
+    )}
   </div>
 );
 
@@ -521,7 +642,7 @@ const SecurityTab = ({ userData, onOpenModal }) => (
           <h4>Password</h4>
           <p>••••••••••</p>
           <span className="vaye-security-meta-unique">
-            Last changed {userData.lastPasswordChange}
+            Last changed {userData.lastPasswordChange || 'Recently'}
           </span>
         </div>
         <svg
@@ -654,7 +775,7 @@ const SecurityTab = ({ userData, onOpenModal }) => (
         30 days. Multiple logins from the same device may appear.
       </p>
 
-      {userData.devices.map((device) => (
+      {(userData.devices || []).map((device) => (
         <div key={device.id} className="vaye-device-item-unique">
           <div className="vaye-device-icon-unique">
             <svg
