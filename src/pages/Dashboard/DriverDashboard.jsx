@@ -145,10 +145,15 @@ function DriverDashboard({ onLogout = () => {} }) {
 
   const { user } = useAuth(); // Get user data from context
 
+  console.log("User data:", user);
+
   // Helper to check if user is delivery personnel
   const isDeliveryUser = useMemo(() => {
-    return user?.role === 'delivery' || user?.userType === 'delivery';
-  }, [user?.role, user?.userType]);
+    console.log("Checking if user is delivery personnel");
+    console.log("User role:", user?.user?.role);
+    
+    return user?.user?.role === 'delivery' || user?.userType === 'delivery';
+  }, [user?.user?.role, user?.userType]);
 
   // Memoize stable props to prevent unnecessary re-renders (moved before useEffect)
   const userToken = useMemo(() => user?.token, [user?.token]);
