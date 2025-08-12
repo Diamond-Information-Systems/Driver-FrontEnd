@@ -5,6 +5,7 @@
   --color-secondary: #1e2761;
   --color-secondary-light: #2a3990;
   --color-success: #4caf50;
+  --color-success-light: #e8f5e8;
   --color-danger: #ff6b6b;
   --color-warning: #ffd93d;
   --color-info: #2a3990;
@@ -14,6 +15,10 @@
   --color-chat: #00d4aa;
   --color-report: #ff6b47;
   --color-stats: #667eea;
+  /* Delivery-specific colors */
+  --color-delivery: #ff9500;
+  --color-delivery-light: #fff3e0;
+  --color-delivery-dark: #f57c00;
 }
 
 /* Map Container - Always Visible, Remove Opacity */

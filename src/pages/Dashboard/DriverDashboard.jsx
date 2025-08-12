@@ -42,7 +42,15 @@ import {
   setDriverAvailability,
 } from "../../services/requestService";
 import RideRequest from "../../components/RideRequest";
+import DeliveryRequest from "../../components/DeliveryRequest/DeliveryRequest";
+import DeliveryRoute from "../../components/DeliveryRoute/DeliveryRoute";
 import { useAuth } from "../../context/AuthContext"; //get user data from context
+import { 
+  getNearbyDeliveries, 
+  acceptDeliveryRequest, 
+  getMyDeliveryRoute,
+  updateDeliveryStatus 
+} from "../../services/deliveryService";
 
 function mapApiRideToRequest(apiRide) {
   return {
@@ -128,7 +136,19 @@ function DriverDashboard({ onLogout = () => {} }) {
   const [showChatModal, setShowChatModal] = useState(false);
   const [showStatsModal, setShowStatsModal] = useState(false);
 
+  // Delivery-specific state
+  const [deliveryRequests, setDeliveryRequests] = useState([]);
+  const [activeDeliveryRoute, setActiveDeliveryRoute] = useState(null);
+  const [showDeliveryRequest, setShowDeliveryRequest] = useState(false);
+  const [deliveryTimer, setDeliveryTimer] = useState(20);
+  const [declinedDeliveryIds, setDeclinedDeliveryIds] = useState([]);
+
   const { user } = useAuth(); // Get user data from context
+
+  // Helper to check if user is delivery personnel
+  const isDeliveryUser = useMemo(() => {
+    return user?.role === 'delivery' || user?.userType === 'delivery';
+  }, [user?.role, user?.userType]);
 
   // Memoize stable props to prevent unnecessary re-renders (moved before useEffect)
   const userToken = useMemo(() => user?.token, [user?.token]);
@@ -251,6 +271,106 @@ function DriverDashboard({ onLogout = () => {} }) {
     };
   }, [isOnline, activeTrip, showRequest, declinedRequestIds, userToken]); // Use stable userToken
 
+  // Delivery polling logic - similar to ride requests but for delivery personnel
+  useEffect(() => {
+    if (!isDeliveryUser) return; // Only run for delivery personnel
+    
+    console.log("🚚 Delivery polling effect triggered - isOnline:", isOnline, "activeTrip:", !!activeTrip, "showDeliveryRequest:", showDeliveryRequest, "token:", !!userToken);
+    
+    let intervalId;
+    let timerId;
+
+    const pollDeliveries = async () => {
+      try {
+        const deliveries = await getNearbyDeliveries(userToken);
+        if (deliveries && deliveries.length > 0) {
+          // Filter out declined deliveries
+          const filteredDeliveries = deliveries.filter(
+            (d) => !declinedDeliveryIds.includes(d._id)
+          );
+          
+          if (filteredDeliveries.length > 0) {
+            setDeliveryRequests(filteredDeliveries);
+            setShowDeliveryRequest(true);
+            setDeliveryTimer(20); // Reset timer
+            
+            // Stop polling immediately when delivery is found
+            if (intervalId) {
+              clearInterval(intervalId);
+              intervalId = null;
+            }
+
+            // Start countdown timer for delivery request
+            timerId = setInterval(() => {
+              setDeliveryTimer((prev) => {
+                if (prev <= 1) {
+                  // Countdown finished - decline the delivery automatically
+                  setShowDeliveryRequest(false);
+                  setDeliveryRequests([]);
+                  clearInterval(timerId);
+                  
+                  // Only resume polling if still online and no active trip
+                  if (isOnline && !activeTrip) {
+                    intervalId = setInterval(pollDeliveries, 4000);
+                  }
+                  return 20;
+                }
+                return prev - 1;
+              });
+            }, 1000);
+          }
+        }
+      } catch (err) {
+        console.error("Error polling for deliveries:", err);
+      }
+    };
+
+    // Only start polling if online, no active trip, and no current delivery request showing
+    if (isOnline && !activeTrip && !showDeliveryRequest) {
+      // Clear any existing intervals first
+      if (intervalId) clearInterval(intervalId);
+      if (timerId) clearInterval(timerId);
+      
+      // Start polling
+      intervalId = setInterval(pollDeliveries, 4000);
+      
+      console.log("✅ Started polling for delivery requests");
+    } else {
+      // Stop polling if conditions aren't met
+      if (intervalId) clearInterval(intervalId);
+      if (timerId) clearInterval(timerId);
+      
+      // Clear request display if going offline or have active trip
+      if (!isOnline || activeTrip) {
+        setShowDeliveryRequest(false);
+        setDeliveryRequests([]);
+      }
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+      if (timerId) clearInterval(timerId);
+    };
+  }, [isDeliveryUser, isOnline, activeTrip, showDeliveryRequest, declinedDeliveryIds, userToken]);
+
+  // Fetch active delivery route when user comes online
+  useEffect(() => {
+    if (!isDeliveryUser || !isOnline) return;
+    
+    const fetchActiveRoute = async () => {
+      try {
+        const route = await getMyDeliveryRoute(userToken);
+        if (route && route.deliveries && route.deliveries.length > 0) {
+          setActiveDeliveryRoute(route);
+        }
+      } catch (err) {
+        console.error("Error fetching active delivery route:", err);
+      }
+    };
+
+    fetchActiveRoute();
+  }, [isDeliveryUser, isOnline, userToken]);
+
   // Handle trip completion to resume polling
   useEffect(() => {
     // If we had an active trip and now it's completed/cancelled, clear it
@@ -305,6 +425,61 @@ function DriverDashboard({ onLogout = () => {} }) {
     
     console.log("Request declined, polling will resume automatically");
     // Note: Polling will resume automatically via useEffect when showRequest becomes false
+  };
+
+  // Delivery-specific handlers
+  const currentDeliveryRequest = deliveryRequests.length > 0 ? deliveryRequests[0] : null;
+
+  const handleAcceptDeliveryRequest = async () => {
+    try {
+      const response = await acceptDeliveryRequest(currentDeliveryRequest._id, userToken);
+      
+      // Clear the delivery request display immediately
+      setDeliveryRequests([]);
+      setShowDeliveryRequest(false);
+      
+      // Store the accepted delivery route
+      if (response && response.route) {
+        setActiveDeliveryRoute(response.route);
+      }
+
+      console.log("Delivery request accepted, polling stopped");
+    } catch (err) {
+      console.error("Error accepting delivery request:", err);
+      // On error, clear the request and resume polling if still online
+      setDeliveryRequests([]);
+      setShowDeliveryRequest(false);
+    }
+  };
+  
+  const handleDeclineDeliveryRequest = () => {
+    if (currentDeliveryRequest) {
+      setDeclinedDeliveryIds((prev) => [...prev, currentDeliveryRequest._id]);
+    }
+    
+    // Clear the current delivery request
+    setDeliveryRequests([]);
+    setShowDeliveryRequest(false);
+    
+    console.log("Delivery request declined, polling will resume automatically");
+  };
+
+  const handleDeliveryStatusUpdate = async (deliveryId, status, pin = null) => {
+    try {
+      const response = await updateDeliveryStatus(deliveryId, status, pin, userToken);
+      
+      // Update the active route with the response
+      if (response && response.route) {
+        setActiveDeliveryRoute(response.route);
+      }
+      
+      // If all deliveries are completed, clear the route
+      if (response && response.routeCompleted) {
+        setActiveDeliveryRoute(null);
+      }
+    } catch (err) {
+      console.error("Error updating delivery status:", err);
+    }
   };
 
   const handleStatusChange = (newStatus) => {
@@ -846,8 +1021,26 @@ function DriverDashboard({ onLogout = () => {} }) {
         </div>
       )}
 
-      {/* Ride Request Handler Component - Only when online */}
-      {showRequest && currentRequest && (
+      {/* Delivery Request Handler Component - Only for delivery personnel when online */}
+      {isDeliveryUser && showDeliveryRequest && currentDeliveryRequest && (
+        <DeliveryRequest
+          request={currentDeliveryRequest}
+          onAccept={handleAcceptDeliveryRequest}
+          onDecline={handleDeclineDeliveryRequest}
+          timeRemaining={deliveryTimer}
+        />
+      )}
+
+      {/* Active Delivery Route - Only for delivery personnel with active route */}
+      {isDeliveryUser && activeDeliveryRoute && (
+        <DeliveryRoute
+          route={activeDeliveryRoute}
+          onStatusUpdate={handleDeliveryStatusUpdate}
+        />
+      )}
+
+      {/* Ride Request Handler Component - Only for drivers when online */}
+      {!isDeliveryUser && showRequest && currentRequest && (
         <RideRequest
           request={currentRequest}
           onAccept={handleAcceptRequest}
