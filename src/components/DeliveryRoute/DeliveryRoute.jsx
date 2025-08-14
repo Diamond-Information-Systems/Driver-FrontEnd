@@ -16,15 +16,87 @@ import './DeliveryRoute.css';
 
 function DeliveryRoute({ 
   route, 
-  onUpdateStatus, 
-  onConfirmDelivery, 
-  onNavigate 
+  onUpdateStatus = () => {}, 
+  onConfirmDelivery = () => {}, 
+  onNavigate = () => {},
+  isNavigating = false // New prop to indicate if user is currently navigating
 }) {
   const [selectedDelivery, setSelectedDelivery] = useState(null);
   const [pinInput, setPinInput] = useState('');
   const [showPinModal, setShowPinModal] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
 
-  if (!route || route.remainingDeliveries === 0) {
+  // Toggle minimize/maximize
+  const toggleMinimized = () => {
+    setIsMinimized(!isMinimized);
+  };
+
+  // Debug: Check if props are being passed correctly
+  console.log("DeliveryRoute props:", { 
+    route: !!route, 
+    onUpdateStatus: !!onUpdateStatus, 
+    onConfirmDelivery: !!onConfirmDelivery, 
+    onNavigate: !!onNavigate,
+    isNavigating 
+  });
+
+  // Show stats even when no active deliveries
+  if (!route) {
+    return (
+      <div className="delivery-route-container no-deliveries">
+        <div className="no-deliveries-content">
+          <Package size={48} color="#ccc" />
+          <h3>No Route Data</h3>
+          <p>Waiting for delivery information...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show completion stats when route is finished
+  if (route.remainingDeliveries === 0 && route.completedDeliveries > 0) {
+    return (
+      <div className={`delivery-route-container completed-route ${isMinimized ? 'minimized' : ''}`}>
+        <div className="completion-header" onClick={toggleMinimized}>
+          <CheckCircle size={32} color="var(--color-success)" />
+          <div>
+            <h3>Route Completed!</h3>
+            <p>All deliveries have been completed</p>
+          </div>
+          <ChevronRight size={16} className={`chevron ${isMinimized ? 'up' : 'down'}`} />
+        </div>
+        
+        {!isMinimized && (
+          <>
+            <div className="completion-stats">
+              <div className="stat-card">
+                <span className="stat-number">{route.completedDeliveries}</span>
+                <span className="stat-label">Deliveries</span>
+              </div>
+              <div className="stat-card">
+                <span className="stat-number">{route.routeStats?.totalDistance || '0 km'}</span>
+                <span className="stat-label">Distance</span>
+              </div>
+              <div className="stat-card">
+                <span className="stat-number">{route.routeStats?.estimatedTime || '0 min'}</span>
+                <span className="stat-label">Time</span>
+              </div>
+            </div>
+
+            <div className="completion-progress">
+              <div className="progress-bar completed">
+                <div className="progress-fill" style={{ width: '100%' }}></div>
+              </div>
+              <span className="progress-text">100% Complete</span>
+            </div>
+          </>
+        )}
+      </div>
+    );
+  }
+
+  // No active deliveries but route exists
+  if (route.activeDeliveries?.length === 0) {
     return (
       <div className="delivery-route-container no-deliveries">
         <div className="no-deliveries-content">
@@ -50,11 +122,19 @@ function DeliveryRoute({
   };
 
   const handleConfirmPin = () => {
-    if (pinInput && selectedDelivery) {
+    console.log("handleConfirmPin called:", { pinInput, selectedDelivery: !!selectedDelivery, onConfirmDelivery: !!onConfirmDelivery });
+    
+    if (pinInput && selectedDelivery && onConfirmDelivery) {
       onConfirmDelivery(selectedDelivery.deliveryId, pinInput);
       setShowPinModal(false);
       setPinInput('');
       setSelectedDelivery(null);
+    } else {
+      console.error("Missing required data for PIN confirmation:", {
+        pinInput: !!pinInput,
+        selectedDelivery: !!selectedDelivery,
+        onConfirmDelivery: !!onConfirmDelivery
+      });
     }
   };
 
@@ -79,132 +159,194 @@ function DeliveryRoute({
   };
 
   return (
-    <div className="delivery-route-container">
-      {/* Route Header */}
-      <div className="route-header">
-        <div className="route-title">
-          <Package size={24} color="var(--color-delivery)" />
-          <div>
-            <h3>Your Delivery Route</h3>
-            <p>{route.remainingDeliveries} of {route.totalDeliveries} remaining</p>
-          </div>
-        </div>
-        <div className="route-stats">
-          <div className="stat">
-            <span className="stat-value">{route.routeStats.totalDistance}</span>
-            <span className="stat-label">Total</span>
-          </div>
-          <div className="stat">
-            <span className="stat-value">{route.routeStats.estimatedTime}</span>
-            <span className="stat-label">Time</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Progress Bar */}
-      <div className="progress-container">
-        <div className="progress-bar">
-          <div 
-            className="progress-fill"
-            style={{ width: `${route.routeStats.completionPercentage}%` }}
-          ></div>
-        </div>
-        <span className="progress-text">
-          {route.routeStats.completionPercentage}% Complete
-        </span>
-      </div>
-
-      {/* Active Deliveries List */}
-      <div className="deliveries-list">
-        {route.activeDeliveries.map((delivery, index) => {
-          const nextAction = getNextAction(delivery);
-          
-          return (
-            <div key={delivery.deliveryId} className={`delivery-item ${delivery.status}`}>
-              {/* Order Number & Status */}
-              <div className="delivery-header">
-                <div className="order-info">
-                  <span className="order-number">#{delivery.routeOrder}</span>
-                  <div className="status-badge" style={{ backgroundColor: getDeliveryStatusColor(delivery.status) }}>
-                    {delivery.status.toUpperCase()}
-                  </div>
-                </div>
-                <span className="order-id">{delivery.orderId}</span>
-              </div>
-
-              {/* Customer Info */}
-              <div className="customer-section">
-                <div className="customer-info">
-                  <User size={16} />
-                  <span className="customer-name">{delivery.customer.name}</span>
-                </div>
-                <button 
-                  className="contact-btn"
-                  onClick={() => window.open(`tel:${delivery.customer.phone}`)}
-                >
-                  <Phone size={14} />
-                </button>
-              </div>
-
-              {/* Addresses */}
-              <div className="addresses">
-                <div className="address-item pickup">
-                  <Package size={16} />
-                  <div>
-                    <span className="address-label">Pickup</span>
-                    <span className="address-text">{delivery.pickup.address}</span>
-                  </div>
-                </div>
-                
-                <div className="address-item dropoff">
-                  <MapPin size={16} />
-                  <div>
-                    <span className="address-label">Delivery</span>
-                    <span className="address-text">{delivery.dropoff.address}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Product Details */}
-              {delivery.productDetails && (
-                <div className="product-section">
-                  <span className="product-label">Item:</span>
-                  <span className="product-name">{delivery.productDetails.title}</span>
-                </div>
-              )}
-
-              {/* Special Instructions */}
-              {delivery.notes && (
-                <div className="notes-section">
-                  <AlertCircle size={16} />
-                  <span className="notes-text">{delivery.notes}</span>
-                </div>
-              )}
-
-              {/* Action Button */}
-              {nextAction && (
-                <button 
-                  className="action-btn"
-                  onClick={nextAction.action}
-                  style={{ backgroundColor: getDeliveryStatusColor(delivery.status) }}
-                >
-                  {nextAction.text}
-                  <ChevronRight size={16} />
-                </button>
-              )}
-
-              {/* Navigation Button */}
-              <button 
-                className="navigate-btn"
-                onClick={() => onNavigate(delivery)}
-              >
-                <Navigation size={16} />
-                NAVIGATE
-              </button>
+    <div className={`delivery-route-container ${isNavigating ? 'navigating' : ''} ${isMinimized ? 'minimized' : ''}`}>
+      {/* Minimized View for Navigation */}
+      {isNavigating ? (
+        <div className="minimized-route-view">
+          <div className="mini-header" onClick={toggleMinimized}>
+            <div className="mini-info">
+              <Package size={20} color="var(--color-delivery)" />
+              <span className="mini-title">
+                {route.remainingDeliveries} of {route.totalDeliveries} deliveries
+              </span>
             </div>
-          );
-        })}
-      </div>
+            <div className="mini-stats">
+              <span className="mini-stat">{route.routeStats?.totalDistance || '0 km'}</span>
+              <ChevronRight size={16} className={`chevron ${isMinimized ? 'up' : 'down'}`} />
+            </div>
+          </div>
+
+          {/* Expandable Progress Section */}
+          {!isMinimized && (
+            <div className="mini-expanded">
+              <div className="progress-container">
+                <div className="progress-bar">
+                  <div 
+                    className="progress-fill"
+                    style={{ width: `${route.routeStats?.completionPercentage || 0}%` }}
+                  ></div>
+                </div>
+                <span className="progress-text">
+                  {route.routeStats?.completionPercentage || 0}% Complete
+                </span>
+              </div>
+              
+              <div className="mini-route-breakdown">
+                {route.activeDeliveries?.map((delivery, index) => (
+                  <div key={delivery.deliveryId} className="mini-delivery-item">
+                    <div className="mini-delivery-status" 
+                         style={{ backgroundColor: getDeliveryStatusColor(delivery.status) }}>
+                      {index + 1}
+                    </div>
+                    <div className="mini-delivery-info">
+                      <span className="mini-customer">{delivery.customer?.name}</span>
+                      <span className="mini-address">{delivery.dropoff?.address}</span>
+                    </div>
+                    <div className="mini-delivery-badge">
+                      {delivery.status.toUpperCase()}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      ) : (
+        /* Full View for Active Management */
+        <>
+          {/* Route Header */}
+          <div className="route-header" onClick={toggleMinimized}>
+            <div className="route-title">
+              <Package size={24} color="var(--color-delivery)" />
+              <div>
+                <h3>Your Delivery Route</h3>
+                <p>{route.remainingDeliveries} of {route.totalDeliveries} remaining</p>
+              </div>
+            </div>
+            <div className="route-stats">
+              <div className="stat">
+                <span className="stat-value">{route.routeStats?.totalDistance || 'N/A'}</span>
+                <span className="stat-label">Total</span>
+              </div>
+              <div className="stat">
+                <span className="stat-value">{route.routeStats?.estimatedTime || 'N/A'}</span>
+                <span className="stat-label">Time</span>
+              </div>
+              <ChevronRight size={20} className={`chevron ${isMinimized ? 'up' : 'down'}`} />
+            </div>
+          </div>
+
+          {/* Progress Bar and Deliveries - Only show when not minimized */}
+          {!isMinimized && (
+            <>
+              {/* Progress Bar */}
+              <div className="progress-container">
+                <div className="progress-bar">
+                  <div 
+                    className="progress-fill"
+                    style={{ width: `${route.routeStats?.completionPercentage || 0}%` }}
+                  ></div>
+                </div>
+                <span className="progress-text">
+                  {route.routeStats?.completionPercentage || 0}% Complete
+                </span>
+              </div>
+
+              {/* Active Deliveries List */}
+              <div className="deliveries-list">
+                {route.activeDeliveries?.map((delivery, index) => {
+                  const nextAction = getNextAction(delivery);
+                  
+                  return (
+                    <div key={delivery.deliveryId} className={`delivery-item ${delivery.status}`}>
+                      {/* Order Number & Status */}
+                      <div className="delivery-header">
+                        <div className="order-info">
+                          <span className="order-number">#{delivery.routeOrder || index + 1}</span>
+                          <div className="status-badge" style={{ backgroundColor: getDeliveryStatusColor(delivery.status) }}>
+                            {delivery.status.toUpperCase()}
+                          </div>
+                        </div>
+                        <span className="order-id">{delivery.orderId}</span>
+                      </div>
+
+                      {/* Customer Info */}
+                      <div className="customer-section">
+                        <div className="customer-info">
+                          <User size={16} />
+                          <span className="customer-name">{delivery.customer?.name}</span>
+                        </div>
+                        <button 
+                          className="contact-btn"
+                          onClick={() => window.open(`tel:${delivery.customer?.phone}`)}
+                        >
+                          <Phone size={14} />
+                        </button>
+                      </div>
+
+                      {/* Addresses */}
+                      <div className="addresses">
+                        <div className="address-item pickup">
+                          <Package size={16} />
+                          <div>
+                            <span className="address-label">Pickup</span>
+                            <span className="address-text">{delivery.pickup?.address}</span>
+                          </div>
+                        </div>
+                        
+                        <div className="address-item dropoff">
+                          <MapPin size={16} />
+                          <div>
+                            <span className="address-label">Delivery</span>
+                            <span className="address-text">{delivery.dropoff?.address}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Product Details */}
+                      {delivery.productDetails && (
+                        <div className="product-section">
+                          <span className="product-label">Item:</span>
+                          <span className="product-name">{delivery.productDetails.title}</span>
+                        </div>
+                      )}
+
+                      {/* Special Instructions */}
+                      {delivery.notes && (
+                        <div className="notes-section">
+                          <AlertCircle size={16} />
+                          <span className="notes-text">{delivery.notes}</span>
+                        </div>
+                      )}
+
+                      {/* Action Button */}
+                      {nextAction && (
+                        <button 
+                          className="action-btn"
+                          onClick={nextAction.action}
+                          style={{ backgroundColor: getDeliveryStatusColor(delivery.status) }}
+                        >
+                          {nextAction.text}
+                          <ChevronRight size={16} />
+                        </button>
+                      )}
+
+                      {/* Navigation Button */}
+                      <button 
+                        className="navigate-btn"
+                        onClick={() => onNavigate(delivery)}
+                      >
+                        <Navigation size={16} />
+                        NAVIGATE
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
+        </>
+      )}
 
       {/* PIN Confirmation Modal */}
       {showPinModal && selectedDelivery && (
@@ -231,7 +373,7 @@ function DeliveryRoute({
             <div className="delivery-summary">
               <div className="summary-item">
                 <span>Customer:</span>
-                <span>{selectedDelivery.customer.name}</span>
+                <span>{selectedDelivery.customer?.name}</span>
               </div>
               <div className="summary-item">
                 <span>Order:</span>

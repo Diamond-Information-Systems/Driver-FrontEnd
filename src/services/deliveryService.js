@@ -1,6 +1,56 @@
 import config from "../config";
 
-// Get nearby delivery requests for delivery personnel
+// Get available delivery jobs (unassigned deliveries) for delivery personnel
+export async function getAvailableDeliveryJobs(token, latitude = null, longitude = null) {
+  try {
+    let url = `${config.apiBaseUrl}/api/deliveries/available-jobs`;
+    
+    if (latitude && longitude) {
+      url += `?latitude=${latitude}&longitude=${longitude}`;
+    }
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to fetch available delivery jobs");
+    }
+
+    return await response.json();
+  } catch (error) {
+    throw error;
+  }
+}
+
+// Accept an available delivery job by deliveryId
+export async function acceptDeliveryJob(deliveryId, token) {
+  try {
+    const response = await fetch(`${config.apiBaseUrl}/api/deliveries/accept-job/${deliveryId}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to accept delivery job");
+    }
+
+    return await response.json();
+  } catch (error) {
+    throw error;
+  }
+}
+
+// Get nearby delivery requests for delivery personnel (legacy - for real-time assigned deliveries)
 export async function getNearbyDeliveries(token) {
   try {
     const response = await fetch(`${config.apiBaseUrl}/api/rides/nearby-requests`, {
@@ -22,7 +72,7 @@ export async function getNearbyDeliveries(token) {
   }
 }
 
-// Accept a delivery request by deliveryId
+// Accept a delivery request by deliveryId (legacy - for real-time assigned deliveries)
 export async function acceptDeliveryRequest(deliveryId, token) {
   try {
     const response = await fetch(`${config.apiBaseUrl}/api/rides/accept/${deliveryId}`, {
@@ -67,8 +117,14 @@ export async function getMyDeliveryRoute(token) {
 }
 
 // Update delivery status
-export async function updateDeliveryStatus(deliveryId, status, token) {
+export async function updateDeliveryStatus(deliveryId, status, pin = null, token) {
   try {
+    // If PIN is provided, use the confirm delivery endpoint
+    if (pin && status === 'completed') {
+      return await confirmDelivery(deliveryId, pin, token);
+    }
+    
+    // Otherwise use the regular status update endpoint
     const response = await fetch(`${config.apiBaseUrl}/api/deliveries/update-status/${deliveryId}`, {
       method: "PUT",
       headers: {
