@@ -189,15 +189,9 @@ function DriverDashboard({ onLogout = () => {} }) {
     }
   }, []); // No dependencies needed since we only use setActiveTrip
 
-  //ride request handling - ONLY for drivers (non-delivery users)
+  //ride request handling
   useEffect(() => {
-    // Exit early if user is delivery personnel
-    if (isDeliveryUser) {
-      console.log("🚫 Skipping ride polling - user is delivery personnel");
-      return;
-    }
-    
-    console.log("🔄 Driver ride polling effect triggered - isOnline:", isOnline, "activeTrip:", !!activeTrip, "showRequest:", showRequest, "token:", !!userToken);
+    console.log("🔄 Polling effect triggered - isOnline:", isOnline, "activeTrip:", !!activeTrip, "showRequest:", showRequest, "token:", !!userToken);
     
     let intervalId;
     let timerId;
@@ -245,7 +239,7 @@ function DriverDashboard({ onLogout = () => {} }) {
           }
         }
       } catch (err) {
-        console.error("Error polling for ride requests:", err);
+        console.error("Error polling for requests:", err);
       }
     };
 
@@ -259,7 +253,7 @@ function DriverDashboard({ onLogout = () => {} }) {
       intervalId = setInterval(pollRequests, 4000);
       setPollingInterval(intervalId);
       
-      console.log("✅ Started polling for driver ride requests - isOnline:", isOnline, "activeTrip:", !!activeTrip, "showRequest:", showRequest);
+      console.log("✅ Started polling for ride requests - isOnline:", isOnline, "activeTrip:", !!activeTrip, "showRequest:", showRequest);
     } else {
       // Stop polling if conditions aren't met
       if (pollingInterval) {
@@ -276,24 +270,20 @@ function DriverDashboard({ onLogout = () => {} }) {
         setRideRequests([]);
       }
       
-      console.log("❌ Stopped driver ride polling - isOnline:", isOnline, "activeTrip:", !!activeTrip, "showRequest:", showRequest);
+      console.log("❌ Stopped polling - isOnline:", isOnline, "activeTrip:", !!activeTrip, "showRequest:", showRequest);
     }
 
     return () => {
       if (intervalId) clearInterval(intervalId);
       if (timerId) clearInterval(timerId);
     };
-  }, [isDeliveryUser, isOnline, activeTrip, showRequest, declinedRequestIds, userToken]); // Added isDeliveryUser dependency
+  }, [isOnline, activeTrip, showRequest, declinedRequestIds, userToken]); // Use stable userToken
 
-  // Delivery polling logic - ONLY for delivery personnel
+  // Delivery polling logic - similar to ride requests but for delivery personnel
   useEffect(() => {
-    // Exit early if user is NOT delivery personnel
-    if (!isDeliveryUser) {
-      console.log("🚫 Skipping delivery polling - user is not delivery personnel");
-      return;
-    }
+    if (!isDeliveryUser) return; // Only run for delivery personnel
     
-    console.log("🚚 Delivery polling effect triggered - isOnline:", isOnline, "activeTrip:", !!activeTrip, "activeDeliveryRoute:", !!activeDeliveryRoute, "showDeliveryRequest:", showDeliveryRequest);
+    console.log("🚚 Delivery polling effect triggered - isOnline:", isOnline, "activeTrip:", !!activeTrip, "showDeliveryRequest:", showDeliveryRequest, "token:", !!userToken);
     
     let intervalId;
     let timerId;
@@ -327,8 +317,8 @@ function DriverDashboard({ onLogout = () => {} }) {
                   setDeliveryRequests([]);
                   clearInterval(timerId);
                   
-                  // Only resume polling if still online and no active job in progress
-                  if (isOnline && !activeTrip && !activeDeliveryRoute) {
+                  // Only resume polling if still online and no active trip
+                  if (isOnline && !activeTrip) {
                     intervalId = setInterval(pollDeliveries, 4000);
                   }
                   return 20;
@@ -343,219 +333,46 @@ function DriverDashboard({ onLogout = () => {} }) {
       }
     };
 
-    // UPDATED LOGIC: Only poll for new requests when:
-    // 1. Online
-    // 2. No active trip (delivery in progress)
-    // 3. No active delivery route (job queue)
-    // 4. No current delivery request showing
-    const shouldPollForRequests = isOnline && !activeTrip && !activeDeliveryRoute && !showDeliveryRequest;
-    
-    if (shouldPollForRequests) {
+    // Only start polling if online, no active trip, and no current delivery request showing
+    if (isOnline && !activeTrip && !showDeliveryRequest) {
       // Clear any existing intervals first
       if (intervalId) clearInterval(intervalId);
       if (timerId) clearInterval(timerId);
       
-      // Start polling for new delivery opportunities
+      // Start polling
       intervalId = setInterval(pollDeliveries, 4000);
       
-      console.log("✅ Started polling for NEW delivery requests (no job queue active)");
+      console.log("✅ Started polling for delivery requests");
     } else {
       // Stop polling if conditions aren't met
       if (intervalId) clearInterval(intervalId);
       if (timerId) clearInterval(timerId);
       
-      // Clear request display if going offline or have active job/route
-      if (!isOnline || activeTrip || activeDeliveryRoute) {
+      // Clear request display if going offline or have active trip
+      if (!isOnline || activeTrip) {
         setShowDeliveryRequest(false);
         setDeliveryRequests([]);
       }
-      
-      console.log("❌ Stopped delivery request polling - activeTrip:", !!activeTrip, "activeDeliveryRoute:", !!activeDeliveryRoute, "showDeliveryRequest:", showDeliveryRequest);
     }
 
     return () => {
       if (intervalId) clearInterval(intervalId);
       if (timerId) clearInterval(timerId);
     };
-  }, [isDeliveryUser, isOnline, activeTrip, activeDeliveryRoute, showDeliveryRequest, declinedDeliveryIds, userToken]);
+  }, [isDeliveryUser, isOnline, activeTrip, showDeliveryRequest, declinedDeliveryIds, userToken]);
 
-  // Route update polling - ONLY for delivery personnel with active routes
+  // Fetch active delivery route when user comes online
   useEffect(() => {
-    // Exit early if user is NOT delivery personnel
-    if (!isDeliveryUser) {
-      console.log("🚫 Skipping route update polling - user is not delivery personnel");
-      return;
-    }
-    
-    // Exit early if not online or no active delivery route
-    if (!isOnline || !activeDeliveryRoute) {
-      console.log("🚫 Skipping route update polling - not online or no active route");
-      return;
-    }
-    
-    console.log("🔄 Route update polling started for active delivery route");
-    
-    const pollRouteUpdates = async () => {
-      try {
-        const response = await getMyDeliveryRoute(userToken);
-        if (response && response.success && response.route) {
-          const updatedRoute = response.route;
-          
-          // Check if route has been updated (new deliveries added, etc.)
-          if (JSON.stringify(updatedRoute) !== JSON.stringify(activeDeliveryRoute)) {
-            console.log("📦 Route updated with new deliveries or changes:", updatedRoute);
-            setActiveDeliveryRoute(updatedRoute);
-            
-            // Update activeTrip if there are active deliveries
-            if (updatedRoute.activeDeliveries && updatedRoute.activeDeliveries.length > 0) {
-              const currentDelivery = updatedRoute.activeDeliveries[0];
-              
-              const deliveryAsTrip = {
-                _id: currentDelivery.deliveryId,
-                type: 'delivery',
-                status: currentDelivery.status,
-                rider: {
-                  _id: 'delivery-customer',
-                  fullName: currentDelivery.customer.name,
-                  phoneNumber: currentDelivery.customer.phone
-                },
-                pickup: {
-                  address: currentDelivery.pickup.address,
-                  location: {
-                    type: 'Point',
-                    coordinates: currentDelivery.pickup.coordinates
-                  }
-                },
-                dropoff: {
-                  address: currentDelivery.dropoff.address,
-                  location: {
-                    type: 'Point',
-                    coordinates: currentDelivery.dropoff.coordinates
-                  }
-                },
-                ecommerceData: {
-                  orderId: currentDelivery.orderId,
-                  productDetails: currentDelivery.productDetails,
-                  deliveryPin: currentDelivery.deliveryPin
-                },
-                estimatedTotalDistance: updatedRoute.routeStats?.totalDistance || 'N/A',
-                estimatedTotalDuration: updatedRoute.routeStats?.estimatedTime ? `${updatedRoute.routeStats.estimatedTime} minutes` : 'N/A'
-              };
-              
-              setActiveTrip(deliveryAsTrip);
-              console.log("🚚 Updated active trip from route update:", deliveryAsTrip);
-            }
-            
-            // Show notification if new deliveries were added
-            const oldDeliveryCount = activeDeliveryRoute.totalDeliveries || 0;
-            const newDeliveryCount = updatedRoute.totalDeliveries || 0;
-            
-            if (newDeliveryCount > oldDeliveryCount) {
-              const newDeliveriesAdded = newDeliveryCount - oldDeliveryCount;
-              console.log(`📦 ${newDeliveriesAdded} new delivery(ies) added to your route!`);
-              
-              // Show browser notification if available
-              if (notificationsEnabled) {
-                NotificationService.showNotification(
-                  'New Delivery Added!',
-                  `${newDeliveriesAdded} new delivery(ies) added to your route`
-                );
-              }
-            }
-          }
-        } else {
-          // Route no longer exists, clear everything
-          console.log("📦 Active route no longer exists, clearing...");
-          setActiveDeliveryRoute(null);
-          setActiveTrip(null);
-        }
-      } catch (err) {
-        console.error("Error polling for route updates:", err);
-      }
-    };
-
-    // Poll for route updates every 10 seconds when driver has an active route
-    const routeUpdateInterval = setInterval(pollRouteUpdates, 10000);
-    
-    console.log("✅ Started route update polling for delivery personnel");
-
-    return () => {
-      clearInterval(routeUpdateInterval);
-      console.log("❌ Stopped route update polling");
-    };
-  }, [isDeliveryUser, isOnline, activeDeliveryRoute, userToken, notificationsEnabled]);
-
-  // Fetch active delivery route when delivery user comes online - ONLY for delivery personnel
-  useEffect(() => {
-    // Exit early if user is NOT delivery personnel
-    if (!isDeliveryUser) {
-      console.log("🚫 Skipping delivery route fetch - user is not delivery personnel");
-      return;
-    }
-    
-    // Exit early if not online
-    if (!isOnline) {
-      console.log("🚫 Skipping delivery route fetch - user is not online");
-      return;
-    }
+    if (!isDeliveryUser || !isOnline) return;
     
     const fetchActiveRoute = async () => {
       try {
-        const response = await getMyDeliveryRoute(userToken);
-        if (response && response.success && response.route) {
-          const route = response.route;
+        const route = await getMyDeliveryRoute(userToken);
+        if (route && route.deliveries && route.deliveries.length > 0) {
           setActiveDeliveryRoute(route);
-          
-          // If there are active deliveries, transform the first one into an activeTrip for map integration
-          if (route.activeDeliveries && route.activeDeliveries.length > 0) {
-            const currentDelivery = route.activeDeliveries[0]; // Get the first/current delivery
-            
-            // Transform delivery to trip format for map compatibility
-            const deliveryAsTrip = {
-              _id: currentDelivery.deliveryId,
-              type: 'delivery',
-              status: currentDelivery.status,
-              rider: {
-                _id: 'delivery-customer',
-                fullName: currentDelivery.customer.name,
-                phoneNumber: currentDelivery.customer.phone
-              },
-              pickup: {
-                address: currentDelivery.pickup.address,
-                location: {
-                  type: 'Point',
-                  coordinates: currentDelivery.pickup.coordinates
-                }
-              },
-              dropoff: {
-                address: currentDelivery.dropoff.address,
-                location: {
-                  type: 'Point',
-                  coordinates: currentDelivery.dropoff.coordinates
-                }
-              },
-              ecommerceData: {
-                orderId: currentDelivery.orderId,
-                productDetails: currentDelivery.productDetails,
-                deliveryPin: currentDelivery.deliveryPin
-              },
-              estimatedTotalDistance: route.routeStats?.totalDistance || 'N/A',
-              estimatedTotalDuration: route.routeStats?.estimatedTime ? `${route.routeStats.estimatedTime} minutes` : 'N/A'
-            };
-            
-            // Set this as the active trip for map integration
-            setActiveTrip(deliveryAsTrip);
-            console.log("🚚 Transformed delivery to active trip for map:", deliveryAsTrip);
-          }
-        } else {
-          // No active route, clear everything
-          setActiveDeliveryRoute(null);
-          setActiveTrip(null);
         }
       } catch (err) {
         console.error("Error fetching active delivery route:", err);
-        setActiveDeliveryRoute(null);
-        setActiveTrip(null);
       }
     };
 
@@ -632,43 +449,6 @@ function DriverDashboard({ onLogout = () => {} }) {
       // Store the accepted delivery route
       if (response && response.route) {
         setActiveDeliveryRoute(response.route);
-        
-        // Transform the first delivery to active trip for map integration
-        if (response.route.activeDeliveries && response.route.activeDeliveries.length > 0) {
-          const currentDelivery = response.route.activeDeliveries[0];
-          
-          const deliveryAsTrip = {
-            _id: currentDelivery.deliveryId,
-            type: 'delivery',
-            status: currentDelivery.status,
-            rider: {
-              _id: 'delivery-customer',
-              fullName: currentDelivery.customer.name,
-              phoneNumber: currentDelivery.customer.phone
-            },
-            pickup: {
-              address: currentDelivery.pickup.address,
-              location: {
-                type: 'Point',
-                coordinates: currentDelivery.pickup.coordinates
-              }
-            },
-            dropoff: {
-              address: currentDelivery.dropoff.address,
-              location: {
-                type: 'Point',
-                coordinates: currentDelivery.dropoff.coordinates
-              }
-            },
-            ecommerceData: {
-              orderId: currentDelivery.orderId,
-              productDetails: currentDelivery.productDetails,
-              deliveryPin: currentDelivery.deliveryPin
-            }
-          };
-          
-          setActiveTrip(deliveryAsTrip);
-        }
       } else if (response && response.ride) {
         // Handle the case where backend returns 'ride' instead of 'route'
         setActiveDeliveryRoute({
@@ -708,105 +488,11 @@ function DriverDashboard({ onLogout = () => {} }) {
       // Update the active route with the response
       if (response && response.route) {
         setActiveDeliveryRoute(response.route);
-        
-        // Convert delivery to activeTrip for map integration when status changes
-        const currentDelivery = response.route.activeDeliveries.find(d => d.deliveryId === deliveryId);
-        if (currentDelivery) {
-          // Transform delivery to ride-like structure for map integration
-          const deliveryAsTrip = {
-            _id: currentDelivery.deliveryId,
-            type: 'delivery',
-            status: currentDelivery.status === 'started' ? 'started' : 
-                   currentDelivery.status === 'pickup_completed' ? 'started' : 
-                   currentDelivery.status === 'completed' ? 'completed' : 'accepted',
-            pickup: {
-              address: currentDelivery.pickup.address,
-              location: {
-                coordinates: currentDelivery.pickup.coordinates
-              }
-            },
-            dropoff: {
-              address: currentDelivery.dropoff.address,
-              location: {
-                coordinates: currentDelivery.dropoff.coordinates
-              }
-            },
-            rider: {
-              fullName: currentDelivery.customer.name,
-              phoneNumber: currentDelivery.customer.phone
-            },
-            price: currentDelivery.estimatedEarnings || 0,
-            ecommerceData: {
-              orderId: currentDelivery.orderId,
-              deliveryPin: currentDelivery.deliveryPin,
-              productDetails: currentDelivery.productDetails
-            }
-          };
-          
-          setActiveTrip(deliveryAsTrip);
-          console.log("🚚 Updated delivery trip for map navigation:", deliveryAsTrip);
-          
-          // If delivery is completed, check for next delivery in route
-          if (currentDelivery.status === 'completed') {
-            console.log("📦 Delivery completed, checking for next delivery in route...");
-            
-            // Give a moment to show completion, then check for next delivery
-            setTimeout(() => {
-              if (response.route.activeDeliveries && response.route.activeDeliveries.length > 0) {
-                // There are more deliveries in the route - start the next one
-                const nextDelivery = response.route.activeDeliveries[0];
-                console.log("📦 Starting next delivery automatically:", nextDelivery.orderId);
-                
-                const nextDeliveryAsTrip = {
-                  _id: nextDelivery.deliveryId,
-                  type: 'delivery',
-                  status: nextDelivery.status,
-                  pickup: {
-                    address: nextDelivery.pickup.address,
-                    location: {
-                      coordinates: nextDelivery.pickup.coordinates
-                    }
-                  },
-                  dropoff: {
-                    address: nextDelivery.dropoff.address,
-                    location: {
-                      coordinates: nextDelivery.dropoff.coordinates
-                    }
-                  },
-                  rider: {
-                    fullName: nextDelivery.customer.name,
-                    phoneNumber: nextDelivery.customer.phone
-                  },
-                  price: nextDelivery.estimatedEarnings || 0,
-                  ecommerceData: {
-                    orderId: nextDelivery.orderId,
-                    deliveryPin: nextDelivery.deliveryPin,
-                    productDetails: nextDelivery.productDetails
-                  }
-                };
-                
-                setActiveTrip(nextDeliveryAsTrip);
-              } else {
-                // No more deliveries - clear everything for new opportunities
-                console.log("🎉 All deliveries in route completed!");
-                setActiveTrip(null);
-                setActiveDeliveryRoute(null);
-              }
-            }, 2000); // 2 seconds to show completion
-          }
-        }
-      } else {
-        // No route returned - likely all deliveries completed
-        console.log("🎉 Route completed - clearing active states");
-        setActiveDeliveryRoute(null);
-        setActiveTrip(null);
       }
       
-      // Legacy check for explicit routeCompleted flag
+      // If all deliveries are completed, clear the route
       if (response && response.routeCompleted) {
-        console.log("🎉 Route explicitly marked as completed");
         setActiveDeliveryRoute(null);
-        setActiveTrip(null);
       }
     } catch (err) {
       console.error("Error updating delivery status:", err);
@@ -1352,8 +1038,8 @@ function DriverDashboard({ onLogout = () => {} }) {
         </div>
       )}
 
-      {/* Delivery Request Handler Component - Only for delivery personnel when online and no job queue */}
-      {isDeliveryUser && showDeliveryRequest && currentDeliveryRequest && !activeDeliveryRoute && (
+      {/* Delivery Request Handler Component - Only for delivery personnel when online */}
+      {isDeliveryUser && showDeliveryRequest && currentDeliveryRequest && (
         <DeliveryRequest
           request={currentDeliveryRequest}
           onAccept={handleAcceptDeliveryRequest}
@@ -1362,83 +1048,27 @@ function DriverDashboard({ onLogout = () => {} }) {
         />
       )}
 
-      {/* Active Delivery Route - Shows full view when not navigating, minimized when navigating */}
+      {/* Active Delivery Route - Only for delivery personnel with active route */}
       {isDeliveryUser && activeDeliveryRoute && (
         <DeliveryRoute
           route={activeDeliveryRoute}
-          isNavigating={!!activeTrip}
-          onUpdateStatus={handleDeliveryStatusUpdate}
-          onConfirmDelivery={(deliveryId, pin) => handleDeliveryStatusUpdate(deliveryId, 'completed', pin)}
-          onNavigate={(delivery) => {
-            // Open navigation to pickup or dropoff address
-            const address = delivery.status === 'accepted' ? delivery.pickup.address : delivery.dropoff.address;
-            const encodedAddress = encodeURIComponent(address);
-            const url = `https://www.google.com/maps/dir/?api=1&destination=${encodedAddress}`;
-            window.open(url, '_blank');
-          }}
+          onStatusUpdate={handleDeliveryStatusUpdate}
         />
       )}
 
-      {/* Available Delivery Jobs - Only for delivery personnel when online and NO active deliveries or requests */}
-      {isDeliveryUser && isOnline && !activeDeliveryRoute && !showDeliveryRequest && !activeTrip && (
+      {/* Available Delivery Jobs - Only for delivery personnel when online and no active deliveries */}
+      {isDeliveryUser && isOnline && !activeDeliveryRoute && !showDeliveryRequest && (
         <DeliveryJobList
           userToken={userToken}
           userLocation={mapCenter}
-          onJobAccepted={(response) => {
-            // When a job is accepted, handle the route immediately
-            console.log("🚚 Job accepted from job list, response:", response);
-            
-            if (response && response.route) {
-              // Set the delivery route from the response
-              setActiveDeliveryRoute(response.route);
-              
-              // Transform the first delivery to active trip for map integration
-              if (response.route.activeDeliveries && response.route.activeDeliveries.length > 0) {
-                const currentDelivery = response.route.activeDeliveries[0];
-                
-                const deliveryAsTrip = {
-                  _id: currentDelivery.deliveryId,
-                  type: 'delivery',
-                  status: currentDelivery.status,
-                  rider: {
-                    _id: 'delivery-customer',
-                    fullName: currentDelivery.customer.name,
-                    phoneNumber: currentDelivery.customer.phone
-                  },
-                  pickup: {
-                    address: currentDelivery.pickup.address,
-                    location: {
-                      type: 'Point',
-                      coordinates: currentDelivery.pickup.coordinates
-                    }
-                  },
-                  dropoff: {
-                    address: currentDelivery.dropoff.address,
-                    location: {
-                      type: 'Point',
-                      coordinates: currentDelivery.dropoff.coordinates
-                    }
-                  },
-                  ecommerceData: {
-                    orderId: currentDelivery.orderId,
-                    productDetails: currentDelivery.productDetails,
-                    deliveryPin: currentDelivery.deliveryPin
-                  },
-                  estimatedTotalDistance: response.route.routeStats?.totalDistance || 'N/A',
-                  estimatedTotalDuration: response.route.routeStats?.estimatedTime ? `${response.route.routeStats.estimatedTime} minutes` : 'N/A'
-                };
-                
-                setActiveTrip(deliveryAsTrip);
-                console.log("🚚 Set active trip from job list acceptance:", deliveryAsTrip);
-              }
-            } else if (response && response.delivery) {
-              // Fallback: create a simple route structure
-              setActiveDeliveryRoute({
-                activeDeliveries: [response.delivery],
-                totalDeliveries: 1,
-                completedDeliveries: 0,
-                remainingDeliveries: 1
-              });
+          onJobAccepted={(delivery) => {
+            // When a job is accepted, it becomes an active delivery route
+            // The backend should return the updated route, but we can also refresh
+            if (delivery) {
+              // Trigger a refresh of the active delivery route
+              setTimeout(() => {
+                // This will be handled by the useEffect that fetches active routes
+              }, 1000);
             }
           }}
         />

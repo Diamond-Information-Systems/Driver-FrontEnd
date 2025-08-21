@@ -117,14 +117,8 @@ export async function getMyDeliveryRoute(token) {
 }
 
 // Update delivery status
-export async function updateDeliveryStatus(deliveryId, status, pin = null, token) {
+export async function updateDeliveryStatus(deliveryId, status, token) {
   try {
-    // If PIN is provided, use the confirm delivery endpoint
-    if (pin && status === 'completed') {
-      return await confirmDelivery(deliveryId, pin, token);
-    }
-    
-    // Otherwise use the regular status update endpoint
     const response = await fetch(`${config.apiBaseUrl}/api/deliveries/update-status/${deliveryId}`, {
       method: "PUT",
       headers: {

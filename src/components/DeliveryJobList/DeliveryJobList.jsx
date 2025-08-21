@@ -28,8 +28,8 @@ const DeliveryJobList = ({ userToken, userLocation, onJobAccepted }) => {
     try {
       const response = await getAvailableDeliveryJobs(
         userToken, 
-        userLocation?.lat || userLocation?.latitude, 
-        userLocation?.lng || userLocation?.longitude
+        userLocation?.latitude, 
+        userLocation?.longitude
       );
       
       if (response.success) {
@@ -66,9 +66,9 @@ const DeliveryJobList = ({ userToken, userLocation, onJobAccepted }) => {
         // Remove the accepted job from the list
         setJobs(prev => prev.filter(job => job.deliveryId !== deliveryId));
         
-        // Notify parent component with the full response (including route)
+        // Notify parent component
         if (onJobAccepted) {
-          onJobAccepted(response);
+          onJobAccepted(response.delivery);
         }
       } else {
         setError(response.message);
@@ -119,14 +119,11 @@ const DeliveryJobList = ({ userToken, userLocation, onJobAccepted }) => {
   return (
     <div className="delivery-job-list">
       <div className="job-list-header">
-        <h3>
-          {hasActiveRoute ? 'Your Delivery Queue' : 'Available Delivery Jobs'}
-        </h3>
+        <h3>Available Delivery Jobs</h3>
         <button 
           className="refresh-btn"
           onClick={fetchAvailableJobs}
           disabled={loading}
-          title="Refresh available jobs"
         >
           <RefreshCw className={loading ? 'spin' : ''} size={20} />
         </button>
@@ -135,62 +132,26 @@ const DeliveryJobList = ({ userToken, userLocation, onJobAccepted }) => {
       {error && (
         <div className="error-message">
           <p>{error}</p>
-          <button onClick={fetchAvailableJobs} className="retry-btn">
-            Try Again
-          </button>
         </div>
       )}
 
       {jobs.length === 0 ? (
         <div className="no-jobs">
           <Package size={48} color="#ccc" />
-          <h4>
-            {hasActiveRoute ? 'Queue Complete' : 'No Available Jobs'}
-          </h4>
-          <p>
-            {hasActiveRoute 
-              ? 'All assigned deliveries completed. Great work!' 
-              : 'Check back later for new delivery opportunities'
-            }
-          </p>
-          {hasActiveRoute && (
-            <div className="completion-actions">
-              <button 
-                className="new-opportunities-btn"
-                onClick={fetchAvailableJobs}
-              >
-                <RefreshCw size={16} />
-                Look for New Opportunities
-              </button>
-            </div>
-          )}
+          <h4>No Available Jobs</h4>
+          <p>Check back later for new delivery opportunities</p>
         </div>
       ) : (
         <div className="jobs-container">
-          {/* Status Banner */}
-          {hasActiveRoute && (
-            <div className="status-banner">
-              <div className="banner-content">
-                <Package size={20} color="var(--color-delivery)" />
-                <div className="banner-text">
-                  <span className="banner-title">Active Route</span>
-                  <span className="banner-subtitle">
-                    {jobs.length} delivery{jobs.length !== 1 ? 'ies' : ''} in your queue
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Smart Suggestions Section */}
           {hasActiveRoute && suggestedCombinations.length > 0 && (
             <div className="suggestions-section">
               <h4 className="suggestions-title">
                 <Star size={18} color="var(--color-primary)" />
-                Smart Route Additions
+                Smart Route Suggestions
               </h4>
               <p className="suggestions-subtitle">
-                These deliveries optimize your current route
+                These deliveries fit well with your current route
               </p>
               
               {suggestedCombinations.slice(0, 3).map((suggestion) => {
@@ -218,7 +179,7 @@ const DeliveryJobList = ({ userToken, userLocation, onJobAccepted }) => {
                       </div>
                       <div className="earnings suggested-earnings">
                         <DollarSign size={16} />
-                        <span>R{job.estimatedEarnings}</span>
+                        <span>${job.estimatedEarnings}</span>
                       </div>
                     </div>
 
@@ -278,156 +239,117 @@ const DeliveryJobList = ({ userToken, userLocation, onJobAccepted }) => {
           )}
 
           {/* Regular Jobs Section */}
-          <div className="jobs-grid">
-            {jobs.filter(job => !suggestedCombinations.some(s => s.jobId === job.deliveryId)).map((job, index) => (
-              <div key={job.deliveryId} className={`job-card ${hasActiveRoute ? 'queued' : 'available'}`}>
-                {/* Queue Position for Active Routes */}
-                {hasActiveRoute && (
-                  <div className="queue-position">
-                    <span className="position-number">{index + 1}</span>
-                    <span className="position-label">in queue</span>
+          {jobs.filter(job => !suggestedCombinations.some(s => s.jobId === job.deliveryId)).map((job) => (
+            <div key={job.deliveryId} className="job-card">
+              {/* Job Header */}
+              <div className="job-header">
+                <div className="job-info">
+                  <div className="order-details">
+                    <Package size={20} color="var(--color-delivery)" />
+                    <span className="order-id">#{job.orderId}</span>
                   </div>
-                )}
-
-                {/* Job Header */}
-                <div className="job-header">
-                  <div className="job-info">
-                    <div className="order-details">
-                      <Package size={20} color="var(--color-delivery)" />
-                      <span className="order-id">#{job.orderId}</span>
-                    </div>
-                    <div className="time-posted">
-                      <Clock size={14} />
-                      <span>{formatTime(job.createdAt)}</span>
-                    </div>
-                  </div>
-                  <div className="earnings">
-                    <DollarSign size={16} />
-                    <span>R{job.estimatedEarnings}</span>
+                  <div className="time-posted">
+                    <Clock size={14} />
+                    <span>{formatTime(job.createdAt)}</span>
                   </div>
                 </div>
-
-                {/* Customer Info */}
-                <div className="customer-section">
-                  <div className="customer-info">
-                    <User size={16} />
-                    <span className="customer-name">{job.customer.name}</span>
-                  </div>
-                  <button
-                    className="contact-btn"
-                    onClick={() => window.open(`tel:${job.customer.phone}`)}
-                    title="Call customer"
-                  >
-                    <Phone size={14} />
-                  </button>
+                <div className="earnings">
+                  <DollarSign size={16} />
+                  <span>${job.estimatedEarnings}</span>
                 </div>
-
-                {/* Route Info */}
-                <div className="route-info">
-                  <div className="route-stop pickup">
-                    <MapPin size={16} color="var(--color-delivery)" />
-                    <div className="stop-details">
-                      <span className="stop-label">Pickup</span>
-                      <span className="stop-address">{job.pickup.address}</span>
-                    </div>
-                    <button
-                      className="nav-btn"
-                      onClick={() => openNavigation(job.pickup.address)}
-                      title="Navigate to pickup"
-                    >
-                      <Navigation size={14} />
-                    </button>
-                  </div>
-
-                  <div className="route-line"></div>
-
-                  <div className="route-stop dropoff">
-                    <MapPin size={16} color="var(--color-success)" />
-                    <div className="stop-details">
-                      <span className="stop-label">Dropoff</span>
-                      <span className="stop-address">{job.dropoff.address}</span>
-                    </div>
-                    <button
-                      className="nav-btn"
-                      onClick={() => openNavigation(job.dropoff.address)}
-                      title="Navigate to dropoff"
-                    >
-                      <Navigation size={14} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Product Info */}
-                {job.product && (
-                  <div className="product-info">
-                    <Package size={14} />
-                    <span>Product: {job.product.name || job.product.description || 'Package'}</span>
-                  </div>
-                )}
-
-                {/* Job Details */}
-                <div className="job-details">
-                  {job.estimatedDistance && (
-                    <div className="detail-item">
-                      <span className="detail-label">Distance</span>
-                      <span className="detail-value">{job.estimatedDistance}</span>
-                    </div>
-                  )}
-                  <div className="detail-item">
-                    <span className="detail-label">Priority</span>
-                    <span className={`detail-value priority-${job.urgency}`}>
-                      {job.urgency}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Action Button */}
-                {hasActiveRoute ? (
-                  <button
-                    className="start-job-btn"
-                    onClick={() => handleAcceptJob(job.deliveryId)}
-                    disabled={accepting === job.deliveryId || index > 0}
-                    title={index > 0 ? "Complete current delivery first" : "Start this delivery"}
-                  >
-                    {accepting === job.deliveryId ? (
-                      <>
-                        <RefreshCw className="spin" size={16} />
-                        Starting...
-                      </>
-                    ) : index === 0 ? (
-                      <>
-                        <Package size={16} />
-                        Start Delivery
-                      </>
-                    ) : (
-                      <>
-                        <Clock size={16} />
-                        Queued
-                      </>
-                    )}
-                  </button>
-                ) : (
-                  <button
-                    className="accept-job-btn"
-                    onClick={() => handleAcceptJob(job.deliveryId)}
-                    disabled={accepting === job.deliveryId}
-                  >
-                    {accepting === job.deliveryId ? (
-                      <>
-                        <RefreshCw className="spin" size={16} />
-                        Accepting...
-                      </>
-                    ) : (
-                      <>
-                        <Package size={16} />
-                        Accept Job
-                      </>
-                    )}
-                  </button>
-                )}
               </div>
-            ))}
-          </div>
+
+              {/* Customer Info */}
+              <div className="customer-section">
+                <div className="customer-info">
+                  <User size={16} />
+                  <span className="customer-name">{job.customer.name}</span>
+                </div>
+                <button
+                  className="contact-btn"
+                  onClick={() => window.open(`tel:${job.customer.phone}`)}
+                >
+                  <Phone size={14} />
+                </button>
+              </div>
+
+              {/* Route Info */}
+              <div className="route-info">
+                <div className="route-stop pickup">
+                  <MapPin size={16} color="var(--color-delivery)" />
+                  <div className="stop-details">
+                    <span className="stop-label">Pickup</span>
+                    <span className="stop-address">{job.pickup.address}</span>
+                  </div>
+                  <button
+                    className="nav-btn"
+                    onClick={() => openNavigation(job.pickup.address)}
+                  >
+                    <Navigation size={14} />
+                  </button>
+                </div>
+
+                <div className="route-line"></div>
+
+                <div className="route-stop dropoff">
+                  <MapPin size={16} color="var(--color-success)" />
+                  <div className="stop-details">
+                    <span className="stop-label">Dropoff</span>
+                    <span className="stop-address">{job.dropoff.address}</span>
+                  </div>
+                  <button
+                    className="nav-btn"
+                    onClick={() => openNavigation(job.dropoff.address)}
+                  >
+                    <Navigation size={14} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Product Info */}
+              {job.product && (
+                <div className="product-info">
+                  <Package size={14} />
+                  <span>Product: {job.product.name || job.product.description || 'Package'}</span>
+                </div>
+              )}
+
+              {/* Job Details */}
+              <div className="job-details">
+                {job.estimatedDistance && (
+                  <div className="detail-item">
+                    <span className="detail-label">Distance</span>
+                    <span className="detail-value">{job.estimatedDistance}</span>
+                  </div>
+                )}
+                <div className="detail-item">
+                  <span className="detail-label">Priority</span>
+                  <span className={`detail-value priority-${job.urgency}`}>
+                    {job.urgency}
+                  </span>
+                </div>
+              </div>
+
+              {/* Accept Button */}
+              <button
+                className="accept-job-btn"
+                onClick={() => handleAcceptJob(job.deliveryId)}
+                disabled={accepting === job.deliveryId}
+              >
+                {accepting === job.deliveryId ? (
+                  <>
+                    <RefreshCw className="spin" size={16} />
+                    Accepting...
+                  </>
+                ) : (
+                  <>
+                    <Package size={16} />
+                    Accept Job
+                  </>
+                )}
+              </button>
+            </div>
+          ))}
         </div>
       )}
     </div>

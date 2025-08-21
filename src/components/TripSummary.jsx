@@ -1,15 +1,10 @@
 import React, { useState, useCallback } from 'react';
-import { Package, MapPin, Clock, DollarSign, User, Star, Route } from 'lucide-react';
 import './TripSummary.css';
 
-const TripSummary = ({ trip, deliverySummary, onClose, onSubmitRating }) => {
+const TripSummary = ({ trip, onClose, onSubmitRating }) => {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Determine if this is a delivery summary or ride summary
-  const isDeliverySession = !!deliverySummary;
-  const data = isDeliverySession ? deliverySummary : trip;
 
   // Calculate trip duration
   const calculateDuration = useCallback(() => {
@@ -79,9 +74,7 @@ const TripSummary = ({ trip, deliverySummary, onClose, onSubmitRating }) => {
       <div className="trip-summary-container">
         {/* Header */}
         <div className="trip-summary-header">
-          <h2>
-            {isDeliverySession ? 'Delivery Session Complete! 📦' : 'Trip Completed! 🎉'}
-          </h2>
+          <h2>Trip Completed! 🎉</h2>
           <button 
             className="close-button"
             onClick={onClose}
@@ -91,156 +84,65 @@ const TripSummary = ({ trip, deliverySummary, onClose, onSubmitRating }) => {
           </button>
         </div>
 
-        {/* Trip/Delivery Details */}
+        {/* Trip Details */}
         <div className="trip-details-section">
-          <h3>{isDeliverySession ? 'Session Summary' : 'Trip Details'}</h3>
+          <h3>Trip Details</h3>
           
-          {isDeliverySession ? (
-            /* Delivery Session Details */
-            <>
-              {/* Delivery Metrics */}
-              <div className="delivery-session-metrics">
-                <div className="metric-item primary">
-                  <div className="metric-icon">📦</div>
-                  <div className="metric-details">
-                    <div className="metric-label">Deliveries Completed</div>
-                    <div className="metric-value">{data.completedDeliveries || 0}</div>
-                  </div>
-                </div>
-                
-                <div className="metric-item">
-                  <div className="metric-icon">⏱️</div>
-                  <div className="metric-details">
-                    <div className="metric-label">Session Duration</div>
-                    <div className="metric-value">{calculateDuration()}</div>
-                  </div>
-                </div>
-                
-                <div className="metric-item">
-                  <div className="metric-icon">📏</div>
-                  <div className="metric-details">
-                    <div className="metric-label">Total Distance</div>
-                    <div className="metric-value">{calculateDistance()}</div>
-                  </div>
-                </div>
-                
-                <div className="metric-item earnings">
-                  <div className="metric-icon">💰</div>
-                  <div className="metric-details">
-                    <div className="metric-label">Total Earnings</div>
-                    <div className="metric-value">{formatCurrency(data.totalEarnings)}</div>
-                  </div>
+          {/* Route Information */}
+          <div className="route-info">
+            <div className="location-item">
+              <div className="location-icon pickup">🔵</div>
+              <div className="location-details">
+                <div className="location-label">Pickup</div>
+                <div className="location-address">
+                  {trip.pickup?.address || 'Pickup Location'}
                 </div>
               </div>
-
-              {/* Individual Deliveries Breakdown */}
-              {data.deliveries && data.deliveries.length > 0 && (
-                <div className="deliveries-breakdown">
-                  <h4>Delivery Breakdown</h4>
-                  <div className="deliveries-list">
-                    {data.deliveries.map((delivery, index) => (
-                      <div key={delivery.deliveryId || index} className="delivery-summary-item">
-                        <div className="delivery-number">#{index + 1}</div>
-                        <div className="delivery-info">
-                          <div className="customer-name">{delivery.customer?.name || 'Customer'}</div>
-                          <div className="delivery-route">
-                            <span className="pickup-location">{delivery.pickup?.address}</span>
-                            <span className="route-arrow">→</span>
-                            <span className="dropoff-location">{delivery.dropoff?.address}</span>
-                          </div>
-                        </div>
-                        <div className="delivery-earnings">
-                          {formatCurrency(delivery.earnings || 0)}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Performance Stats */}
-              {data.performance && (
-                <div className="performance-stats">
-                  <h4>Performance</h4>
-                  <div className="performance-grid">
-                    <div className="performance-item">
-                      <span className="perf-label">Efficiency</span>
-                      <span className="perf-value">{data.performance.efficiency || 'N/A'}%</span>
-                    </div>
-                    <div className="performance-item">
-                      <span className="perf-label">Avg Rating</span>
-                      <span className="perf-value">
-                        {data.performance.avgRating ? `${data.performance.avgRating.toFixed(1)} ⭐` : 'N/A'}
-                      </span>
-                    </div>
-                    <div className="performance-item">
-                      <span className="perf-label">On-Time Rate</span>
-                      <span className="perf-value">{data.performance.onTimeRate || 'N/A'}%</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </>
-          ) : (
-            /* Regular Trip Details */
-            <>
-              {/* Route Information */}
-              <div className="route-info">
-                <div className="location-item">
-                  <div className="location-icon pickup">🔵</div>
-                  <div className="location-details">
-                    <div className="location-label">Pickup</div>
-                    <div className="location-address">
-                      {data.pickup?.address || 'Pickup Location'}
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="route-line"></div>
-                
-                <div className="location-item">
-                  <div className="location-icon dropoff">🔴</div>
-                  <div className="location-details">
-                    <div className="location-label">Dropoff</div>
-                    <div className="location-address">
-                      {data.dropoff?.address || 'Dropoff Location'}
-                    </div>
-                  </div>
+            </div>
+            
+            <div className="route-line"></div>
+            
+            <div className="location-item">
+              <div className="location-icon dropoff">🔴</div>
+              <div className="location-details">
+                <div className="location-label">Dropoff</div>
+                <div className="location-address">
+                  {trip.dropoff?.address || 'Dropoff Location'}
                 </div>
               </div>
+            </div>
+          </div>
 
-              {/* Trip Metrics */}
-              <div className="trip-metrics">
-                <div className="metric-item">
-                  <div className="metric-icon">⏱️</div>
-                  <div className="metric-details">
-                    <div className="metric-label">Duration</div>
-                    <div className="metric-value">{calculateDuration()}</div>
-                  </div>
-                </div>
-                
-                <div className="metric-item">
-                  <div className="metric-icon">📏</div>
-                  <div className="metric-details">
-                    <div className="metric-label">Distance</div>
-                    <div className="metric-value">{calculateDistance()}</div>
-                  </div>
-                </div>
-                
-                <div className="metric-item">
-                  <div className="metric-icon">💰</div>
-                  <div className="metric-details">
-                    <div className="metric-label">Fare</div>
-                    <div className="metric-value">{formatCurrency(data.fare)}</div>
-                  </div>
-                </div>
+          {/* Trip Metrics */}
+          <div className="trip-metrics">
+            <div className="metric-item">
+              <div className="metric-icon">⏱️</div>
+              <div className="metric-details">
+                <div className="metric-label">Duration</div>
+                <div className="metric-value">{calculateDuration()}</div>
               </div>
-            </>
-          )}
+            </div>
+            
+            <div className="metric-item">
+              <div className="metric-icon">📏</div>
+              <div className="metric-details">
+                <div className="metric-label">Distance</div>
+                <div className="metric-value">{calculateDistance()}</div>
+              </div>
+            </div>
+            
+            <div className="metric-item">
+              <div className="metric-icon">💰</div>
+              <div className="metric-details">
+                <div className="metric-label">Fare</div>
+                <div className="metric-value">{formatCurrency(trip.fare)}</div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Passenger/Customer Information */}
-        {((data.passenger || data.rider) && !isDeliverySession) && (
+        {/* Passenger Information */}
+        {(trip.passenger || trip.rider) && (
           <div className="passenger-section">
             <h3>Passenger</h3>
             <div className="passenger-info">
