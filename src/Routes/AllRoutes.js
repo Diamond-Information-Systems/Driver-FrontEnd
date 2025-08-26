@@ -44,6 +44,8 @@ import Tribaalinfo from "../pages/Tribaaal-info/Tribaal-info";
 import DocumentRequirements from "../pages/Documents/DocumentRequirements";
 import DocumentDetail from "../pages/Documents/DocumentDetail";
 import AccountManagement from "../pages/Account/AccountManagement/AccountManagement";
+import EnhancedDriverDashboard from '../pages/Dashboard/EnhancedDriverDashboard';
+
 function AllRoutes() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -107,7 +109,7 @@ function AllRoutes() {
             <Route path="/trips" element={<Trips />} />
             <Route path="/tribaal-info" element={<Tribaalinfo />} />
             <Route path="/wallet" element={<Wallet />} />
-            <Route path="/dashboard" element={<DriverDashboard />} />
+            <Route path="/dashboard" element={<EnhancedDriverDashboard />} />
             <Route path="/inbox" element={<Inbox />} />
             <Route path="/account" element={<Account />} />
             <Route path="/profile-management" element={<ProfileManagement />} />

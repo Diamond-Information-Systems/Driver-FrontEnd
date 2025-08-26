@@ -1,0 +1,350 @@
+/* Enhanced Driver Dashboard Styles */
+:root {
+  --color-primary: #ffd93d;
+  --color-primary-dark: #ffb800;
+  --color-secondary: #1e2761;
+  --color-secondary-light: #2a3990;
+  --color-success: #4caf50;
+  --color-success-light: #e8f5e8;
+  --color-danger: #ff6b6b;
+  --color-warning: #ffd93d;
+  --color-info: #2a3990;
+  --color-light: #f8f9fa;
+  --color-dark: #1e2761;
+  --color-chat: #00d4aa;
+  --color-report: #ff6b47;
+  --color-stats: #667eea;
+  --color-delivery: #ff9500;
+  --color-delivery-light: #fff3e0;
+  --color-delivery-dark: #f57c00;
+}
+
+/* Main Layout */
+.enhanced-app-layout {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--color-light);
+}
+
+/* Map Container */
+.enhanced-map-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+/* Online Status Toggle - Floating */
+.online-status-toggle {
+  position: absolute;
+  top: 60px;
+  right: 20px;
+  z-index: 200;
+}
+
+.status-button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.95);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border: 2px solid var(--color-danger);
+  border-radius: 25px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-danger);
+  min-width: 120px;
+}
+
+.status-button.online {
+  border-color: var(--color-success);
+  color: var(--color-success);
+  background: rgba(76, 175, 80, 0.1);
+}
+
+.status-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
+}
+
+.status-button.online:hover {
+  background: rgba(76, 175, 80, 0.15);
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-danger);
+  transition: all 0.3s ease;
+}
+
+.status-dot.active {
+  background: var(--color-success);
+  animation: statusPulse 2s infinite;
+}
+
+@keyframes statusPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.7;
+  }
+}
+
+.status-text {
+  white-space: nowrap;
+}
+
+/* Floating Earnings Display */
+.floating-earnings {
+  position: absolute;
+  top: 60px;
+  left: 20px;
+  z-index: 200;
+}
+
+.earnings-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.95);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border: 2px solid var(--color-primary);
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-dark);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.earnings-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 255, 1);
+}
+
+.earnings-card svg {
+  color: var(--color-primary);
+}
+
+/* Map Report Drawer */
+.map-report-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.map-report-drawer {
+  position: absolute;
+  bottom: 80px;
+  left: 20px;
+  right: 20px;
+  background: white;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.15);
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.drawer-title {
+  margin: 0 0 20px 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-dark);
+  text-align: center;
+}
+
+.report-options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.report-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  background: var(--color-light);
+  border: 1px solid rgba(30, 39, 97, 0.1);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-dark);
+}
+
+.report-option:hover {
+  background: rgba(30, 39, 97, 0.05);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.contributions-section {
+  border-top: 1px solid rgba(30, 39, 97, 0.1);
+  padding-top: 16px;
+}
+
+.contributions-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  background: var(--color-secondary);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.contributions-button:hover {
+  background: var(--color-secondary-light);
+  transform: translateY(-1px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .online-status-toggle {
+    top: 40px;
+    right: 16px;
+  }
+  
+  .floating-earnings {
+    top: 40px;
+    left: 16px;
+  }
+  
+  .status-button {
+    padding: 10px 16px;
+    font-size: 13px;
+    min-width: 100px;
+  }
+  
+  .earnings-card {
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+  
+  .map-report-drawer {
+    left: 16px;
+    right: 16px;
+    padding: 20px;
+  }
+  
+  .report-options {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .online-status-toggle {
+    top: 20px;
+    right: 12px;
+  }
+  
+  .floating-earnings {
+    top: 20px;
+    left: 12px;
+  }
+  
+  .status-button {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+  
+  .earnings-card {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  
+  .map-report-drawer {
+    left: 12px;
+    right: 12px;
+    padding: 16px;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .status-button,
+  .earnings-card,
+  .report-option,
+  .contributions-button {
+    transition: none;
+  }
+  
+  .status-dot.active {
+    animation: none;
+  }
+}
+
+/* Focus States */
+.status-button:focus,
+.earnings-card:focus,
+.report-option:focus,
+.contributions-button:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Dark Mode Support (if needed) */
+@media (prefers-color-scheme: dark) {
+  .enhanced-app-layout {
+    background: #1a1a1a;
+  }
+  
+  .status-button,
+  .earnings-card,
+  .map-report-drawer {
+    background: rgba(30, 30, 30, 0.95);
+    color: white;
+  }
+  
+  .report-option {
+    background: rgba(50, 50, 50, 0.8);
+    color: white;
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .contributions-section {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+}

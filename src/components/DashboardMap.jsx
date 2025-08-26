@@ -25,7 +25,7 @@ import TripSummary from "./TripSummary";
 const LIBRARIES = ["marker"];
 const DEFAULT_CENTER = { lat: -25.7479, lng: 28.2293 };
 const LOCATION_UPDATE_THRESHOLD = 5; // meters
-const ARRIVAL_THRESHOLD = 5; // meters
+const ARRIVAL_THRESHOLD = 30; // meters
 const GEOLOCATION_OPTIONS = {
   enableHighAccuracy: true,
   maximumAge: 10000,
@@ -47,6 +47,7 @@ const DashboardMap = ({
   userToken,
   activeTrip,
   onTripUpdate,
+  onTripStatusChange, // New prop to expose current trip status
 }) => {
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: config.GoogleMapsApiKey,
@@ -135,6 +136,13 @@ const DashboardMap = ({
       console.log("Initialized local trip status:", activeTrip.status);
     }
   }, [activeTrip?.status]);
+
+  // Expose current trip status to parent component
+  useEffect(() => {
+    if (onTripStatusChange && currentTripStatus !== null) {
+      onTripStatusChange(currentTripStatus);
+    }
+  }, [currentTripStatus, onTripStatusChange]);
 
   // Memoized map options with improved styling
   const mapOptions = useMemo(
@@ -402,20 +410,44 @@ const DashboardMap = ({
     }
   }, [onTripUpdate, completedTrip]);
 
-  // NEW: Navigate to dropoff when trip is started
+  // Auto-fit map bounds to show full route when trip becomes active
   useEffect(() => {
-    if (!map || !activeTrip || !window.google) return;
+    if (!map || !activeTrip || !window.google || !userLocation) return;
 
-    // Check if currentTripStatus just changed to "started"
-    if (currentTripStatus === "started" && previousTripStatus.current !== "started") {
-      console.log("Trip status changed to 'started' - directions will show route to dropoff");
-      // Note: We're not automatically panning the map anymore - user can manually navigate
-      // The directions will show the route, but the map will stay focused on the driver
+    // Show full route when trip has a destination and directions are available
+    if (directions && (currentTripStatus === "accepted" || currentTripStatus === "arrived" || currentTripStatus === "started")) {
+      // Only auto-fit once per status change to avoid constant re-fitting
+      if (previousTripStatus.current !== currentTripStatus) {
+        const bounds = new window.google.maps.LatLngBounds();
+        
+        // Add user location to bounds
+        bounds.extend(userLocation);
+        
+        // Add pickup location to bounds
+        if (pickupCoords) {
+          bounds.extend(pickupCoords);
+        }
+        
+        // Add dropoff location to bounds if trip is started
+        if (dropoffCoords && (currentTripStatus === "started" || currentTripStatus === "in_progress")) {
+          bounds.extend(dropoffCoords);
+        }
+        
+        // Fit the map to show all relevant points with padding for UI elements
+        map.fitBounds(bounds, {
+          top: 120,    // Space for navigation panel
+          bottom: 250, // Space for drawer
+          left: 80,    // Space for simulation controls
+          right: 80    // Space for map controls
+        });
+        
+        console.log("Map bounds auto-fitted for status change:", previousTripStatus.current, "→", currentTripStatus);
+      }
     }
 
     // Update previous status for next comparison
     previousTripStatus.current = currentTripStatus;
-  }, [map, activeTrip, currentTripStatus]);
+  }, [map, activeTrip, currentTripStatus, directions, userLocation, pickupCoords, dropoffCoords]);
 
   // Enhanced geolocation tracking
   useEffect(() => {
@@ -660,20 +692,21 @@ const DashboardMap = ({
           content: createMarkerElement(),
         });
         
-        // Only pan to user location on initial marker creation when no active trip
+        // Only pan to user location on initial marker creation (first time only)
         if (!activeTripId) {
           map.panTo(userLocation);
+          console.log("Initial pan to user location");
         }
         
         console.log("Created new user location marker");
       } else {
-        // Just update the marker position without recreation
+        // Just update the marker position without any panning
         markerRef.current.position = userLocation;
       }
     } catch (error) {
       console.error("Error updating user location marker:", error);
     }
-  }, [isLoaded, map, userLocation, activeTripId]); // Use stable activeTripId instead of activeTrip
+  }, [isLoaded, map, userLocation, activeTripId]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -828,93 +861,102 @@ const DashboardMap = ({
 
   return (
     <div className="map-container">
-      {/* Trip Simulation Controls */}
+      {/* Compact Trip Simulation Controls - Repositioned when there's an active trip */}
       {activeTrip && (
         <div style={{
           position: 'absolute',
-          top: '10px',
-          left: '10px',
-          zIndex: 10000,
-          background: 'white',
-          padding: '15px',
+          bottom: activeTrip ? '300px' : '20px', // Move up when drawer is active
+          left: '20px',
+          zIndex: 1000,
+          background: 'rgba(255, 255, 255, 0.95)',
+          WebkitBackdropFilter: 'blur(10px)',
+          backdropFilter: 'blur(10px)',
+          padding: '12px',
           borderRadius: '8px',
           boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-          minWidth: '250px'
+          maxWidth: '200px',
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+          transition: 'bottom 0.3s ease'
         }}>
-          <div style={{ marginBottom: '10px', fontWeight: 'bold' }}>
-            Trip Simulation
+          <div style={{ marginBottom: '8px', fontWeight: 'bold', fontSize: '12px' }}>
+            🎮 Simulation
           </div>
-          <div style={{ fontSize: '12px', marginBottom: '5px' }}>
-            Status: {currentTripStatus || 'Unknown'}
+          <div style={{ fontSize: '10px', marginBottom: '3px', color: '#666' }}>
+            Status: <span style={{ fontWeight: '500', color: '#333' }}>{currentTripStatus || 'Unknown'}</span>
           </div>
           <div style={{ 
-            fontSize: '12px', 
-            marginBottom: '10px',
-            color: isSimulationMode ? '#ff6b35' : '#4CAF50'
+            fontSize: '10px', 
+            marginBottom: '8px',
+            color: isSimulationMode ? '#ff6b35' : '#4CAF50',
+            fontWeight: '500'
           }}>
-            Mode: {isSimulationMode ? '🎮 Simulation' : '📍 Real Location'}
+            {isSimulationMode ? '🎮 Simulation' : '📍 Real GPS'}
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             {(currentTripStatus === 'accepted') && (
               <button
                 onClick={() => simulateMovementToPickup()}
                 style={{
-                  padding: '8px 12px',
+                  padding: '6px 8px',
                   backgroundColor: '#2196F3',
                   color: 'white',
                   border: 'none',
                   borderRadius: '4px',
                   cursor: 'pointer',
-                  fontSize: '12px'
+                  fontSize: '10px',
+                  fontWeight: '500'
                 }}
               >
-                🚗 Simulate Drive to Pickup
+                🚗 Drive to Pickup
               </button>
             )}
             {(currentTripStatus === 'started' || currentTripStatus === 'in_progress') && (
               <button
                 onClick={() => simulateMovementToDropoff()}
                 style={{
-                  padding: '8px 12px',
+                  padding: '6px 8px',
                   backgroundColor: '#4CAF50',
                   color: 'white',
                   border: 'none',
                   borderRadius: '4px',
                   cursor: 'pointer',
-                  fontSize: '12px'
+                  fontSize: '10px',
+                  fontWeight: '500'
                 }}
               >
-                🎯 Simulate Drive to Dropoff
+                🎯 Drive to Dropoff
               </button>
             )}
             {isSimulationMode && (
               <button
                 onClick={() => resetSimulation()}
                 style={{
-                  padding: '8px 12px',
+                  padding: '6px 8px',
                   backgroundColor: '#ff6b35',
                   color: 'white',
                   border: 'none',
                   borderRadius: '4px',
                   cursor: 'pointer',
-                  fontSize: '12px'
+                  fontSize: '10px',
+                  fontWeight: '500'
                 }}
               >
-                🔄 Resume Real Location
+                🔄 Resume GPS
               </button>
             )}
             {activeTrip && currentTripStatus !== 'completed' && currentTripStatus !== 'cancelled' && (
               <button
                 onClick={() => setShowCancelRidePopup(true)}
                 style={{
-                  padding: '8px 12px',
+                  padding: '6px 8px',
                   backgroundColor: '#dc3545',
                   color: 'white',
                   border: 'none',
                   borderRadius: '4px',
                   cursor: 'pointer',
-                  fontSize: '12px',
-                  marginTop: '4px'
+                  fontSize: '10px',
+                  fontWeight: '500',
+                  marginTop: '2px'
                 }}
               >
                 ❌ Cancel Ride
@@ -924,15 +966,15 @@ const DashboardMap = ({
         </div>
       )}
 
-      {/* Location status indicator */}
-      {isLocationLoading && (
+      {/* Location status indicator - Hidden when there's an active trip */}
+      {!activeTrip && isLocationLoading && (
         <div className="location-status loading">
           <div className="status-dot"></div>
           <span>Getting your location...</span>
         </div>
       )}
 
-      {locationError && (
+      {!activeTrip && locationError && (
         <div className="location-status error">
           <div className="status-dot"></div>
           <span>{locationError}</span>
@@ -1026,29 +1068,88 @@ const DashboardMap = ({
         />
       )}
 
-      {/* Navigation Instructions Panel */}
-      {navigationInstructions.length > 0 && activeTrip && (currentTripStatus === "accepted" || currentTripStatus === "started" || currentTripStatus === "in_progress") && (
-        <div className="navigation-instructions">
-          <div className="navigation-header">
-            <h4>Turn-by-turn Navigation</h4>
-            <span className="next-instruction">Next: {navigationInstructions[0]?.instruction || 'Continue straight'}</span>
+      {/* Enhanced Navigation Instructions Panel - Compact and Non-obstructive */}
+      {navigationInstructions.length > 0 && activeTrip && (currentTripStatus === "accepted" || currentTripStatus === "arrived" || currentTripStatus === "started" || currentTripStatus === "in_progress") && (
+        <div className="navigation-instructions-compact">
+          <div className="next-instruction-main">
+            <div className="instruction-icon-large">
+              {navigationInstructions[0]?.maneuver === 'turn-left' ? '⬅️' : 
+               navigationInstructions[0]?.maneuver === 'turn-right' ? '➡️' : 
+               navigationInstructions[0]?.maneuver === 'straight' ? '⬆️' : 
+               navigationInstructions[0]?.maneuver === 'merge' ? '🔀' : 
+               navigationInstructions[0]?.maneuver === 'ramp' ? '↗️' : '⬆️'}
+            </div>
+            <div className="instruction-details">
+              <div className="instruction-text-main">{navigationInstructions[0]?.instruction || 'Continue straight'}</div>
+              <div className="instruction-distance-main">{navigationInstructions[0]?.distance}</div>
+            </div>
           </div>
-          <div className="instructions-list">
-            {navigationInstructions.slice(0, 3).map((step, index) => (
-              <div key={index} className={`instruction-item ${index === 0 ? 'current' : ''}`}>
-                <div className="instruction-icon">
-                  {step.maneuver === 'turn-left' ? '⬅️' : 
-                   step.maneuver === 'turn-right' ? '➡️' : 
-                   step.maneuver === 'straight' ? '⬆️' : 
-                   step.maneuver === 'merge' ? '🔀' : '⬆️'}
+          {navigationInstructions.length > 1 && (
+            <div className="upcoming-turns">
+              <div className="upcoming-label">Then:</div>
+              {navigationInstructions.slice(1, 3).map((step, index) => (
+                <div key={index} className="upcoming-instruction">
+                  <span className="upcoming-icon">
+                    {step.maneuver === 'turn-left' ? '⬅️' : 
+                     step.maneuver === 'turn-right' ? '➡️' : 
+                     step.maneuver === 'straight' ? '⬆️' : 
+                     step.maneuver === 'merge' ? '🔀' : 
+                     step.maneuver === 'ramp' ? '↗️' : '⬆️'}
+                  </span>
+                  <span className="upcoming-distance">{step.distance}</span>
                 </div>
-                <div className="instruction-text">
-                  <div className="instruction-main">{step.instruction}</div>
-                  <div className="instruction-distance">{step.distance}</div>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Map Control Buttons */}
+      {map && (
+        <div className="map-controls">
+          <button
+            className="map-control-btn"
+            onClick={() => {
+              if (userLocation) {
+                map.panTo(userLocation);
+                map.setZoom(16);
+              }
+            }}
+            title="Center on my location"
+          >
+            📍
+          </button>
+          
+          {activeTrip && directions && (
+            <button
+              className="map-control-btn"
+              onClick={() => {
+                const bounds = new window.google.maps.LatLngBounds();
+                
+                // Add user location to bounds
+                if (userLocation) bounds.extend(userLocation);
+                
+                // Add pickup location to bounds
+                if (pickupCoords) bounds.extend(pickupCoords);
+                
+                // Add dropoff location to bounds if trip is started
+                if (dropoffCoords && (currentTripStatus === "started" || currentTripStatus === "in_progress")) {
+                  bounds.extend(dropoffCoords);
+                }
+                
+                // Fit the map to show all relevant points with padding
+                map.fitBounds(bounds, {
+                  top: 120,    // Navigation panel space
+                  bottom: 220, // Drawer space
+                  left: 60,
+                  right: 60
+                });
+              }}
+              title="Show full route"
+            >
+              🗺️
+            </button>
+          )}
         </div>
       )}
 

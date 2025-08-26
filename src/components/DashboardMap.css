@@ -70,21 +70,22 @@
 .location-status {
   position: fixed;
   top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 20px;
   background: rgba(255, 255, 255, 0.95);
-  padding: 12px 20px;
-  border-radius: 25px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  padding: 8px 12px;
+  border-radius: 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(0, 0, 0, 0.1);
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 14px;
+  gap: 8px;
+  font-size: 12px;
   font-weight: 500;
   z-index: 100;
   transition: all 0.3s ease;
+  max-width: 200px;
 }
 
 .location-status.loading {
@@ -750,11 +751,173 @@
   }
 }
 
-/* Animation for navigation panel */
-.navigation-instructions {
+/* Compact Navigation Instructions - Non-obstructive */
+.navigation-instructions-compact {
+  position: absolute;
+  top: 80px; /* Move down to avoid overlapping with other elements */
+  right: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 12px 16px; /* Reduced padding for compactness */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  max-width: 260px; /* Slightly smaller max-width */
+  z-index: 1000;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   animation: slideInFromRight 0.3s ease-out;
+  transition: all 0.3s ease;
 }
 
+.next-instruction-main {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Reduced gap */
+  margin-bottom: 6px; /* Reduced margin */
+}
+
+.instruction-icon-large {
+  font-size: 20px; /* Reduced size */
+  width: 32px; /* Reduced size */
+  height: 32px; /* Reduced size */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #4285F4;
+  border-radius: 6px; /* Smaller radius */
+  color: white;
+  flex-shrink: 0;
+}
+
+.instruction-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.instruction-text-main {
+  font-weight: 600;
+  font-size: 13px; /* Reduced font size */
+  color: #1a1a1a;
+  line-height: 1.3;
+  margin-bottom: 4px;
+  word-wrap: break-word;
+}
+
+.instruction-distance-main {
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+}
+
+.upcoming-turns {
+  padding-top: 6px; /* Reduced padding */
+  border-top: 1px solid rgba(0, 0, 0, 0.08); /* Lighter border */
+}
+
+.upcoming-label {
+  font-size: 10px; /* Reduced font size */
+  color: #888;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 4px; /* Reduced margin */
+}
+
+.upcoming-instruction {
+  display: flex;
+  align-items: center;
+  gap: 6px; /* Reduced gap */
+  margin-bottom: 3px; /* Reduced margin */
+  font-size: 11px; /* Reduced font size */
+  color: #666;
+}
+
+.upcoming-icon {
+  font-size: 12px; /* Reduced size */
+  width: 16px; /* Reduced width */
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.upcoming-distance {
+  font-weight: 500;
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 480px) {
+  .navigation-instructions-compact {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    max-width: none;
+    padding: 12px;
+  }
+  
+  .instruction-text-main {
+    font-size: 13px;
+  }
+  
+  .instruction-icon-large {
+    font-size: 20px;
+    width: 32px;
+    height: 32px;
+  }
+}
+
+/* Map Control Buttons */
+.map-controls {
+  position: absolute;
+  top: 120px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 1000;
+}
+
+.map-control-btn {
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.95);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.map-control-btn:hover {
+  background: rgba(255, 255, 255, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+.map-control-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 480px) {
+  .map-controls {
+    top: 80px;
+    right: 10px;
+  }
+  
+  .map-control-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+}
+
+/* Animation for navigation panel */
 @keyframes slideInFromRight {
   from {
     transform: translateX(100%);
