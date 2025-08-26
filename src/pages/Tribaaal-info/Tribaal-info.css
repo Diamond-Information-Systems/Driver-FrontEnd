@@ -1,0 +1,719 @@
+/* Tribaal Info Page Styles */
+.Tri-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0a0f29 0%, #1a365d 100%);
+  color: white;
+  padding: 0 20px;
+  padding-bottom: 100px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Header */
+.Tri-header {
+  display: flex;
+  align-items: center;
+  padding: 20px 0;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.Tri-back-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.Tri-back-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+}
+
+.Tri-page-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Hero Section */
+.Tri-hero-section {
+  text-align: center;
+  margin-bottom: 40px;
+  padding: 20px 0;
+}
+
+.Tri-tribaal-logo {
+  margin-bottom: 20px;
+}
+
+.Tri-logo-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    rgba(251, 191, 36, 0.2) 0%,
+    rgba(251, 191, 36, 0.1) 100%
+  );
+  border: 2px solid rgba(251, 191, 36, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  backdrop-filter: blur(10px);
+}
+
+.Tri-hero-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: #fbbf24;
+}
+
+.Tri-hero-subtitle {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.5;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+/* Connection Status */
+.Tri-connection-status {
+  margin-bottom: 30px;
+}
+
+.Tri-status-card {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.Tri-status-card.Tri-connected {
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.Tri-status-icon {
+  flex-shrink: 0;
+}
+
+.Tri-status-icon.Tri-pending {
+  color: #fbbf24;
+}
+
+.Tri-status-icon.Tri-success {
+  color: #22c55e;
+}
+
+.Tri-status-content h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.Tri-status-content p {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+/* Benefits Section */
+.Tri-benefits-section {
+  margin-bottom: 30px;
+}
+
+.Tri-section-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #fbbf24;
+}
+
+.Tri-benefits-grid {
+  display: grid;
+  gap: 15px;
+}
+
+.Tri-benefit-card {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.Tri-benefit-card:hover {
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-2px);
+}
+
+.Tri-benefit-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(251, 191, 36, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fbbf24;
+  flex-shrink: 0;
+}
+
+.Tri-benefit-content h4 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: white;
+}
+
+.Tri-benefit-content p {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Account Information */
+.Tri-account-info {
+  margin-bottom: 30px;
+}
+
+.Tri-info-card {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 20px;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.Tri-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.Tri-info-row:last-child {
+  border-bottom: none;
+}
+
+.Tri-info-label {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.Tri-info-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+}
+
+.Tri-info-value.Tri-connected {
+  color: #22c55e;
+}
+
+.Tri-info-value.Tri-pending {
+  color: #fbbf24;
+}
+
+/* Connection Process */
+.Tri-connection-process {
+  margin-bottom: 40px;
+}
+
+.Tri-process-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.Tri-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+}
+
+.Tri-step-number {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  color: #0a0f29;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.Tri-step-content h4 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: white;
+}
+
+.Tri-step-content p {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Action Section */
+.Tri-action-section {
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.Tri-connect-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  color: #0a0f29;
+  border: none;
+  padding: 16px 24px;
+  border-radius: 50px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 24px rgba(251, 191, 36, 0.3);
+}
+
+.Tri-connect-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(251, 191, 36, 0.4);
+}
+
+.Tri-connect-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.Tri-connect-btn.Tri-connecting {
+  background: linear-gradient(135deg, #d1d5db 0%, #9ca3af 100%);
+  color: #374151;
+}
+
+.Tri-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.Tri-connected-actions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.Tri-manage-btn,
+.Tri-disconnect-btn {
+  flex: 1;
+  padding: 14px 20px;
+  border-radius: 25px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.Tri-manage-btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.Tri-manage-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.Tri-disconnect-btn {
+  background: rgba(239, 68, 68, 0.1);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.Tri-disconnect-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+/* Security Notice */
+.Tri-security-notice {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 16px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.Tri-notice-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.Tri-notice-icon {
+  color: #22c55e;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.Tri-notice-text h4 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: white;
+}
+
+.Tri-notice-text p {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Responsive Design */
+@media (min-width: 768px) {
+  .Tri-benefits-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .Tri-container {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+}
+
+/* Smooth animations */
+.Tri-status-card,
+.Tri-benefit-card,
+.Tri-info-card {
+  animation: slideUp 0.5s ease forwards;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Modal Styles */
+.Tri-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+.Tri-modal {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  animation: slideUp 0.3s ease;
+  overflow: hidden;
+}
+
+.Tri-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 24px 0;
+  margin-bottom: 16px;
+}
+
+.Tri-modal-header h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #0a0f29;
+  margin: 0;
+}
+
+.Tri-modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #6b7280;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.Tri-modal-close:hover {
+  background: rgba(107, 114, 128, 0.1);
+  color: #374151;
+}
+
+.Tri-modal-body {
+  padding: 0 24px 24px;
+}
+
+.Tri-modal-subtitle {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 24px;
+  line-height: 1.4;
+}
+
+.Tri-form-group {
+  margin-bottom: 20px;
+}
+
+.Tri-form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #0a0f29;
+  font-size: 14px;
+}
+
+.Tri-form-group input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 16px;
+  background: rgba(255, 255, 255, 0.8);
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.Tri-form-group input:focus {
+  outline: none;
+  border-color: #fbbf24;
+  background: rgba(255, 255, 255, 1);
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.1);
+}
+
+.Tri-security-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(34, 197, 94, 0.1);
+  padding: 12px 16px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  color: #059669;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.Tri-modal-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.Tri-cancel-btn,
+.Tri-login-btn {
+  flex: 1;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.Tri-cancel-btn {
+  background: rgba(107, 114, 128, 0.1);
+  color: #374151;
+  border: 1px solid rgba(107, 114, 128, 0.3);
+}
+
+.Tri-cancel-btn:hover {
+  background: rgba(107, 114, 128, 0.2);
+}
+
+.Tri-login-btn {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  color: #0a0f29;
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+}
+
+.Tri-login-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(251, 191, 36, 0.4);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Notification Styles */
+.Tri-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  min-width: 320px;
+  max-width: 400px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  animation: slideInRight 0.3s ease-out;
+  overflow: hidden;
+}
+
+.Tri-notification-content {
+  display: flex;
+  align-items: flex-start;
+  padding: 16px;
+  gap: 12px;
+}
+
+.Tri-notification-icon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.Tri-notification-success .Tri-notification-icon {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+
+.Tri-notification-error .Tri-notification-icon {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.Tri-notification-info .Tri-notification-icon {
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+}
+
+.Tri-notification-text {
+  flex: 1;
+  color: #0a0f29;
+}
+
+.Tri-notification-text h4 {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.Tri-notification-text p {
+  margin: 0;
+  font-size: 14px;
+  opacity: 0.8;
+  line-height: 1.4;
+}
+
+.Tri-notification-close {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: rgba(107, 114, 128, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #6b7280;
+  transition: all 0.2s ease;
+}
+
+.Tri-notification-close:hover {
+  background: rgba(107, 114, 128, 0.2);
+  transform: scale(1.1);
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Responsive adjustments for notifications */
+@media (max-width: 480px) {
+  .Tri-notification {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    min-width: auto;
+    max-width: none;
+  }
+}

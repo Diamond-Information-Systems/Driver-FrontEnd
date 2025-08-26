@@ -181,6 +181,40 @@ body {
   flex-direction: column;
   gap: 8px;
 }
+.link-tribaal-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #fbbf24;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: 20px;
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+}
+
+
+.link-tribaal-link:hover {
+  background: rgba(251, 191, 36, 0.2);
+  border-color: rgba(251, 191, 36, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.2);
+  color: #f59e0b;
+}
+
+.link-tribaal-link svg {
+  transition: transform 0.3s ease;
+}
+
+.link-tribaal-link:hover svg {
+  transform: scale(1.1);
+}
+
+
 
 .route-start,
 .route-end {

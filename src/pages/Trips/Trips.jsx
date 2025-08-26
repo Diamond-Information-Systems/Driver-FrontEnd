@@ -1,4 +1,5 @@
 import React, { useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   MapPin,
   Clock,
@@ -11,11 +12,13 @@ import {
 import BottomDock from "../../components/BottomDock";
 import Header from "../../components/Header/Header";
 import { DriverStatusContext } from "../../context/DriverStatusContext";
+import "./Trips.css"; // Ensure this file exists and contains the necessary styles
 
 function Trips({ onLogout = () => {} }) {
   const [activeTab, setActiveTab] = useState("trips");
   const { isOnline } = useContext(DriverStatusContext) || {};
   const [selectedFilter, setSelectedFilter] = useState("all");
+  const navigate = useNavigate();
 
   const handleTabChange = (tabId) => {
     if (tabId === "logout") {
@@ -140,6 +143,8 @@ function Trips({ onLogout = () => {} }) {
 
   return (
     <div style={styles.appLayout}>
+      {/* Button to go to /tribaal-info */}
+   
       {/* Just the Header component - that's it! */}
       <Header
         notificationCount={5}
@@ -156,27 +161,51 @@ function Trips({ onLogout = () => {} }) {
           <div style={styles.bgPattern2}></div>
 
           <div style={styles.dashboardContent}>
-            <div style={styles.dashboardHeader}>
-              <div>
-                <h1 style={styles.dashboardTitle}>Your Trips</h1>
-                <p style={styles.dashboardSubtitle}>
-                  Track your daily performance
-                </p>
-              </div>
-              <div style={styles.statusBadge}>
-                <div
-                  style={{
-                    ...styles.statusDot,
-                    backgroundColor: isOnline ? "#4ade80" : "#ef4444",
-                    animation: isOnline ? "pulse 2s infinite" : "none",
-                  }}
-                ></div>
-                <span style={styles.statusText}>
-                  {isOnline ? "Online" : "Offline"}
-                </span>
-              </div>
-            </div>
-
+           <div style={styles.dashboardHeader}>
+  <div>
+    <h1 style={styles.dashboardTitle}>Your Trips</h1>
+    <p style={styles.dashboardSubtitle}>
+      Track your daily performance
+    </p>
+  </div>
+  <div style={styles.statusBadge}>
+    <div
+      style={{
+        ...styles.statusDot,
+        backgroundColor: isOnline ? "#4ade80" : "#ef4444",
+        animation: isOnline ? "pulse 2s infinite" : "none",
+      }}
+    ></div>
+    <span style={styles.statusText}>
+      {isOnline ? "Online" : "Offline"}
+    </span>
+  </div>
+</div>
+{/* Add the link below the dashboardHeader */}
+<div style={{ display: "flex", justifyContent: "flex-end", margin: "16px 0" }}>
+  <a
+    href="#"
+    className="link-tribaal-link"
+    onClick={(e) => {
+      e.preventDefault();
+      navigate("/tribaal-info");
+    }}
+  >
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+      <path
+        d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"
+        stroke="currentColor"
+        strokeWidth="2"
+      />
+      <path
+        d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"
+        stroke="currentColor"
+        strokeWidth="2"
+      />
+    </svg>
+    Link Tribaal
+  </a>
+</div>
             {/* Stats Grid - Improved Layout */}
             <div style={styles.statsGrid}>
               {/* Earnings Card */}

@@ -40,6 +40,7 @@ import WorkHub from "../pages/Account/WorkHub/WorkHub";
 import TaxInformation from "../pages/Tax/TaxInformation";
 import Payment from "../pages/Account/Payment/Payment";
 import AddressForm from "../pages/Address/Address";
+import Tribaalinfo from "../pages/Tribaaal-info/Tribaal-info";
 import DocumentRequirements from "../pages/Documents/DocumentRequirements";
 import DocumentDetail from "../pages/Documents/DocumentDetail";
 import AccountManagement from "../pages/Account/AccountManagement/AccountManagement";
@@ -104,6 +105,7 @@ function AllRoutes() {
             <Route path="/profile/edit" element={<ProfileEdit />} />
             <Route path="/referrals" element={<Referrals />} />
             <Route path="/trips" element={<Trips />} />
+            <Route path="/tribaal-info" element={<Tribaalinfo />} />
             <Route path="/wallet" element={<Wallet />} />
             <Route path="/dashboard" element={<DriverDashboard />} />
             <Route path="/inbox" element={<Inbox />} />
