@@ -111,10 +111,35 @@ const DashboardMap = ({
     return null;
   }, [currentTripStatus, pickupCoords, dropoffCoords, activeTrip]);
 
-  // Memoized map center to prevent unnecessary re-renders
+  // Stable map center that doesn't change during active trips to prevent GoogleMap re-centering
+  const stableMapCenter = useMemo(() => {
+    // During active trips, keep the center completely static to prevent any map movements
+    if (activeTrip) {
+      // Use a static reference that won't change during the trip
+      return previousActiveTrip.current?.mapCenter || center;
+    }
+    // When no active trip, use current user location or fallback to center
+    const currentCenter = userLocation || center;
+    // Store this center for future active trips
+    if (!activeTrip && currentCenter) {
+      if (!previousActiveTrip.current) {
+        previousActiveTrip.current = {};
+      }
+      previousActiveTrip.current.mapCenter = currentCenter;
+    }
+    return currentCenter;
+  }, [activeTrip, userLocation, center]);
+
+  // Memoized map center to prevent unnecessary re-renders - STABLE DURING ACTIVE TRIPS
   const mapCenter = useMemo(() => {
+    // Keep map center stable during active trips to prevent re-rendering and panning
+    if (activeTrip) {
+      console.log("Map center LOCKED during active trip");
+      // Return the last known center or default center to prevent map shifts
+      return center;
+    }
     return userLocation || center;
-  }, [userLocation, center]);
+  }, [userLocation, center, activeTrip]);
 
   // Performance monitoring: Log when component re-renders
   useEffect(() => {
@@ -410,45 +435,18 @@ const DashboardMap = ({
     }
   }, [onTripUpdate, completedTrip]);
 
-  // Auto-fit map bounds to show full route when trip becomes active
+  // Auto-fit map bounds to show full route when trip becomes active - DISABLED DURING ACTIVE TRIPS
   useEffect(() => {
-    if (!map || !activeTrip || !window.google || !userLocation) return;
-
-    // Show full route when trip has a destination and directions are available
-    if (directions && (currentTripStatus === "accepted" || currentTripStatus === "arrived" || currentTripStatus === "started")) {
-      // Only auto-fit once per status change to avoid constant re-fitting
-      if (previousTripStatus.current !== currentTripStatus) {
-        const bounds = new window.google.maps.LatLngBounds();
-        
-        // Add user location to bounds
-        bounds.extend(userLocation);
-        
-        // Add pickup location to bounds
-        if (pickupCoords) {
-          bounds.extend(pickupCoords);
-        }
-        
-        // Add dropoff location to bounds if trip is started
-        if (dropoffCoords && (currentTripStatus === "started" || currentTripStatus === "in_progress")) {
-          bounds.extend(dropoffCoords);
-        }
-        
-        // Fit the map to show all relevant points with padding for UI elements
-        map.fitBounds(bounds, {
-          top: 120,    // Space for navigation panel
-          bottom: 250, // Space for drawer
-          left: 80,    // Space for simulation controls
-          right: 80    // Space for map controls
-        });
-        
-        console.log("Map bounds auto-fitted ONCE for status change:", previousTripStatus.current, "→", currentTripStatus);
-        
-        // Update previous status immediately to prevent refitting
-        previousTripStatus.current = currentTripStatus;
-      } else {
-        console.log("Skipping auto-fit - status unchanged:", currentTripStatus);
-      }
+    // COMPLETELY DISABLE auto-fitting during active trips to prevent unwanted panning
+    if (activeTrip) {
+      console.log("Auto-fit DISABLED - active trip in progress");
+      return;
     }
+
+    if (!map || !window.google || !userLocation) return;
+
+    // Only auto-fit when there's no active trip (initial state)
+    console.log("Auto-fit available - no active trip");
   }, [map, activeTrip, currentTripStatus, directions, userLocation, pickupCoords, dropoffCoords]);
 
   // Enhanced geolocation tracking
@@ -666,7 +664,7 @@ const DashboardMap = ({
     );
   }, [activeTripId, userLocation, currentDestination]); // Use optimized dependencies
 
-  // Optimized user location marker effect
+  // Optimized user location marker effect - NO PANNING DURING ACTIVE TRIPS
   useEffect(() => {
     if (!isLoaded || !map || !userLocation || !window.google) return;
 
@@ -694,19 +692,19 @@ const DashboardMap = ({
           content: createMarkerElement(),
         });
         
-        // Only pan to user location on initial marker creation AND only if no active trip
+        // COMPLETELY DISABLE any initial panning if there's an active trip
         if (!activeTripId) {
           map.panTo(userLocation);
           console.log("Initial pan to user location (no active trip)");
         } else {
-          console.log("Skipping initial pan - active trip exists");
+          console.log("NO PANNING - active trip exists, keeping current view");
         }
         
         console.log("Created new user location marker");
       } else {
-        // Just update the marker position without any panning
+        // Just update the marker position - NO PANNING EVER DURING UPDATES
         markerRef.current.position = userLocation;
-        console.log("Updated marker position without panning");
+        console.log("Updated marker position - NO PANNING (active trip:", !!activeTripId, ")");
       }
     } catch (error) {
       console.error("Error updating user location marker:", error);
@@ -1161,7 +1159,7 @@ const DashboardMap = ({
       <GoogleMap
         mapContainerStyle={mapContainerStyle}
         zoom={16}
-        center={mapCenter}
+        center={stableMapCenter}
         onLoad={setMap}
         options={mapOptions}
       >
@@ -1202,7 +1200,13 @@ const arePropsEqual = (prevProps, nextProps) => {
     return false;
   }
 
-  // Compare markers array length and position
+  // SKIP marker comparison during active trips to prevent re-renders from location updates
+  if (nextProps.activeTrip) {
+    console.log("Skipping marker comparison during active trip to prevent re-renders");
+    return true;
+  }
+
+  // Compare markers array length and position only when no active trip
   if (prevProps.markers?.length !== nextProps.markers?.length) {
     return false;
   }

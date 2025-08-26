@@ -171,7 +171,7 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
         setTimeout(() => {
           console.log("🏁 Clearing completed trip to resume polling");
           setActiveTrip(null);
-        }, 20000); // reduced to 20 seconds
+        }, 5000); // reduced to 5 seconds
       } else if (updatedTrip.status === 'cancelled') {
         console.log("❌ Trip cancelled, clearing immediately");
         setActiveTrip(null);
