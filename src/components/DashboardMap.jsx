@@ -441,12 +441,14 @@ const DashboardMap = ({
           right: 80    // Space for map controls
         });
         
-        console.log("Map bounds auto-fitted for status change:", previousTripStatus.current, "→", currentTripStatus);
+        console.log("Map bounds auto-fitted ONCE for status change:", previousTripStatus.current, "→", currentTripStatus);
+        
+        // Update previous status immediately to prevent refitting
+        previousTripStatus.current = currentTripStatus;
+      } else {
+        console.log("Skipping auto-fit - status unchanged:", currentTripStatus);
       }
     }
-
-    // Update previous status for next comparison
-    previousTripStatus.current = currentTripStatus;
   }, [map, activeTrip, currentTripStatus, directions, userLocation, pickupCoords, dropoffCoords]);
 
   // Enhanced geolocation tracking
@@ -692,16 +694,19 @@ const DashboardMap = ({
           content: createMarkerElement(),
         });
         
-        // Only pan to user location on initial marker creation (first time only)
+        // Only pan to user location on initial marker creation AND only if no active trip
         if (!activeTripId) {
           map.panTo(userLocation);
-          console.log("Initial pan to user location");
+          console.log("Initial pan to user location (no active trip)");
+        } else {
+          console.log("Skipping initial pan - active trip exists");
         }
         
         console.log("Created new user location marker");
       } else {
         // Just update the marker position without any panning
         markerRef.current.position = userLocation;
+        console.log("Updated marker position without panning");
       }
     } catch (error) {
       console.error("Error updating user location marker:", error);
