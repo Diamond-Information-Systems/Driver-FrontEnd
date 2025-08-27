@@ -117,7 +117,8 @@ const RideDrawer = ({
     } else if (drawerState === 'TRIP_ACTIVE') {
       setIsVisible(true);
       setIsExpanded(false);
-    } else if (drawerState === 'IDLE' && isOnline) {
+    } else if (drawerState === 'IDLE') {
+      // Always show drawer in IDLE state, whether online or offline
       setIsVisible(true);
       setIsExpanded(false);
     } else {

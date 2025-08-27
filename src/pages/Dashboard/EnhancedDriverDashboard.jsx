@@ -171,7 +171,7 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
         setTimeout(() => {
           console.log("🏁 Clearing completed trip to resume polling");
           setActiveTrip(null);
-        }, 5000); // reduced to 5 seconds
+        }, 100); // reduced to 100 milliseconds
       } else if (updatedTrip.status === 'cancelled') {
         console.log("❌ Trip cancelled, clearing immediately");
         setActiveTrip(null);
@@ -565,7 +565,8 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
     console.log("🌟 Rating submitted, clearing all trip state");
     setCompletedTrip(null);
     setActiveTrip(null);
-    
+
+
     // Force immediate polling check if online
     if (isOnline && !isDeliveryUser) {
       console.log("🔄 Triggering immediate poll after rating submit");
