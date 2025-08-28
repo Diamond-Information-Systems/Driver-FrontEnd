@@ -333,7 +333,18 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
 
   // Enhanced ride request polling with ref-based state management
   useEffect(() => {
+    console.log("🚗 Ride polling effect triggered:", { 
+      isDeliveryUser, 
+      isOnline, 
+      activeTrip: !!activeTrip, 
+      showRequest,
+      userToken: !!userToken,
+      userRole: user?.user?.role,
+      userType: user?.userType
+    });
+    
     if (isDeliveryUser) {
+      console.log("🚗 Skipping ride polling - user is delivery driver");
       clearAllTimers();
       return;
     }
@@ -341,14 +352,47 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
     const pollForRequests = async () => {
       const currentState = currentStateRef.current;
       
+      // Check if driver should accept new requests using ref values to avoid stale closures
+      const hasActiveTrip = currentState.activeTrip && (
+        currentState.activeTrip.status === 'accepted' ||
+        currentState.activeTrip.status === 'inProgress' ||
+        currentState.activeTrip.status === 'arrived' ||
+        currentState.activeTrip.status === 'pickedUp' ||
+        currentState.activeTrip.status === 'started' ||
+        currentState.currentTripStatus === 'accepted' ||
+        currentState.currentTripStatus === 'inProgress' ||
+        currentState.currentTripStatus === 'arrived' ||
+        currentState.currentTripStatus === 'pickedUp' ||
+        currentState.currentTripStatus === 'started'
+      );
+      
+      const shouldAccept = currentState.isOnline && !hasActiveTrip && !currentState.showRequest && !currentState.isDeliveryUser;
+      
       // Check current conditions using ref to avoid stale closures
-      if (!currentState.isOnline || !shouldAcceptNewRequests() || currentState.isDeliveryUser || currentState.showRequest) {
+      if (!shouldAccept) {
+        console.log("🚗 Skipping ride polling - conditions not met:", {
+          isOnline: currentState.isOnline,
+          hasActiveTrip,
+          showRequest: currentState.showRequest,
+          isDeliveryUser: currentState.isDeliveryUser
+        });
         return;
       }
 
       try {
-        console.log("🔍 Making API call for nearby requests");
+        console.log("🔍 Making API call for nearby requests with token:", !!currentState.userToken);
+        console.log("🔍 API endpoint: getNearbyRequests");
+        
+        if (!currentState.userToken) {
+          console.log("🚗 No user token available, skipping API call");
+          return;
+        }
+        
         const requests = await getNearbyRequests(currentState.userToken);
+        console.log("🔍 API response received:", { 
+          requestsLength: requests?.length || 0,
+          requests: requests 
+        });
         
         if (requests && requests.length > 0) {
           const filteredRequests = requests.filter(
@@ -394,30 +438,63 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
               });
             }, 1000);
           }
+        } else {
+          console.log("🔍 No ride requests found or requests array is empty");
         }
       } catch (err) {
         console.error("Error polling for requests:", err);
+        console.error("Error details:", err.message, err.stack);
       }
     };
 
+    // Calculate if should accept requests for ride drivers
+    const hasActiveTrip = activeTrip && (
+      activeTrip.status === 'accepted' ||
+      activeTrip.status === 'inProgress' ||
+      activeTrip.status === 'arrived' ||
+      activeTrip.status === 'pickedUp' ||
+      activeTrip.status === 'started' ||
+      currentTripStatus === 'accepted' ||
+      currentTripStatus === 'inProgress' ||
+      currentTripStatus === 'arrived' ||
+      currentTripStatus === 'pickedUp' ||
+      currentTripStatus === 'started'
+    );
+    
+    const shouldStartPolling = isOnline && !hasActiveTrip && !showRequest && !isDeliveryUser;
+
+    console.log("🚗 Ride polling decision:", {
+      isOnline,
+      hasActiveTrip,
+      showRequest,
+      isDeliveryUser,
+      shouldStartPolling,
+      userToken: !!userToken
+    });
+
     // Start or stop polling based on conditions
-    if (isOnline && shouldAcceptNewRequests() && !showRequest) {
-      console.log("✅ Starting ride request polling");
+    if (shouldStartPolling) {
+      console.log("✅ Starting ride request polling for NON-DELIVERY driver");
       
       // Clear any existing polling
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
       }
       
-      // Start new polling interval
+      // Start new polling interval immediately and then set up regular interval
+      console.log("🚗 Making immediate test API call...");
+      pollForRequests();
+      
       pollingIntervalRef.current = setInterval(pollForRequests, 4000);
       
     } else {
       console.log("❌ Stopping ride request polling:", {
         isOnline,
-        shouldAcceptNewRequests: shouldAcceptNewRequests(),
+        hasActiveTrip,
         showRequest,
-        isDeliveryUser
+        isDeliveryUser,
+        shouldStartPolling
       });
       
       // Clear polling
@@ -441,7 +518,7 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
         pollingIntervalRef.current = null;
       }
     };
-  }, [isOnline, activeTrip, currentTripStatus, showRequest, isDeliveryUser, userToken, shouldAcceptNewRequests]);
+  }, [isOnline, activeTrip, currentTripStatus, showRequest, isDeliveryUser, userToken]);
   
 
 //     // Start polling if online, no active trip, and no current request
@@ -671,7 +748,35 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
       const currentDelivery = activeDeliveryRoute.activeDeliveries[0]; // Get first active delivery
       console.log("🚚 Converting delivery to trip format:", currentDelivery);
       
+      // Group deliveries by pickup location for multiple pickup handling
+      const deliveriesByPickup = activeDeliveryRoute.activeDeliveries.reduce((groups, delivery) => {
+        const pickupKey = `${delivery.pickup.coordinates[0]},${delivery.pickup.coordinates[1]}`;
+        console.log(`🚚 Processing delivery ${delivery.orderId} with pickup key: ${pickupKey}`);
+        if (!groups[pickupKey]) {
+          groups[pickupKey] = [];
+        }
+        groups[pickupKey].push(delivery);
+        return groups;
+      }, {});
+      
+      console.log("🚚 Deliveries grouped by pickup location:", deliveriesByPickup);
+      console.log("🚚 Group keys:", Object.keys(deliveriesByPickup));
+      
+      // Log each group size
+      Object.entries(deliveriesByPickup).forEach(([key, deliveries]) => {
+        console.log(`🚚 Pickup location ${key}: ${deliveries.length} deliveries`);
+        deliveries.forEach(delivery => {
+          console.log(`  - ${delivery.orderId} (${delivery.customer.name})`);
+        });
+      });
+      
       // Convert delivery to trip format to piggyback off existing trip infrastructure
+      const currentPickupKey = `${currentDelivery.pickup.coordinates[0]},${currentDelivery.pickup.coordinates[1]}`;
+      const pickupDeliveries = deliveriesByPickup[currentPickupKey] || [currentDelivery];
+      
+      console.log(`🚚 Current delivery pickup key: ${currentPickupKey}`);
+      console.log(`🚚 Deliveries for current pickup: ${pickupDeliveries.length}`);
+      
       const deliveryAsTrip = {
         _id: currentDelivery.deliveryId,
         orderId: currentDelivery.orderId,
@@ -682,6 +787,11 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
         productDetails: currentDelivery.productDetails,
         estimatedCompletion: currentDelivery.estimatedCompletion,
         notes: currentDelivery.notes,
+        
+        // Enhanced: Add multiple pickups information
+        allPickupDeliveries: pickupDeliveries,
+        remainingDeliveries: activeDeliveryRoute.activeDeliveries,
+        
         // Convert to trip format structure
         rider: {
           _id: currentDelivery.customer.phone, // Use phone as ID fallback
@@ -1231,22 +1341,7 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
         />
       )}
 
-      {isDeliveryUser && activeDeliveryRoute && (
-        <DeliveryRoute
-          route={activeDeliveryRoute}
-          onUpdateStatus={handleDeliveryStatusUpdate}
-          onConfirmDelivery={handleDeliveryConfirmation}
-          onNavigate={(delivery) => {
-            // Open navigation to pickup or dropoff based on status
-            const destination = delivery.status === 'accepted' 
-              ? delivery.pickup.address 
-              : delivery.dropoff.address;
-            
-            const url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`;
-            window.open(url, '_blank');
-          }}
-        />
-      )}
+      {/* Remove the immediate DeliveryRoute popup - delivery flow now handled in DashboardMap */}
 
       {isDeliveryUser && isOnline && !activeDeliveryRoute && !showDeliveryRequest && (
         <DeliveryJobList

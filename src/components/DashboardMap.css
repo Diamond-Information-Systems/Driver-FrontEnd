@@ -569,6 +569,93 @@
   color: #555;
 }
 
+/* Enhanced Delivery Pickup Popup Styles */
+.pickup-deliveries {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-top: 10px;
+}
+
+.delivery-item {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.delivery-item:last-child {
+  margin-bottom: 0;
+}
+
+.delivery-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.order-id {
+  font-weight: 600;
+  color: #FF9500;
+  font-size: 14px;
+}
+
+.customer-name {
+  font-weight: 500;
+  color: #495057;
+  font-size: 13px;
+}
+
+.items {
+  margin-bottom: 8px;
+}
+
+.item {
+  color: #6c757d;
+  font-size: 13px;
+  margin-bottom: 2px;
+}
+
+.delivery-notes {
+  font-style: italic;
+  color: #6c757d;
+  font-size: 12px;
+  background: #fff3cd;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border-left: 3px solid #ffc107;
+}
+
+.pickup-location {
+  background: #e7f3ff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border-left: 3px solid #0066cc;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.multiple-deliveries-notice {
+  background: #fff3cd;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border-left: 3px solid #FF9500;
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: #856404;
+}
+
+.pickup-notes {
+  background: #f8d7da;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border-left: 3px solid #dc3545;
+  margin-top: 10px;
+  font-size: 13px;
+  color: #721c24;
+}
+
 /* Responsive design */
 @media (max-width: 480px) {
   .popup-content {

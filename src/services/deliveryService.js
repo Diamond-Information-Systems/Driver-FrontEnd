@@ -139,6 +139,61 @@ export async function updateDeliveryStatus(deliveryId, status, token) {
   }
 }
 
+// Update multiple delivery statuses in batch (for pickup confirmations)
+export async function updateMultipleDeliveryStatuses(deliveryIds, status, token) {
+  try {
+    console.log('🚚 Sending batch status update request');
+    console.log('Delivery IDs:', deliveryIds);
+    console.log('New status:', status);
+    
+    if (!Array.isArray(deliveryIds) || deliveryIds.length === 0) {
+      throw new Error('deliveryIds must be a non-empty array');
+    }
+
+    if (deliveryIds.length > 50) {
+      throw new Error('Cannot update more than 50 deliveries at once');
+    }
+
+    const response = await fetch(`${config.apiBaseUrl}/api/deliveries/update-batch-status`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ 
+        deliveryIds,
+        status 
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('❌ Batch update failed:', errorData);
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('✅ Batch update successful:', data);
+    
+    // Validate response
+    if (!data.success) {
+      throw new Error(data.message || 'Batch update was not successful');
+    }
+
+    if (data.batchUpdate?.totalUpdated !== deliveryIds.length) {
+      console.warn(`⚠️ Partial update: ${data.batchUpdate?.totalUpdated}/${deliveryIds.length} deliveries updated`);
+    }
+
+    return {
+      ...data,
+      timestamp: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('❌ Batch delivery status update error:', error);
+    throw error;
+  }
+}
+
 // Confirm delivery with PIN
 export async function confirmDelivery(deliveryId, deliveryPin, token) {
   try {

@@ -20,6 +20,11 @@ import {
   completeRide,
   cancelRide,
 } from "../services/requestService";
+import {
+  updateDeliveryStatus,
+  confirmDelivery,
+  updateMultipleDeliveryStatuses,
+} from "../services/deliveryService";
 import TripSummary from "./TripSummary";
 
 const LIBRARIES = ["marker"];
@@ -76,6 +81,11 @@ const DashboardMap = ({
   const [showStartRidePopup, setShowStartRidePopup] = useState(false);
   const [showCompleteRidePopup, setShowCompleteRidePopup] = useState(false);
   const [showCancelRidePopup, setShowCancelRidePopup] = useState(false);
+  
+  // Delivery-specific popup states (mirroring ride logic)
+  const [showPickupDeliveryPopup, setShowPickupDeliveryPopup] = useState(false);
+  const [showCompleteDeliveryPopup, setShowCompleteDeliveryPopup] = useState(false);
+  
   const [isUpdatingRideStatus, setIsUpdatingRideStatus] = useState(false);
   const [isSimulationMode, setIsSimulationMode] = useState(false); // Track simulation mode
   const [showTripSummary, setShowTripSummary] = useState(false); // Trip summary modal
@@ -90,12 +100,22 @@ const DashboardMap = ({
   const isUpdatingLocationRef = useRef(false);
   const hasShownStartPopup = useRef(false);
   const hasShownCompletePopup = useRef(false);
+  
+  // Delivery-specific refs (mirroring ride logic)
+  const hasShownPickupDeliveryPopup = useRef(false);
+  const hasShownCompleteDeliveryPopup = useRef(false);
+  
   const previousTripStatus = useRef(null); // Track previous status for navigation
   const previousActiveTrip = useRef(null);
 
   // Helper function to detect if current trip is a delivery
   const isCurrentTripDelivery = useMemo(() => {
-    return activeTrip && (activeTrip.type === 'delivery' || activeTrip.deliveryId);
+    return activeTrip && (
+      activeTrip.type === 'delivery' || 
+      activeTrip.deliveryId || 
+      activeTrip.isDelivery ||
+      activeTrip.orderId // Deliveries typically have orderIds
+    );
   }, [activeTrip]);
 
   // Memoized pickup and dropoff coordinates to prevent recalculations
@@ -403,6 +423,104 @@ const DashboardMap = ({
     }
   }, [activeTrip, userToken, isUpdatingRideStatus, onTripUpdate]);
 
+  // === DELIVERY HANDLERS (mirroring ride logic) ===
+  
+  // Handle pickup confirmation for delivery
+  const handlePickupDelivery = useCallback(async () => {
+    if (!activeTrip || isUpdatingRideStatus || !isCurrentTripDelivery) return;
+    setIsUpdatingRideStatus(true);
+    try {
+      // If there are multiple deliveries from the same pickup location, update all of them
+      if (activeTrip.allPickupDeliveries && activeTrip.allPickupDeliveries.length > 1) {
+        console.log("🚚 Confirming pickup for multiple deliveries:", activeTrip.allPickupDeliveries.length);
+        
+        // Use batch update for multiple deliveries
+        const deliveryIds = activeTrip.allPickupDeliveries.map(delivery => delivery.deliveryId);
+        console.log("🚚 Delivery IDs for batch update:", deliveryIds);
+        
+        const response = await updateMultipleDeliveryStatuses(deliveryIds, "started", userToken);
+        console.log("🚚 Batch update response:", response);
+        
+        console.log(`🚚 ${response.batchUpdate.totalUpdated} pickup deliveries confirmed successfully`);
+      } else {
+        // Single delivery update
+        console.log("🚚 Confirming single delivery pickup");
+        if (onDeliveryStatusUpdate) {
+          await onDeliveryStatusUpdate(activeTrip._id, "started");
+        } else {
+          await updateDeliveryStatus(activeTrip._id, "started", userToken);
+        }
+      }
+      
+      setShowPickupDeliveryPopup(false);
+      hasShownPickupDeliveryPopup.current = true;
+      setCurrentTripStatus("started"); // Update local status
+      console.log("✅ Delivery pickup confirmed successfully");
+    } catch (err) {
+      console.error("❌ Failed to confirm delivery pickup:", err);
+      setLocationError("Failed to confirm pickup: " + (err.message || "Unknown error"));
+    } finally {
+      setIsUpdatingRideStatus(false);
+    }
+  }, [activeTrip, userToken, isUpdatingRideStatus, isCurrentTripDelivery, onDeliveryStatusUpdate]);
+
+  // Handle completing the delivery
+  const handleCompleteDelivery = useCallback(async () => {
+    if (!activeTrip || isUpdatingRideStatus || !isCurrentTripDelivery) return;
+    setIsUpdatingRideStatus(true);
+    
+    try {
+      // For deliveries, prompt for PIN verification
+      const pin = prompt("Enter the customer's delivery PIN:");
+      if (!pin) {
+        console.log("Delivery completion cancelled - no PIN provided");
+        setIsUpdatingRideStatus(false);
+        return;
+      }
+      
+      // Verify PIN with delivery completion endpoint
+      if (onDeliveryConfirmation) {
+        await onDeliveryConfirmation(activeTrip._id, pin);
+      } else {
+        // Fallback to direct API call if handler not available
+        const response = await fetch(`${config.apiBaseUrl}/api/deliveries/confirm-delivery/${activeTrip._id}`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${userToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ deliveryPin: pin }),
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || 'Invalid delivery PIN');
+        }
+      }
+      
+      setShowCompleteDeliveryPopup(false);
+      hasShownCompleteDeliveryPopup.current = true;
+      setCurrentTripStatus("completed");
+      
+      // Prepare delivery data for summary
+      const deliverySummaryData = {
+        ...activeTrip,
+        status: 'completed',
+        completedAt: new Date().toISOString(),
+      };
+      
+      setCompletedTrip(deliverySummaryData);
+      setShowTripSummary(true);
+      
+      console.log("Delivery completed successfully with PIN verification");
+    } catch (err) {
+      console.error("Failed to complete delivery:", err);
+      setLocationError(err.message || "Failed to complete delivery");
+    } finally {
+      setIsUpdatingRideStatus(false);
+    }
+  }, [activeTrip, userToken, isUpdatingRideStatus, isCurrentTripDelivery, onDeliveryConfirmation]);
+
   // Optimized simulation functions for testing
   const simulateMovementToPickup = useCallback(() => {
     if (!pickupCoords) return;
@@ -521,23 +639,6 @@ const DashboardMap = ({
       console.error("Failed to complete pickup:", error);
     }
   }, [currentDelivery, onDeliveryStatusUpdate]);
-
-  const handleCompleteDelivery = useCallback(async () => {
-    if (!currentDelivery || !onDeliveryConfirmation) return;
-    
-    try {
-      // This should trigger PIN input in the dashboard
-      const pin = prompt("Enter delivery PIN:");
-      if (pin) {
-        await onDeliveryConfirmation(currentDelivery.deliveryId, pin);
-        setDeliveryStatus('delivered');
-        setShowDeliveryActionPopup(false);
-        console.log("Delivery completed:", currentDelivery.deliveryId);
-      }
-    } catch (error) {
-      console.error("Failed to complete delivery:", error);
-    }
-  }, [currentDelivery, onDeliveryConfirmation]);
 
   // Handle trip summary close
   const handleTripSummaryClose = useCallback(() => {
@@ -663,28 +764,58 @@ const DashboardMap = ({
     // Skip if no active trip or location
     if (!activeTrip || !userLocation) return;
 
-    // Handle pickup location arrival (show start ride popup)
-    if (
-      currentTripStatus === "arrived" &&
-      !hasShownStartPopup.current &&
-      pickupCoords &&
-      distanceToPickup < ARRIVAL_THRESHOLD
-    ) {
-      console.log("Showing start ride popup - distance to pickup:", distanceToPickup);
-      setShowStartRidePopup(true);
-      hasShownStartPopup.current = true;
+    // === RIDE LOGIC ===
+    if (!isCurrentTripDelivery) {
+      // Handle pickup location arrival (show start ride popup)
+      if (
+        currentTripStatus === "arrived" &&
+        !hasShownStartPopup.current &&
+        pickupCoords &&
+        distanceToPickup < ARRIVAL_THRESHOLD
+      ) {
+        console.log("Showing start ride popup - distance to pickup:", distanceToPickup);
+        setShowStartRidePopup(true);
+        hasShownStartPopup.current = true;
+      }
+
+      // Handle dropoff location arrival (show complete ride popup)
+      if (
+        (currentTripStatus === "started" || currentTripStatus === "in_progress") &&
+        !hasShownCompletePopup.current &&
+        dropoffCoords &&
+        distanceToDropoff < ARRIVAL_THRESHOLD
+      ) {
+        console.log("Showing complete ride popup - distance to dropoff:", distanceToDropoff);
+        setShowCompleteRidePopup(true);
+        hasShownCompletePopup.current = true;
+      }
     }
 
-    // Handle dropoff location arrival (show complete ride popup)
-    if (
-      (currentTripStatus === "started" || currentTripStatus === "in_progress") &&
-      !hasShownCompletePopup.current &&
-      dropoffCoords &&
-      distanceToDropoff < ARRIVAL_THRESHOLD
-    ) {
-      console.log("Showing complete ride popup - distance to dropoff:", distanceToDropoff);
-      setShowCompleteRidePopup(true);
-      hasShownCompletePopup.current = true;
+    // === DELIVERY LOGIC (mirroring ride flow) ===
+    if (isCurrentTripDelivery) {
+      // Handle pickup location arrival (show pickup delivery popup)
+      if (
+        currentTripStatus === "arrived" &&
+        !hasShownPickupDeliveryPopup.current &&
+        pickupCoords &&
+        distanceToPickup < ARRIVAL_THRESHOLD
+      ) {
+        console.log("Showing pickup delivery popup - distance to pickup:", distanceToPickup);
+        setShowPickupDeliveryPopup(true);
+        hasShownPickupDeliveryPopup.current = true;
+      }
+
+      // Handle dropoff location arrival (show complete delivery popup)
+      if (
+        (currentTripStatus === "started" || currentTripStatus === "in_progress") &&
+        !hasShownCompleteDeliveryPopup.current &&
+        dropoffCoords &&
+        distanceToDropoff < ARRIVAL_THRESHOLD
+      ) {
+        console.log("Showing complete delivery popup - distance to dropoff:", distanceToDropoff);
+        setShowCompleteDeliveryPopup(true);
+        hasShownCompleteDeliveryPopup.current = true;
+      }
     }
 
     // Auto-update to "arrived" status when within threshold
@@ -718,11 +849,19 @@ const DashboardMap = ({
     if (previousActiveTrip.current?._id !== activeTripId) {
       console.log("Trip ID changed, resetting popup flags. New trip ID:", activeTripId);
       
+      // Reset ride popup states
       hasShownStartPopup.current = false;
       hasShownCompletePopup.current = false;
       setShowStartRidePopup(false);
       setShowCompleteRidePopup(false);
       setShowCancelRidePopup(false);
+      
+      // Reset delivery popup states
+      hasShownPickupDeliveryPopup.current = false;
+      hasShownCompleteDeliveryPopup.current = false;
+      setShowPickupDeliveryPopup(false);
+      setShowCompleteDeliveryPopup(false);
+      
       setCurrentTripStatus(activeTrip?.status || null);
       previousTripStatus.current = null;
       setIsSimulationMode(false);
@@ -1259,22 +1398,17 @@ const DashboardMap = ({
         </div>
       )}
 
-      {/* Start Ride/Delivery Popup */}
-      {showStartRidePopup && (
+      {/* Start Ride Popup - Only for rides */}
+      {showStartRidePopup && !isCurrentTripDelivery && (
         <div className="ride-action-popup" style={{ zIndex: 9999 }}>
           <div className="popup-content">
-            <h3>{isCurrentTripDelivery ? "📦 Start Delivery?" : "🚗 Passenger Picked Up?"}</h3>
-            <p>
-              {isCurrentTripDelivery 
-                ? "You've arrived at the pickup location. Ready to collect the item for delivery?"
-                : "Slide to confirm the passenger is in your vehicle and start the trip."
-              }
-            </p>
+            <h3>🚗 Passenger Picked Up?</h3>
+            <p>Slide to confirm the passenger is in your vehicle and start the trip.</p>
             <SlideToConfirm
               onConfirm={handleStartRide}
-              text={isCurrentTripDelivery ? "Slide to Start Delivery" : "Slide to Start Trip"}
-              confirmText={isCurrentTripDelivery ? "Starting Delivery..." : "Starting..."}
-              bgColor={isCurrentTripDelivery ? "#FF9500" : "#4CAF50"}
+              text="Slide to Start Trip"
+              confirmText="Starting..."
+              bgColor="#4CAF50"
               disabled={isUpdatingRideStatus}
             />
             <button
@@ -1288,25 +1422,136 @@ const DashboardMap = ({
         </div>
       )}
 
-      {/* Complete Ride/Delivery Popup */}
-      {showCompleteRidePopup && (
+      {/* Pickup Delivery Popup - Only for deliveries */}
+      {showPickupDeliveryPopup && isCurrentTripDelivery && (
         <div className="ride-action-popup" style={{ zIndex: 9999 }}>
           <div className="popup-content">
-            <h3>{isCurrentTripDelivery ? "🏠 Complete Delivery?" : "🎯 Trip Complete?"}</h3>
-            <p>{isCurrentTripDelivery 
-              ? "You've arrived at the delivery location. Ready to complete the delivery?" 
-              : "Slide to confirm the passenger has been dropped off safely."
-            }</p>
+            <h3>📦 Pickup Items</h3>
+            <p>You've arrived at the pickup location. Confirm you have collected all items for delivery.</p>
+            
+            {/* Show all deliveries from this pickup location */}
+            <div className="delivery-details">
+              <div className="pickup-location">
+                <strong>📍 Pickup Location:</strong> {activeTrip?.pickup?.address}
+              </div>
+              
+              {activeTrip?.allPickupDeliveries?.length > 1 && (
+                <div className="multiple-deliveries-notice">
+                  <strong>⚡ Multiple Orders:</strong> {activeTrip.allPickupDeliveries.length} deliveries from this location
+                </div>
+              )}
+              
+              <div className="items-list">
+                <strong>Items to collect:</strong>
+                <div className="pickup-deliveries">
+                  {activeTrip?.allPickupDeliveries?.map((delivery, index) => (
+                    <div key={delivery.deliveryId} className="delivery-item">
+                      <div className="delivery-header">
+                        <span className="order-id">Order #{delivery.orderId}</span>
+                        <span className="customer-name">→ {delivery.customer.name}</span>
+                      </div>
+                      <div className="items">
+                        {Array.isArray(delivery.productDetails) ? 
+                          delivery.productDetails.map((item, itemIndex) => (
+                            <div key={itemIndex} className="item">
+                              • {item.name} x{item.quantity}
+                            </div>
+                          )) : 
+                          <div className="item">• {delivery.productDetails}</div>
+                        }
+                      </div>
+                      {delivery.notes && (
+                        <div className="delivery-notes">
+                          <em>Note: {delivery.notes}</em>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {activeTrip?.notes && (
+                <div className="pickup-notes">
+                  <strong>Pickup Notes:</strong> {activeTrip.notes}
+                </div>
+              )}
+            </div>
+            
+            <SlideToConfirm
+              onConfirm={handlePickupDelivery}
+              text={activeTrip?.allPickupDeliveries?.length > 1 ? 
+                `Slide to Confirm ${activeTrip.allPickupDeliveries.length} Pickups` : 
+                "Slide to Confirm Pickup"
+              }
+              confirmText="Confirming Pickup..."
+              bgColor="#FF9500"
+              disabled={isUpdatingRideStatus}
+            />
+            <button
+              className="popup-cancel"
+              onClick={() => setShowPickupDeliveryPopup(false)}
+              disabled={isUpdatingRideStatus}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Complete Ride Popup - Only for rides */}
+      {showCompleteRidePopup && !isCurrentTripDelivery && (
+        <div className="ride-action-popup" style={{ zIndex: 9999 }}>
+          <div className="popup-content">
+            <h3>🎯 Trip Complete?</h3>
+            <p>Slide to confirm the passenger has been dropped off safely.</p>
             <SlideToConfirm
               onConfirm={handleCompleteRide}
-              text={isCurrentTripDelivery ? "Slide to Complete Delivery" : "Slide to Complete Trip"}
-              confirmText={isCurrentTripDelivery ? "Completing Delivery..." : "Completing..."}
-              bgColor={isCurrentTripDelivery ? "#4CAF50" : "#2196F3"}
+              text="Slide to Complete Trip"
+              confirmText="Completing..."
+              bgColor="#2196F3"
               disabled={isUpdatingRideStatus}
             />
             <button
               className="popup-cancel"
               onClick={() => setShowCompleteRidePopup(false)}
+              disabled={isUpdatingRideStatus}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Complete Delivery Popup - Only for deliveries */}
+      {showCompleteDeliveryPopup && isCurrentTripDelivery && (
+        <div className="ride-action-popup" style={{ zIndex: 9999 }}>
+          <div className="popup-content">
+            <h3>🏠 Complete Delivery</h3>
+            <p>You've arrived at the delivery location. The customer will provide a PIN to confirm delivery.</p>
+            <div className="delivery-details">
+              {activeTrip?.customer && (
+                <div className="customer-info">
+                  <strong>Deliver to:</strong> {activeTrip.customer.name}
+                  <br />
+                  <strong>Phone:</strong> {activeTrip.customer.phone}
+                </div>
+              )}
+              {activeTrip?.deliveryPin && (
+                <div className="pin-info">
+                  <strong>Expected PIN:</strong> {activeTrip.deliveryPin}
+                </div>
+              )}
+            </div>
+            <SlideToConfirm
+              onConfirm={handleCompleteDelivery}
+              text="Slide to Complete Delivery"
+              confirmText="Completing Delivery..."
+              bgColor="#4CAF50"
+              disabled={isUpdatingRideStatus}
+            />
+            <button
+              className="popup-cancel"
+              onClick={() => setShowCompleteDeliveryPopup(false)}
               disabled={isUpdatingRideStatus}
             >
               Cancel
