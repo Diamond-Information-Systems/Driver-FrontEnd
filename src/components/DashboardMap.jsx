@@ -793,6 +793,15 @@ const DashboardMap = ({
 
     // === DELIVERY LOGIC (mirroring ride flow) ===
     if (isCurrentTripDelivery) {
+      console.log("🚚 Delivery logic check:", {
+        currentTripStatus,
+        hasShownPickupDeliveryPopup: hasShownPickupDeliveryPopup.current,
+        pickupCoords,
+        distanceToPickup,
+        ARRIVAL_THRESHOLD,
+        shouldShowPickup: currentTripStatus === "arrived" && !hasShownPickupDeliveryPopup.current && pickupCoords && distanceToPickup < ARRIVAL_THRESHOLD
+      });
+      
       // Handle pickup location arrival (show pickup delivery popup)
       if (
         currentTripStatus === "arrived" &&
@@ -800,7 +809,8 @@ const DashboardMap = ({
         pickupCoords &&
         distanceToPickup < ARRIVAL_THRESHOLD
       ) {
-        console.log("Showing pickup delivery popup - distance to pickup:", distanceToPickup);
+        console.log("🚚 Showing pickup delivery popup - distance to pickup:", distanceToPickup);
+        console.log("🚚 Multiple deliveries from pickup:", activeTrip?.allPickupDeliveries?.length || 1);
         setShowPickupDeliveryPopup(true);
         hasShownPickupDeliveryPopup.current = true;
       }
@@ -824,13 +834,18 @@ const DashboardMap = ({
       pickupCoords &&
       distanceToPickup < ARRIVAL_THRESHOLD
     ) {
-      updateRideStatus(userToken, activeTrip._id, "arrived")
+      // Use appropriate update function based on trip type
+      const updateFunction = isCurrentTripDelivery 
+        ? () => updateDeliveryStatus(activeTrip._id, "arrived", userToken)
+        : () => updateRideStatus(userToken, activeTrip._id, "arrived");
+      
+      updateFunction()
         .then(() => {
           setCurrentTripStatus("arrived");
-          console.log("Auto-updated ride status to arrived - distance:", distanceToPickup);
+          console.log(`Auto-updated ${isCurrentTripDelivery ? 'delivery' : 'ride'} status to arrived - distance:`, distanceToPickup);
         })
         .catch((err) => {
-          console.error("Failed to auto-update ride status to arrived:", err);
+          console.error(`Failed to auto-update ${isCurrentTripDelivery ? 'delivery' : 'ride'} status to arrived:`, err);
         });
     }
   }, [
@@ -1361,6 +1376,30 @@ const DashboardMap = ({
                 🔄 Resume GPS
               </button>
             )}
+            {/* Debug button for testing multiple pickup functionality */}
+            {isCurrentTripDelivery && activeTrip?.allPickupDeliveries?.length > 1 && (
+              <button
+                onClick={() => {
+                  console.log("🚚 DEBUG: Forcing pickup popup to show");
+                  console.log("🚚 Multiple deliveries:", activeTrip.allPickupDeliveries.length);
+                  setShowPickupDeliveryPopup(true);
+                  hasShownPickupDeliveryPopup.current = false; // Allow showing again
+                }}
+                style={{
+                  padding: '6px 8px',
+                  backgroundColor: '#FF9500',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '10px',
+                  fontWeight: '500',
+                  marginTop: '4px'
+                }}
+              >
+                🚚 Test Pickup ({activeTrip.allPickupDeliveries.length})
+              </button>
+            )}
             {activeTrip && currentTripStatus !== 'completed' && currentTripStatus !== 'cancelled' && (
               <button
                 onClick={() => setShowCancelRidePopup(true)}
@@ -1457,7 +1496,7 @@ const DashboardMap = ({
                               • {item.name} x{item.quantity}
                             </div>
                           )) : 
-                          <div className="item">• {delivery.productDetails}</div>
+                          <div className="item">• {delivery.productDetails?.title || 'Product'}</div>
                         }
                       </div>
                       {delivery.notes && (

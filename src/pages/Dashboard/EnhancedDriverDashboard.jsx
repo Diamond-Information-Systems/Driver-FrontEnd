@@ -29,8 +29,6 @@ import DeliveryDrawer from "../../components/DeliveryDrawer/DeliveryDrawer";
 import DeliveryRequest from "../../components/DeliveryRequest/DeliveryRequest";
 import DeliveryRoute from "../../components/DeliveryRoute/DeliveryRoute";
 import DeliveryJobList from "../../components/DeliveryJobList/DeliveryJobList";
-import DeliveryGroupSelector from "../../components/DeliveryGroupSelector/DeliveryGroupSelector";
-import RouteOptimizerWidget from "../../components/RouteOptimizerWidget/RouteOptimizerWidget";
 import DashboardMap from "../../components/DashboardMap";
 import NotificationService from "../../services/NotificationService";
 import { useAuth } from "../../context/AuthContext";
@@ -47,9 +45,6 @@ import {
   updateDeliveryStatus,
   getAvailableDeliveryJobs,
   acceptDeliveryJob,
-  acceptJobBatch,
-  getOptimizedJobCombinations,
-  getPickupLocationClusters,
   confirmDelivery
 } from "../../services/deliveryService";
 import "./EnhancedDriverDashboard.css";
@@ -150,13 +145,6 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
   const [showDeliveryRequest, setShowDeliveryRequest] = useState(false);
   const [deliveryTimer, setDeliveryTimer] = useState(20);
   const [declinedDeliveryIds, setDeclinedDeliveryIds] = useState([]);
-
-  // Smart grouping and route optimization state
-  const [showGroupSelector, setShowGroupSelector] = useState(false);
-  const [availableJobs, setAvailableJobs] = useState([]);
-  const [selectedJobs, setSelectedJobs] = useState([]);
-  const [optimizedRoute, setOptimizedRoute] = useState(null);
-  const [pickupClusters, setPickupClusters] = useState([]);
 
   // UI state
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
@@ -1254,7 +1242,7 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
     }
   };
 
-  // Smart grouping handlers
+  // Batch job acceptance handler
   const handleJobBatchAccepted = async (acceptedJobs, route) => {
     try {
       console.log("Batch jobs accepted:", acceptedJobs, route);
@@ -1264,26 +1252,9 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
         setActiveDeliveryRoute(route);
       }
       
-      // Clear the group selector
-      setShowGroupSelector(false);
-      setSelectedJobs([]);
-      
     } catch (error) {
       console.error("Error handling batch job acceptance:", error);
     }
-  };
-
-  const handleOpenGroupSelector = () => {
-    setShowGroupSelector(true);
-  };
-
-  const handleCloseGroupSelector = () => {
-    setShowGroupSelector(false);
-    setSelectedJobs([]);
-  };
-
-  const handleRouteOptimized = (route) => {
-    setOptimizedRoute(route);
   };
 
   return (
