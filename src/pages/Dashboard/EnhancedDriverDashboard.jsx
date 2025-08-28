@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import {
   MapPin,
   Clock,
@@ -25,9 +25,12 @@ import {
 } from "lucide-react";
 import BottomDock from "../../components/BottomDock";
 import RideDrawer from "../../components/RideDrawer/RideDrawer";
+import DeliveryDrawer from "../../components/DeliveryDrawer/DeliveryDrawer";
 import DeliveryRequest from "../../components/DeliveryRequest/DeliveryRequest";
 import DeliveryRoute from "../../components/DeliveryRoute/DeliveryRoute";
 import DeliveryJobList from "../../components/DeliveryJobList/DeliveryJobList";
+import DeliveryGroupSelector from "../../components/DeliveryGroupSelector/DeliveryGroupSelector";
+import RouteOptimizerWidget from "../../components/RouteOptimizerWidget/RouteOptimizerWidget";
 import DashboardMap from "../../components/DashboardMap";
 import NotificationService from "../../services/NotificationService";
 import { useAuth } from "../../context/AuthContext";
@@ -43,7 +46,11 @@ import {
   getMyDeliveryRoute,
   updateDeliveryStatus,
   getAvailableDeliveryJobs,
-  acceptDeliveryJob
+  acceptDeliveryJob,
+  acceptJobBatch,
+  getOptimizedJobCombinations,
+  getPickupLocationClusters,
+  confirmDelivery
 } from "../../services/deliveryService";
 import "./EnhancedDriverDashboard.css";
 
@@ -98,9 +105,44 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
   const [showRequest, setShowRequest] = useState(false);
   const [requestTimer, setRequestTimer] = useState(20);
   const [declinedRequestIds, setDeclinedRequestIds] = useState([]);
-  const [pollingInterval, setPollingInterval] = useState(null);
   const [completedTrip, setCompletedTrip] = useState(null);
   const [currentTripStatus, setCurrentTripStatus] = useState(null); // Track trip status from map
+  
+  // Use refs to store timer IDs - prevents stale closures
+  const pollingIntervalRef = useRef(null);
+  const requestTimerRef = useRef(null);
+  
+  // Delivery timer refs
+  const deliveryPollingIntervalRef = useRef(null);
+  const deliveryRequestTimerRef = useRef(null);
+
+  // Centralized timer cleanup function
+  const clearAllTimers = useCallback(() => {
+    console.log("🧹 Clearing all timers");
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
+    }
+    if (requestTimerRef.current) {
+      clearInterval(requestTimerRef.current);
+      requestTimerRef.current = null;
+    }
+    if (deliveryPollingIntervalRef.current) {
+      clearInterval(deliveryPollingIntervalRef.current);
+      deliveryPollingIntervalRef.current = null;
+    }
+    if (deliveryRequestTimerRef.current) {
+      clearInterval(deliveryRequestTimerRef.current);
+      deliveryRequestTimerRef.current = null;
+    }
+  }, []);
+
+  // Clear timers on component unmount
+  useEffect(() => {
+    return () => {
+      clearAllTimers();
+    };
+  }, [clearAllTimers]);
 
   // Delivery-related state (keeping existing functionality)
   const [deliveryRequests, setDeliveryRequests] = useState([]);
@@ -108,6 +150,13 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
   const [showDeliveryRequest, setShowDeliveryRequest] = useState(false);
   const [deliveryTimer, setDeliveryTimer] = useState(20);
   const [declinedDeliveryIds, setDeclinedDeliveryIds] = useState([]);
+
+  // Smart grouping and route optimization state
+  const [showGroupSelector, setShowGroupSelector] = useState(false);
+  const [availableJobs, setAvailableJobs] = useState([]);
+  const [selectedJobs, setSelectedJobs] = useState([]);
+  const [optimizedRoute, setOptimizedRoute] = useState(null);
+  const [pickupClusters, setPickupClusters] = useState([]);
 
   // UI state
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
@@ -130,14 +179,16 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
       completedTrip: !!completedTrip,
       activeTrip: !!activeTrip,
       showRequest,
-      rideRequestsLength: rideRequests.length
+      rideRequestsLength: rideRequests.length,
+      isOnline
     });
     
     if (completedTrip) return 'TRIP_COMPLETED';
     if (activeTrip) return 'TRIP_ACTIVE';
     if (showRequest && rideRequests.length > 0) return 'REQUEST_PENDING';
+    if (isOnline) return 'IDLE'; // Show IDLE state when online and no active states
     return 'IDLE';
-  }, [completedTrip, activeTrip, showRequest, rideRequests]);
+  }, [completedTrip, activeTrip, showRequest, rideRequests, isOnline]);
 
   // Current request for drawer
   const currentRequest = rideRequests.length > 0 ? rideRequests[0] : null;
@@ -164,17 +215,17 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
     console.log("📍 Trip update received:", updatedTrip);
     if (updatedTrip) {
       setActiveTrip(updatedTrip);
-      // If trip is completed, show completion state briefly then clear
+      // If trip is completed, show completion state briefly then clear activeTrip
       if (updatedTrip.status === 'completed') {
         setCompletedTrip(updatedTrip);
-        // Clear activeTrip after a short delay to allow UI to update
-        setTimeout(() => {
-          console.log("🏁 Clearing completed trip to resume polling");
-          setActiveTrip(null);
-        }, 100); // reduced to 100 milliseconds
+        // Clear activeTrip immediately to allow polling to resume
+        setActiveTrip(null);
+        console.log("🏁 Trip completed, showing completion state and resuming polling eligibility");
       } else if (updatedTrip.status === 'cancelled') {
         console.log("❌ Trip cancelled, clearing immediately");
         setActiveTrip(null);
+        setCompletedTrip(null);
+        setCurrentTripStatus(null);
       }
     } else {
       setActiveTrip(null);
@@ -187,62 +238,155 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
     setCurrentTripStatus(status);
   }, []);
 
-  // Ride request polling
-  useEffect(() => {
-    if (isDeliveryUser) return; // Don't poll for rides if user is delivery personnel
-    
-    let intervalId;
-    let timerId;
+  // Helper function to check if driver should accept new requests
+  const shouldAcceptNewRequests = useCallback(() => {
+    // Check if driver is online and not in an active trip
+    const hasActiveTrip = activeTrip && (
+      activeTrip.status === 'accepted' ||
+      activeTrip.status === 'inProgress' ||
+      activeTrip.status === 'arrived' ||
+      activeTrip.status === 'pickedUp' ||
+      activeTrip.status === 'started' || // For deliveries
+      currentTripStatus === 'accepted' ||
+      currentTripStatus === 'inProgress' ||
+      currentTripStatus === 'arrived' ||
+      currentTripStatus === 'pickedUp' ||
+      currentTripStatus === 'started' // For deliveries
+    );
 
-    const pollRequests = async () => {
+    // For delivery users, they shouldn't accept new requests if they have an active delivery
+    if (isDeliveryUser) {
+      const shouldAccept = isOnline && !hasActiveTrip && !showDeliveryRequest;
+      console.log("🚚 shouldAcceptNewRequests check (delivery user):", {
+        isOnline,
+        hasActiveTrip,
+        activeTrip: activeTrip?.status,
+        currentTripStatus,
+        showDeliveryRequest,
+        isDeliveryUser,
+        result: shouldAccept
+      });
+      return shouldAccept;
+    }
+
+    // For ride drivers, they shouldn't accept new requests if they have an active trip
+    const shouldAccept = isOnline && !hasActiveTrip && !showRequest && !isDeliveryUser;
+    
+    console.log("🚗 shouldAcceptNewRequests check (ride driver):", {
+      isOnline,
+      hasActiveTrip,
+      activeTrip: activeTrip?.status,
+      currentTripStatus,
+      showRequest,
+      isDeliveryUser,
+      result: shouldAccept
+    });
+    
+    return shouldAccept;
+  }, [isOnline, activeTrip, currentTripStatus, showRequest, showDeliveryRequest, isDeliveryUser]);
+
+  // Create refs to store current state values - prevents stale closures
+  const currentStateRef = useRef({
+    isOnline: false,
+    activeTrip: null,
+    currentTripStatus: null,
+    showRequest: false,
+    isDeliveryUser: false,
+    userToken: null,
+    declinedRequestIds: []
+  });
+
+  // Delivery state ref for delivery polling
+  const currentDeliveryStateRef = useRef({
+    isOnline: false,
+    activeTrip: null,
+    showDeliveryRequest: false,
+    isDeliveryUser: false,
+    userToken: null,
+    declinedDeliveryIds: []
+  });
+
+  // Update state ref whenever dependencies change
+  useEffect(() => {
+    currentStateRef.current = {
+      isOnline,
+      activeTrip,
+      currentTripStatus,
+      showRequest,
+      isDeliveryUser,
+      userToken,
+      declinedRequestIds
+    };
+  }, [isOnline, activeTrip, currentTripStatus, showRequest, isDeliveryUser, userToken, declinedRequestIds]);
+
+  // Update delivery state ref whenever dependencies change
+  useEffect(() => {
+    currentDeliveryStateRef.current = {
+      isOnline,
+      activeTrip,
+      showDeliveryRequest,
+      isDeliveryUser,
+      userToken,
+      declinedDeliveryIds
+    };
+  }, [isOnline, activeTrip, showDeliveryRequest, isDeliveryUser, userToken, declinedDeliveryIds]); 
+
+  // Enhanced ride request polling with ref-based state management
+  useEffect(() => {
+    if (isDeliveryUser) {
+      clearAllTimers();
+      return;
+    }
+
+    const pollForRequests = async () => {
+      const currentState = currentStateRef.current;
+      
+      // Check current conditions using ref to avoid stale closures
+      if (!currentState.isOnline || !shouldAcceptNewRequests() || currentState.isDeliveryUser || currentState.showRequest) {
+        return;
+      }
+
       try {
-        const requests = await getNearbyRequests(userToken);
-        console.log("🔍 Raw requests from API:", requests);
+        console.log("🔍 Making API call for nearby requests");
+        const requests = await getNearbyRequests(currentState.userToken);
+        
         if (requests && requests.length > 0) {
           const filteredRequests = requests.filter(
-            (r) => !declinedRequestIds.includes(r._id)
+            (r) => !currentState.declinedRequestIds.includes(r._id)
           );
           
           if (filteredRequests.length > 0) {
             console.log("🔍 Filtered requests:", filteredRequests);
             
-            // Check if requests are already in the correct format or need mapping
             const processedRequests = filteredRequests.map(request => {
-              // If request already has passengers array, it's in the new format
               if (request.passengers && Array.isArray(request.passengers)) {
-                console.log("✅ Request already in correct format:", request);
                 return request;
               } else {
-                // Use the old mapping function for API responses
-                console.log("🔄 Mapping API request:", request);
                 return mapApiRideToRequest(request);
               }
             });
             
             console.log("🎯 Final processed requests:", processedRequests);
+            
+            // Stop polling and show request
+            if (pollingIntervalRef.current) {
+              clearInterval(pollingIntervalRef.current);
+              pollingIntervalRef.current = null;
+            }
+            
             setRideRequests(processedRequests);
             setShowRequest(true);
             setRequestTimer(20);
             
-            // Stop polling when request is found
-            if (intervalId) {
-              clearInterval(intervalId);
-              intervalId = null;
-            }
-            setPollingInterval(null);
-
-            // Start countdown timer
-            timerId = setInterval(() => {
+            // Start request countdown timer
+            requestTimerRef.current = setInterval(() => {
               setRequestTimer((prev) => {
                 if (prev <= 1) {
                   setShowRequest(false);
                   setRideRequests([]);
-                  clearInterval(timerId);
-                  
-                  // Resume polling if still online and no active trip
-                  if (isOnline && !activeTrip) {
-                    intervalId = setInterval(pollRequests, 4000);
-                    setPollingInterval(intervalId);
+                  if (requestTimerRef.current) {
+                    clearInterval(requestTimerRef.current);
+                    requestTimerRef.current = null;
                   }
                   return 20;
                 }
@@ -256,80 +400,203 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
       }
     };
 
-    // Start polling if online, no active trip, and no current request
-    if (isOnline && !activeTrip && !showRequest) {
-      console.log("✅ Starting ride request polling - conditions met:", {
-        isOnline,
-        hasActiveTrip: !!activeTrip,
-        showRequest,
-        isDeliveryUser
-      });
+    // Start or stop polling based on conditions
+    if (isOnline && shouldAcceptNewRequests() && !showRequest) {
+      console.log("✅ Starting ride request polling");
       
-      if (pollingInterval) clearInterval(pollingInterval);
-      if (timerId) clearInterval(timerId);
-      
-      intervalId = setInterval(pollRequests, 4000);
-      setPollingInterval(intervalId);
-    } else {
-      console.log("❌ Stopping ride request polling - conditions not met:", {
-        isOnline,
-        hasActiveTrip: !!activeTrip,
-        showRequest,
-        isDeliveryUser
-      });
-      
-      if (pollingInterval) {
-        clearInterval(pollingInterval);
-        setPollingInterval(null);
+      // Clear any existing polling
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
       }
-      if (timerId) clearInterval(timerId);
       
-      if (!isOnline || activeTrip) {
+      // Start new polling interval
+      pollingIntervalRef.current = setInterval(pollForRequests, 4000);
+      
+    } else {
+      console.log("❌ Stopping ride request polling:", {
+        isOnline,
+        shouldAcceptNewRequests: shouldAcceptNewRequests(),
+        showRequest,
+        isDeliveryUser
+      });
+      
+      // Clear polling
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+      
+      // Clear request state when not meeting conditions
+      if (!isOnline || isDeliveryUser) {
         setShowRequest(false);
         setRideRequests([]);
+        setRequestTimer(20);
       }
     }
 
+    // Cleanup on unmount or dependency change
     return () => {
-      if (intervalId) clearInterval(intervalId);
-      if (timerId) clearInterval(timerId);
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
     };
-  }, [isOnline, activeTrip, showRequest, declinedRequestIds, userToken, isDeliveryUser]);
+  }, [isOnline, activeTrip, currentTripStatus, showRequest, isDeliveryUser, userToken, shouldAcceptNewRequests]);
+  
 
-  // Delivery polling (keeping existing functionality)
-  useEffect(() => {
-    if (!isDeliveryUser) return;
+//     // Start polling if online, no active trip, and no current request
+//     if (isOnline && shouldAcceptNewRequests() && !showRequest) {
+//       console.log("✅ Starting ride request polling - conditions met:", {
+//         isOnline,
+//         hasActiveTrip: !!activeTrip,
+//         activeTripStatus: activeTrip?.status,
+//         currentTripStatus,
+//         shouldAcceptNewRequests: shouldAcceptNewRequests(),
+//         showRequest,
+//         isDeliveryUser
+//       });
+      
+//       if (pollingInterval) clearInterval(pollingInterval);
+//       if (timerId) clearInterval(timerId);
+      
+//       intervalId = setInterval(pollRequests, 4000);
+//       setPollingInterval(intervalId);
+//     } else {
+//       console.log("❌ Stopping ride request polling - conditions not met:", {
+//         isOnline,
+//         hasActiveTrip: !!activeTrip,
+//         activeTripStatus: activeTrip?.status,
+//         currentTripStatus,
+//         shouldAcceptNewRequests: shouldAcceptNewRequests(),
+//         showRequest,
+//         isDeliveryUser,
+//         reasons: {
+//           notOnline: !isOnline,
+//           hasActiveTrip: !!activeTrip,
+//           shouldNotAcceptNewRequests: !shouldAcceptNewRequests(),
+//           showingRequest: showRequest,
+//           isDeliveryUser
+//         }
+//       });
+      
+//       if (pollingInterval) {
+//         clearInterval(pollingInterval);
+//         setPollingInterval(null);
+//       }
+//       if (timerId) clearInterval(timerId);
+//       if (requestTimerId) {
+//         clearInterval(requestTimerId);
+//         setRequestTimerId(null);
+//       }
+      
+//       // Always clear requests and show state when not meeting conditions
+//       setShowRequest(false);
+//       setRideRequests([]);
+//       setRequestTimer(20);
+//     }
+
+//     return () => {
+//       if (intervalId) clearInterval(intervalId);
+//       if (timerId) clearInterval(timerId);
+//     };
+//   }, [isOnline, activeTrip, activeTrip?.status, currentTripStatus, showRequest, declinedRequestIds, userToken, isDeliveryUser, shouldAcceptNewRequests]);
+
+  // Separate effect to cleanup requestTimerId when it changes
+//   useEffect(() => {
+//     return () => {
+//       if (requestTimerId) {
+//         clearInterval(requestTimerId);
+//       }
+//     };
+//   }, [requestTimerId]);
+
+//   // Cleanup all timers on unmount
+//   useEffect(() => {
+//     // Clear any existing timers immediately when component mounts
+//     console.log("🧹 Component mounted - clearing any stale timers");
     
-    let intervalId;
-    let timerId;
+//     return () => {
+//       console.log("🧹 Component unmounting - final cleanup");
+//       if (pollingInterval) {
+//         clearInterval(pollingInterval);
+//         console.log("🧹 Cleared pollingInterval on unmount");
+//       }
+//       if (requestTimerId) {
+//         clearInterval(requestTimerId);
+//         console.log("🧹 Cleared requestTimerId on unmount");
+//       }
+//     };
+//   }, []);
 
-    const pollDeliveries = async () => {
+  // Clear all timers when going offline
+  useEffect(() => {
+    if (!isOnline) {
+      console.log("🧹 Going offline - clearing all timers");
+      clearAllTimers();
+      setShowRequest(false);
+      setRideRequests([]);
+      setRequestTimer(20);
+      // Clear delivery state as well
+      setShowDeliveryRequest(false);
+      setDeliveryRequests([]);
+      setDeliveryTimer(20);
+    }
+  }, [isOnline, clearAllTimers]);
+
+  // Enhanced delivery polling with ref-based state management
+  useEffect(() => {
+    if (!isDeliveryUser) {
+      clearAllTimers();
+      return;
+    }
+
+    const pollForDeliveries = async () => {
+      const currentState = currentDeliveryStateRef.current;
+      
+      // Check current conditions using ref to avoid stale closures
+      if (!currentState.isOnline || currentState.activeTrip || currentState.showDeliveryRequest) {
+        return;
+      }
+
       try {
-        const deliveries = await getNearbyDeliveries(userToken);
+        console.log("🚚 Making API call for nearby deliveries");
+        const deliveries = await getNearbyDeliveries(currentState.userToken);
+        
         if (deliveries && deliveries.length > 0) {
+          // Filter out declined deliveries
           const filteredDeliveries = deliveries.filter(
-            (d) => !declinedDeliveryIds.includes(d._id)
+            (d) => !currentState.declinedDeliveryIds.includes(d._id)
           );
           
           if (filteredDeliveries.length > 0) {
+            console.log("🚚 Found delivery requests:", filteredDeliveries.length);
             setDeliveryRequests(filteredDeliveries);
             setShowDeliveryRequest(true);
             setDeliveryTimer(20);
             
-            if (intervalId) {
-              clearInterval(intervalId);
-              intervalId = null;
+            // Stop polling immediately when delivery is found
+            if (deliveryPollingIntervalRef.current) {
+              clearInterval(deliveryPollingIntervalRef.current);
+              deliveryPollingIntervalRef.current = null;
             }
 
-            timerId = setInterval(() => {
+            // Start countdown timer for delivery request
+            deliveryRequestTimerRef.current = setInterval(() => {
               setDeliveryTimer((prev) => {
                 if (prev <= 1) {
+                  // Countdown finished - decline the delivery automatically
                   setShowDeliveryRequest(false);
                   setDeliveryRequests([]);
-                  clearInterval(timerId);
                   
-                  if (isOnline && !activeTrip) {
-                    intervalId = setInterval(pollDeliveries, 4000);
+                  if (deliveryRequestTimerRef.current) {
+                    clearInterval(deliveryRequestTimerRef.current);
+                    deliveryRequestTimerRef.current = null;
+                  }
+                  
+                  // Only resume polling if still online and no active trip
+                  const currentStateNow = currentDeliveryStateRef.current;
+                  if (currentStateNow.isOnline && !currentStateNow.activeTrip) {
+                    deliveryPollingIntervalRef.current = setInterval(pollForDeliveries, 4000);
                   }
                   return 20;
                 }
@@ -343,26 +610,109 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
       }
     };
 
+    // Start or stop polling based on conditions
     if (isOnline && !activeTrip && !showDeliveryRequest) {
-      if (intervalId) clearInterval(intervalId);
-      if (timerId) clearInterval(timerId);
+      console.log("✅ Starting delivery request polling");
       
-      intervalId = setInterval(pollDeliveries, 4000);
+      // Clear any existing polling
+      if (deliveryPollingIntervalRef.current) {
+        clearInterval(deliveryPollingIntervalRef.current);
+      }
+      
+      // Start new polling interval
+      deliveryPollingIntervalRef.current = setInterval(pollForDeliveries, 4000);
+      
     } else {
-      if (intervalId) clearInterval(intervalId);
-      if (timerId) clearInterval(timerId);
+      console.log("❌ Stopping delivery request polling:", {
+        isOnline,
+        activeTrip: !!activeTrip,
+        showDeliveryRequest,
+        isDeliveryUser
+      });
       
+      // Clear polling
+      if (deliveryPollingIntervalRef.current) {
+        clearInterval(deliveryPollingIntervalRef.current);
+        deliveryPollingIntervalRef.current = null;
+      }
+      
+      // Clear request state when not meeting conditions
       if (!isOnline || activeTrip) {
         setShowDeliveryRequest(false);
         setDeliveryRequests([]);
+        setDeliveryTimer(20);
       }
     }
 
+    // Cleanup on unmount or dependency change
     return () => {
-      if (intervalId) clearInterval(intervalId);
-      if (timerId) clearInterval(timerId);
+      if (deliveryPollingIntervalRef.current) {
+        clearInterval(deliveryPollingIntervalRef.current);
+        deliveryPollingIntervalRef.current = null;
+      }
+      if (deliveryRequestTimerRef.current) {
+        clearInterval(deliveryRequestTimerRef.current);
+        deliveryRequestTimerRef.current = null;
+      }
     };
-  }, [isDeliveryUser, isOnline, activeTrip, showDeliveryRequest, declinedDeliveryIds, userToken]);
+  }, [isDeliveryUser, isOnline, activeTrip, showDeliveryRequest, userToken, declinedDeliveryIds]);
+
+  // Debug logging for active delivery route changes
+  useEffect(() => {
+    console.log("🚚 Active delivery route state changed:", {
+      hasRoute: !!activeDeliveryRoute,
+      totalDeliveries: activeDeliveryRoute?.totalDeliveries,
+      activeDeliveries: activeDeliveryRoute?.activeDeliveries?.length,
+      activeDeliveryRoute
+    });
+
+    // Convert delivery to trip format when delivery route is set
+    if (isDeliveryUser && activeDeliveryRoute && activeDeliveryRoute.activeDeliveries?.length > 0) {
+      const currentDelivery = activeDeliveryRoute.activeDeliveries[0]; // Get first active delivery
+      console.log("🚚 Converting delivery to trip format:", currentDelivery);
+      
+      // Convert delivery to trip format to piggyback off existing trip infrastructure
+      const deliveryAsTrip = {
+        _id: currentDelivery.deliveryId,
+        orderId: currentDelivery.orderId,
+        status: currentDelivery.status,
+        isDelivery: true, // Flag to identify this as a delivery
+        deliveryPin: currentDelivery.deliveryPin,
+        customer: currentDelivery.customer,
+        productDetails: currentDelivery.productDetails,
+        estimatedCompletion: currentDelivery.estimatedCompletion,
+        notes: currentDelivery.notes,
+        // Convert to trip format structure
+        rider: {
+          _id: currentDelivery.customer.phone, // Use phone as ID fallback
+          fullName: currentDelivery.customer.name,
+          phoneNumber: currentDelivery.customer.phone
+        },
+        pickup: {
+          address: currentDelivery.pickup.address,
+          location: {
+            coordinates: [currentDelivery.pickup.coordinates[0], currentDelivery.pickup.coordinates[1]] // [lng, lat]
+          }
+        },
+        dropoff: {
+          address: currentDelivery.dropoff.address,
+          location: {
+            coordinates: [currentDelivery.dropoff.coordinates[0], currentDelivery.dropoff.coordinates[1]] // [lng, lat]
+          }
+        },
+        // Additional delivery-specific fields
+        routeOrder: currentDelivery.routeOrder,
+        assignmentOrder: currentDelivery.assignmentOrder
+      };
+
+      console.log("🚚 Setting delivery as active trip:", deliveryAsTrip);
+      setActiveTrip(deliveryAsTrip);
+    } else if (isDeliveryUser && !activeDeliveryRoute) {
+      // Clear active trip when no delivery route for delivery users
+      console.log("🚚 No delivery route, clearing active trip for delivery user");
+      setActiveTrip(null);
+    }
+  }, [activeDeliveryRoute, isDeliveryUser]);
 
   // Fetch active delivery route
   useEffect(() => {
@@ -370,39 +720,49 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
 
     const fetchActiveRoute = async () => {
       try {
-        const route = await getMyDeliveryRoute(userToken);
-        if (route && route.deliveries && route.deliveries.length > 0) {
+        console.log("🚚 Fetching active delivery route...");
+        const response = await getMyDeliveryRoute(userToken);
+        console.log("🚚 Delivery route response:", response);
+        
+        // Handle the nested response structure
+        const route = response?.route || response;
+        
+        if (route && route.activeDeliveries && route.activeDeliveries.length > 0) {
+          console.log("🚚 Setting active delivery route with deliveries:", route.activeDeliveries.length);
           setActiveDeliveryRoute(route);
+        } else {
+          console.log("🚚 No active deliveries found, clearing route");
+          setActiveDeliveryRoute(null);
         }
       } catch (err) {
         console.error("Error fetching active delivery route:", err);
+        setActiveDeliveryRoute(null);
       }
     };
 
     fetchActiveRoute();
+    
+    // Set up periodic fetching to keep route updated
+    const routeUpdateInterval = setInterval(fetchActiveRoute, 10000); // Update every 10 seconds
+    
+    return () => {
+      clearInterval(routeUpdateInterval);
+    };
   }, [isDeliveryUser, isOnline, userToken]);
 
   // Handle trip completion to resume polling
   useEffect(() => {
-    if (activeTrip?.status === 'completed') {
-      console.log("🏁 Trip completed, will clear after delay to show completion state");
-      // The actual clearing is handled in handleTripUpdate with a 2-second delay
-    } else if (activeTrip?.status === 'cancelled') {
-      console.log("❌ Trip cancelled, clearing immediately");
-      setActiveTrip(null);
-      setCompletedTrip(null);
-    }
-    
     // Clear completed trip display after some time
     if (completedTrip && !activeTrip) {
-      console.log("🧹 Clearing completed trip display");
+      console.log("🧹 Scheduling completed trip display cleanup");
       const timer = setTimeout(() => {
+        console.log("🧹 Clearing completed trip display after 5 seconds");
         setCompletedTrip(null);
-      }, 3000);
+      }, 5000); // Show completion for 5 seconds
       
       return () => clearTimeout(timer);
     }
-  }, [activeTrip?.status, completedTrip, activeTrip]);
+  }, [completedTrip, activeTrip]);
 
   // Location tracking and online status restoration
   useEffect(() => {
@@ -459,13 +819,11 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
 
   // Request notification permissions
   useEffect(() => {
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission().then((permission) => {
-        setNotificationsEnabled(permission === 'granted');
-      });
-    } else if (Notification.permission === 'granted') {
-      setNotificationsEnabled(true);
-    }
+    const setupNotifications = async () => {
+      const granted = await NotificationService.requestPermissions();
+      setNotificationsEnabled(granted);
+    };
+    setupNotifications();
   }, []);
 
   // Handle ride request actions
@@ -478,10 +836,8 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
       setRideRequests([]);
       setShowRequest(false);
       
-      if (pollingInterval) {
-        clearInterval(pollingInterval);
-        setPollingInterval(null);
-      }
+      // Clear all timers
+      clearAllTimers();
 
       if (response && response.ride) {
         setActiveTrip(response.ride);
@@ -506,6 +862,9 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
     if (currentRequest) {
       setDeclinedRequestIds((prev) => [...prev, currentRequest._id]);
     }
+    
+    // Clear all timers
+    clearAllTimers();
     
     setRideRequests([]);
     setShowRequest(false);
@@ -549,14 +908,12 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
     console.log("🎯 Trip manually closed, clearing all trip state");
     setCompletedTrip(null);
     setActiveTrip(null);
+    setCurrentTripStatus(null); // Clear trip status to enable polling
     
     // Force immediate polling check if online
     if (isOnline && !isDeliveryUser) {
       console.log("🔄 Triggering immediate poll after trip close");
-      setTimeout(() => {
-        // Small delay to ensure state updates are processed
-        // Polling effect will restart automatically
-      }, 100);
+      // Polling effect will restart automatically when dependencies change
     }
   };
 
@@ -565,15 +922,12 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
     console.log("🌟 Rating submitted, clearing all trip state");
     setCompletedTrip(null);
     setActiveTrip(null);
-
+    setCurrentTripStatus(null); // Clear trip status to enable polling
 
     // Force immediate polling check if online
     if (isOnline && !isDeliveryUser) {
       console.log("🔄 Triggering immediate poll after rating submit");
-      setTimeout(() => {
-        // Small delay to ensure state updates are processed
-        // Polling effect will restart automatically
-      }, 100);
+      // Polling effect will restart automatically when dependencies change
     }
   };
 
@@ -626,6 +980,16 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
       setDeliveryRequests([]);
       setShowDeliveryRequest(false);
       
+      // Clear all delivery timers
+      if (deliveryPollingIntervalRef.current) {
+        clearInterval(deliveryPollingIntervalRef.current);
+        deliveryPollingIntervalRef.current = null;
+      }
+      if (deliveryRequestTimerRef.current) {
+        clearInterval(deliveryRequestTimerRef.current);
+        deliveryRequestTimerRef.current = null;
+      }
+      
       if (response && response.route) {
         setActiveDeliveryRoute(response.route);
       } else if (response && response.ride) {
@@ -636,6 +1000,15 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
           estimatedTotalDistance: response.ride.estimatedTotalDistance || 'N/A',
           estimatedTotalDuration: response.ride.estimatedTotalDuration || 'N/A'
         });
+      }
+
+      // Show notification
+      if (notificationsEnabled) {
+        NotificationService.showNotification(
+          "Delivery Accepted",
+          "You have successfully accepted the delivery job",
+          "success"
+        );
       }
     } catch (err) {
       console.error("Error accepting delivery request:", err);
@@ -649,24 +1022,158 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
       setDeclinedDeliveryIds((prev) => [...prev, currentDeliveryRequest._id]);
     }
     
+    // Clear all delivery timers
+    if (deliveryPollingIntervalRef.current) {
+      clearInterval(deliveryPollingIntervalRef.current);
+      deliveryPollingIntervalRef.current = null;
+    }
+    if (deliveryRequestTimerRef.current) {
+      clearInterval(deliveryRequestTimerRef.current);
+      deliveryRequestTimerRef.current = null;
+    }
+    
     setDeliveryRequests([]);
     setShowDeliveryRequest(false);
   };
 
+  const handleDeliveryAction = async (action, deliveryId) => {
+    console.log("🚚 Delivery action requested:", action, deliveryId);
+    
+    switch (action) {
+      case 'start_delivery':
+        await handleDeliveryStatusUpdate(deliveryId, 'in_transit');
+        break;
+      case 'pickup_completed':
+        await handleDeliveryStatusUpdate(deliveryId, 'picked_up');
+        break;
+      case 'delivery_completed':
+        // For delivery completion, we might need a PIN
+        const pin = prompt("Enter delivery PIN (if required):");
+        await handleDeliveryStatusUpdate(deliveryId, 'delivered', pin);
+        break;
+      case 'mark_completed':
+        setCompletedTrip(activeTrip);
+        setActiveTrip(null);
+        break;
+      default:
+        console.warn("Unknown delivery action:", action);
+    }
+  };
+
   const handleDeliveryStatusUpdate = async (deliveryId, status, pin = null) => {
     try {
-      const response = await updateDeliveryStatus(deliveryId, status, pin, userToken);
+      console.log("Updating delivery status:", { deliveryId, status, pin });
       
-      if (response && response.route) {
-        setActiveDeliveryRoute(response.route);
+      const response = await updateDeliveryStatus(deliveryId, status, userToken);
+      
+      console.log("Delivery status update response:", response);
+      
+      if (response && response.success) {
+        // Update the active trip status to reflect delivery status
+        if (activeTrip && activeTrip.isDelivery) {
+          const updatedTrip = {
+            ...activeTrip,
+            status: status
+          };
+          setActiveTrip(updatedTrip);
+          console.log("🚚 Updated delivery trip status to:", status);
+        }
+
+        // Check if we have a route in the response
+        if (response.route) {
+          setActiveDeliveryRoute(response.route);
+        }
+        
+        // Check if the route is completed (multiple ways to determine this)
+        if (response.routeCompleted || 
+            (response.route && response.route.remainingDeliveries === 0)) {
+          console.log("All deliveries completed, clearing active route and trip");
+          setActiveDeliveryRoute(null);
+          // Clear the active trip since delivery is complete
+          if (activeTrip && activeTrip.isDelivery) {
+            setActiveTrip(null);
+          }
+        }
       }
       
-      if (response && response.routeCompleted) {
-        setActiveDeliveryRoute(null);
-      }
     } catch (err) {
       console.error("Error updating delivery status:", err);
     }
+  };
+
+  const handleDeliveryConfirmation = async (deliveryId, pin) => {
+    try {
+      console.log("Confirming delivery with PIN:", { deliveryId, pin });
+      
+      const response = await confirmDelivery(deliveryId, pin, userToken);
+      
+      console.log("Delivery confirmation response:", response);
+      
+      if (response && response.success) {
+        // Mark delivery as completed in the active trip
+        if (activeTrip && activeTrip.isDelivery) {
+          const updatedTrip = {
+            ...activeTrip,
+            status: 'completed'
+          };
+          setActiveTrip(updatedTrip);
+          console.log("🚚 Marked delivery trip as completed");
+        }
+
+        // Check if we have an updated route in the response
+        if (response.route) {
+          setActiveDeliveryRoute(response.route);
+        }
+        
+        // Check if the route is completed (multiple ways to determine this)
+        if (response.routeCompleted || 
+            (response.route && response.route.remainingDeliveries === 0)) {
+          console.log("All deliveries completed, clearing active route and trip");
+          setActiveDeliveryRoute(null);
+          // Clear the active trip since all deliveries are complete
+          if (activeTrip && activeTrip.isDelivery) {
+            setActiveTrip(null);
+          }
+        }
+      }
+      
+    } catch (err) {
+      console.error("Error confirming delivery:", err);
+      // You might want to show an error message to the user here
+      throw err; // Re-throw so the component can handle the error
+    }
+  };
+
+  // Smart grouping handlers
+  const handleJobBatchAccepted = async (acceptedJobs, route) => {
+    try {
+      console.log("Batch jobs accepted:", acceptedJobs, route);
+      
+      // Update active delivery route if provided
+      if (route) {
+        setActiveDeliveryRoute(route);
+      }
+      
+      // Clear the group selector
+      setShowGroupSelector(false);
+      setSelectedJobs([]);
+      
+    } catch (error) {
+      console.error("Error handling batch job acceptance:", error);
+    }
+  };
+
+  const handleOpenGroupSelector = () => {
+    setShowGroupSelector(true);
+  };
+
+  const handleCloseGroupSelector = () => {
+    setShowGroupSelector(false);
+    setSelectedJobs([]);
+  };
+
+  const handleRouteOptimized = (route) => {
+    setOptimizedRoute(route);
   };
 
   return (
@@ -680,6 +1187,10 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
           activeTrip={activeTrip}
           onTripUpdate={handleTripUpdate}
           onTripStatusChange={handleTripStatusChange}
+          isDeliveryUser={isDeliveryUser}
+          // Pass delivery handlers for when activeTrip is a delivery
+          onDeliveryStatusUpdate={handleDeliveryStatusUpdate}
+          onDeliveryConfirmation={handleDeliveryConfirmation}
         />
         
         {/* Online Status Toggle - Floating - Hidden when there's an active trip */}
@@ -723,7 +1234,17 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
       {isDeliveryUser && activeDeliveryRoute && (
         <DeliveryRoute
           route={activeDeliveryRoute}
-          onStatusUpdate={handleDeliveryStatusUpdate}
+          onUpdateStatus={handleDeliveryStatusUpdate}
+          onConfirmDelivery={handleDeliveryConfirmation}
+          onNavigate={(delivery) => {
+            // Open navigation to pickup or dropoff based on status
+            const destination = delivery.status === 'accepted' 
+              ? delivery.pickup.address 
+              : delivery.dropoff.address;
+            
+            const url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`;
+            window.open(url, '_blank');
+          }}
         />
       )}
 
@@ -733,9 +1254,24 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
           userLocation={mapCenter}
           onJobAccepted={(delivery) => {
             if (delivery) {
-              setTimeout(() => {
-                // Refresh active delivery route
-              }, 1000);
+              // Handle both single job and batch job acceptance
+              if (delivery.jobs) {
+                // Batch acceptance
+                handleJobBatchAccepted(delivery.jobs, delivery.route);
+              } else {
+                // Single job acceptance - trigger refresh of active delivery route
+                setTimeout(async () => {
+                  try {
+                    const response = await getMyDeliveryRoute(userToken);
+                    const route = response?.route || response;
+                    if (route && route.activeDeliveries && route.activeDeliveries.length > 0) {
+                      setActiveDeliveryRoute(route);
+                    }
+                  } catch (err) {
+                    console.error("Error fetching active delivery route after job acceptance:", err);
+                  }
+                }, 1000);
+              }
             }
           }}
         />
@@ -759,6 +1295,22 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
           todayStats={todayStats}
           initialHeight="compact"
           allowManualToggle={true}
+        />
+      )}
+
+      {/* Main Delivery Drawer - Only for delivery drivers */}
+      {isDeliveryUser && (
+        <DeliveryDrawer
+          isOnline={isOnline}
+          deliveryRequest={currentDeliveryRequest}
+          requestTimer={deliveryTimer}
+          onAcceptRequest={handleAcceptDeliveryRequest}
+          onDeclineRequest={handleDeclineDeliveryRequest}
+          activeDelivery={activeTrip}
+          onDeliveryAction={handleDeliveryAction}
+          completedDelivery={completedTrip}
+          onDeliveryClose={handleTripClose}
+          todayStats={todayStats}
         />
       )}
 

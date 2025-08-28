@@ -8,9 +8,12 @@ import {
   Star,
   Navigation,
   DollarSign,
-  RefreshCw
+  RefreshCw,
+  Layers,
+  Zap
 } from 'lucide-react';
 import { getAvailableDeliveryJobs, acceptDeliveryJob } from '../../services/deliveryService';
+import DeliveryGroupSelector from '../DeliveryGroupSelector/DeliveryGroupSelector';
 import './DeliveryJobList.css';
 
 const DeliveryJobList = ({ userToken, userLocation, onJobAccepted }) => {
@@ -20,6 +23,7 @@ const DeliveryJobList = ({ userToken, userLocation, onJobAccepted }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [accepting, setAccepting] = useState(null);
+  const [showGroupSelector, setShowGroupSelector] = useState(false);
 
   const fetchAvailableJobs = async () => {
     setLoading(true);
@@ -87,6 +91,19 @@ const DeliveryJobList = ({ userToken, userLocation, onJobAccepted }) => {
     window.open(url, '_blank');
   };
 
+  const handleJobsAccepted = (acceptedJobs, route) => {
+    // Remove accepted jobs from the list
+    const acceptedJobIds = acceptedJobs.map(job => job.deliveryId);
+    setJobs(prev => prev.filter(job => !acceptedJobIds.includes(job.deliveryId)));
+    
+    // Notify parent component
+    if (onJobAccepted) {
+      onJobAccepted({ jobs: acceptedJobs, route });
+    }
+    
+    setShowGroupSelector(false);
+  };
+
   const formatTime = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -118,15 +135,43 @@ const DeliveryJobList = ({ userToken, userLocation, onJobAccepted }) => {
 
   return (
     <div className="delivery-job-list">
+      {/* Smart Group Selector */}
+      {showGroupSelector && (
+        <DeliveryGroupSelector
+          availableJobs={jobs}
+          userToken={userToken}
+          userLocation={userLocation}
+          onJobsAccepted={handleJobsAccepted}
+          onClose={() => setShowGroupSelector(false)}
+        />
+      )}
+
       <div className="job-list-header">
-        <h3>Available Delivery Jobs</h3>
-        <button 
-          className="refresh-btn"
-          onClick={fetchAvailableJobs}
-          disabled={loading}
-        >
-          <RefreshCw className={loading ? 'spin' : ''} size={20} />
-        </button>
+        <div className="header-content">
+          <Package size={24} color="var(--color-delivery)" />
+          <div className="header-text">
+            <h3>Available Delivery Jobs</h3>
+            <p>{jobs.length} jobs available</p>
+          </div>
+        </div>
+        <div className="header-actions">
+          <button 
+            className="refresh-btn"
+            onClick={fetchAvailableJobs}
+            disabled={loading}
+          >
+            <RefreshCw className={loading ? 'spin' : ''} size={20} />
+          </button>
+          {jobs.length >= 2 && (
+            <button 
+              className="smart-select-btn"
+              onClick={() => setShowGroupSelector(true)}
+            >
+              <Zap size={16} />
+              Smart Selection
+            </button>
+          )}
+        </div>
       </div>
 
       {error && (
@@ -143,6 +188,19 @@ const DeliveryJobList = ({ userToken, userLocation, onJobAccepted }) => {
         </div>
       ) : (
         <div className="jobs-container">
+          {/* Quick Actions */}
+          {jobs.length >= 2 && (
+            <div className="quick-actions">
+              <button 
+                className="batch-select-btn"
+                onClick={() => setShowGroupSelector(true)}
+              >
+                <Layers size={16} />
+                Select Multiple Jobs ({jobs.length} available)
+              </button>
+            </div>
+          )}
+
           {/* Smart Suggestions Section */}
           {hasActiveRoute && suggestedCombinations.length > 0 && (
             <div className="suggestions-section">

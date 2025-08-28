@@ -6,6 +6,7 @@
   --color-secondary-light: #2a3990;
   --color-success: #4caf50;
   --color-success-light: #e8f5e8;
+  --color-success-dark: #388e3c;
   --color-danger: #ff6b6b;
   --color-warning: #ffd93d;
   --color-info: #2a3990;
@@ -17,6 +18,10 @@
   --color-delivery: #ff9500;
   --color-delivery-light: #fff3e0;
   --color-delivery-dark: #f57c00;
+  --color-white: #ffffff;
+  --color-bg: #f8f9fa;
+  --color-gray: #666666;
+  --color-light-gray: #e0e0e0;
 }
 
 /* Main Layout */

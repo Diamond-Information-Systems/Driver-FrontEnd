@@ -18,13 +18,83 @@
   padding: 20px 24px 16px 24px;
   border-bottom: 1px solid #f0f0f0;
   flex-shrink: 0;
+  background: linear-gradient(135deg, var(--color-delivery-light), #fff3e0);
 }
 
-.job-list-header h3 {
+.job-list-header .header-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.job-list-header .header-text h3 {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
   color: #333;
+}
+
+.job-list-header .header-text p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-gray);
+}
+
+.job-list-header .header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.smart-select-btn {
+  background: linear-gradient(135deg, var(--color-delivery), var(--color-delivery-dark));
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.smart-select-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 149, 0, 0.3);
+}
+
+/* Quick Actions */
+.quick-actions {
+  padding: 16px 20px;
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-light-gray);
+}
+
+.batch-select-btn {
+  background: white;
+  border: 2px solid var(--color-delivery);
+  color: var(--color-delivery);
+  border-radius: 10px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  width: 100%;
+  justify-content: center;
+}
+
+.batch-select-btn:hover {
+  background: var(--color-delivery);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 149, 0, 0.3);
 }
 
 .refresh-btn {

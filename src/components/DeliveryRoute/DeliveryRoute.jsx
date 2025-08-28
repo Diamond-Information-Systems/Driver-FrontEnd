@@ -91,11 +91,11 @@ function DeliveryRoute({
         </div>
         <div className="route-stats">
           <div className="stat">
-            <span className="stat-value">{route.routeStats.totalDistance}</span>
+            <span className="stat-value">{route.routeStats?.totalDistance || 'N/A'}</span>
             <span className="stat-label">Total</span>
           </div>
           <div className="stat">
-            <span className="stat-value">{route.routeStats.estimatedTime}</span>
+            <span className="stat-value">{route.routeStats?.estimatedTime || 'N/A'}</span>
             <span className="stat-label">Time</span>
           </div>
         </div>
@@ -106,17 +106,17 @@ function DeliveryRoute({
         <div className="progress-bar">
           <div 
             className="progress-fill"
-            style={{ width: `${route.routeStats.completionPercentage}%` }}
+            style={{ width: `${route.routeStats?.completionPercentage || 0}%` }}
           ></div>
         </div>
         <span className="progress-text">
-          {route.routeStats.completionPercentage}% Complete
+          {route.routeStats?.completionPercentage || 0}% Complete
         </span>
       </div>
 
       {/* Active Deliveries List */}
       <div className="deliveries-list">
-        {route.activeDeliveries.map((delivery, index) => {
+        {route.activeDeliveries?.map((delivery, index) => {
           const nextAction = getNextAction(delivery);
           
           return (

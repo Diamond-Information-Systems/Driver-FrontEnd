@@ -552,6 +552,23 @@
   cursor: not-allowed;
 }
 
+/* Delivery action popup specific styles */
+.delivery-action-popup {
+  border-top: 4px solid #FF9500;
+}
+
+.delivery-action-popup .popup-content {
+  border-top: 4px solid #FF9500;
+}
+
+.delivery-action-popup h3 {
+  color: #FF9500 !important;
+}
+
+.delivery-action-popup p {
+  color: #555;
+}
+
 /* Responsive design */
 @media (max-width: 480px) {
   .popup-content {
@@ -925,6 +942,72 @@
   }
   to {
     transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Delivery Markers */
+.delivery-marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: white;
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 3px solid;
+  min-width: 60px;
+  animation: bounceIn 0.6s ease-out;
+}
+
+.delivery-marker.pickup {
+  border-color: #ff9500;
+  background: linear-gradient(135deg, #fff3e0 0%, #ffffff 100%);
+}
+
+.delivery-marker.dropoff {
+  border-color: #4caf50;
+  background: linear-gradient(135deg, #e8f5e8 0%, #ffffff 100%);
+}
+
+.delivery-marker .marker-icon {
+  font-size: 20px;
+  margin-bottom: 2px;
+}
+
+.delivery-marker .marker-label {
+  font-size: 10px;
+  font-weight: bold;
+  color: #333;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.delivery-pickup-marker,
+.delivery-dropoff-marker {
+  z-index: 1000;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.delivery-pickup-marker:hover,
+.delivery-dropoff-marker:hover {
+  transform: scale(1.1);
+}
+
+@keyframes bounceIn {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
     opacity: 1;
   }
 }

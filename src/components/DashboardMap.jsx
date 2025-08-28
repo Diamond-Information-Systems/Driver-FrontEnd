@@ -48,6 +48,9 @@ const DashboardMap = ({
   activeTrip,
   onTripUpdate,
   onTripStatusChange, // New prop to expose current trip status
+  isDeliveryUser, // Add back for conditional UI
+  onDeliveryStatusUpdate, // For delivery status updates
+  onDeliveryConfirmation, // For delivery confirmations
 }) => {
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: config.GoogleMapsApiKey,
@@ -61,6 +64,13 @@ const DashboardMap = ({
   const [isLocationLoading, setIsLocationLoading] = useState(true);
   const [locationError, setLocationError] = useState(null);
   const [currentTripStatus, setCurrentTripStatus] = useState(null); // Local status tracking
+
+  // Delivery-specific state
+  const [deliveryDirections, setDeliveryDirections] = useState(null);
+  const [currentDelivery, setCurrentDelivery] = useState(null); // Current active delivery
+  const [deliveryStatus, setDeliveryStatus] = useState(null);
+  const [showDeliveryActionPopup, setShowDeliveryActionPopup] = useState(false);
+  const [deliveryActionType, setDeliveryActionType] = useState(null); // 'start', 'pickup', 'delivery'
 
   // New state for ride completion logic
   const [showStartRidePopup, setShowStartRidePopup] = useState(false);
@@ -82,6 +92,11 @@ const DashboardMap = ({
   const hasShownCompletePopup = useRef(false);
   const previousTripStatus = useRef(null); // Track previous status for navigation
   const previousActiveTrip = useRef(null);
+
+  // Helper function to detect if current trip is a delivery
+  const isCurrentTripDelivery = useMemo(() => {
+    return activeTrip && (activeTrip.type === 'delivery' || activeTrip.deliveryId);
+  }, [activeTrip]);
 
   // Memoized pickup and dropoff coordinates to prevent recalculations
   const pickupCoords = useMemo(() => {
@@ -109,7 +124,32 @@ const DashboardMap = ({
       return dropoffCoords;
     }
     return null;
-  }, [currentTripStatus, pickupCoords, dropoffCoords, activeTrip]);
+  }, [activeTrip, currentTripStatus, pickupCoords, dropoffCoords]);
+
+  // Delivery coordinates extraction
+  const deliveryPickupCoords = useMemo(() => {
+    if (!currentDelivery?.pickup?.coordinates) return null;
+    const [lng, lat] = currentDelivery.pickup.coordinates;
+    return { lat, lng };
+  }, [currentDelivery?.pickup?.coordinates]);
+
+  const deliveryDropoffCoords = useMemo(() => {
+    if (!currentDelivery?.dropoff?.coordinates) return null;
+    const [lng, lat] = currentDelivery.dropoff.coordinates;
+    return { lat, lng };
+  }, [currentDelivery?.dropoff?.coordinates]);
+
+  // Current delivery destination based on status
+  const currentDeliveryDestination = useMemo(() => {
+    if (!currentDelivery || !deliveryStatus) return null;
+    
+    if (deliveryStatus === "accepted" || deliveryStatus === "started") {
+      return deliveryPickupCoords;
+    } else if (deliveryStatus === "picked_up" || deliveryStatus === "in_progress") {
+      return deliveryDropoffCoords;
+    }
+    return null;
+  }, [currentDelivery, deliveryStatus, deliveryPickupCoords, deliveryDropoffCoords]);
 
   // Stable map center that doesn't change during active trips to prevent GoogleMap re-centering
   const stableMapCenter = useMemo(() => {
@@ -161,6 +201,37 @@ const DashboardMap = ({
       console.log("Initialized local trip status:", activeTrip.status);
     }
   }, [activeTrip?.status]);
+
+  // Initialize delivery state when activeTrip is a delivery
+  useEffect(() => {
+    if (activeTrip && activeTrip.isDelivery) {
+      // Set delivery-specific state from the activeTrip
+      setCurrentDelivery({
+        deliveryId: activeTrip._id,
+        orderId: activeTrip.orderId,
+        status: activeTrip.status,
+        customer: activeTrip.customer,
+        pickup: {
+          address: activeTrip.pickup.address,
+          coordinates: [activeTrip.pickup.location.coordinates[0], activeTrip.pickup.location.coordinates[1]]
+        },
+        dropoff: {
+          address: activeTrip.dropoff.address,
+          coordinates: [activeTrip.dropoff.location.coordinates[0], activeTrip.dropoff.location.coordinates[1]]
+        },
+        productDetails: activeTrip.productDetails,
+        deliveryPin: activeTrip.deliveryPin,
+        estimatedCompletion: activeTrip.estimatedCompletion,
+        notes: activeTrip.notes
+      });
+      setDeliveryStatus(activeTrip.status);
+      console.log("🚚 Set current delivery from activeTrip:", activeTrip);
+    } else {
+      // Clear delivery state if activeTrip is not a delivery
+      setCurrentDelivery(null);
+      setDeliveryStatus(null);
+    }
+  }, [activeTrip]);
 
   // Expose current trip status to parent component
   useEffect(() => {
@@ -422,7 +493,51 @@ const DashboardMap = ({
       console.error("Failed to submit rating:", error);
       throw error; // Re-throw to let TripSummary component handle the error
     }
-  }, [userToken, onTripUpdate, completedTrip]);
+  }, [userToken, completedTrip, onTripUpdate]);
+
+  // Delivery Action Handlers
+  const handleStartDelivery = useCallback(async () => {
+    if (!currentDelivery || !onDeliveryStatusUpdate) return;
+    
+    try {
+      await onDeliveryStatusUpdate(currentDelivery.deliveryId, 'started');
+      setDeliveryStatus('started');
+      setShowDeliveryActionPopup(false);
+      console.log("Delivery started:", currentDelivery.deliveryId);
+    } catch (error) {
+      console.error("Failed to start delivery:", error);
+    }
+  }, [currentDelivery, onDeliveryStatusUpdate]);
+
+  const handleCompletePickup = useCallback(async () => {
+    if (!currentDelivery || !onDeliveryStatusUpdate) return;
+    
+    try {
+      await onDeliveryStatusUpdate(currentDelivery.deliveryId, 'picked_up');
+      setDeliveryStatus('picked_up');
+      setShowDeliveryActionPopup(false);
+      console.log("Pickup completed:", currentDelivery.deliveryId);
+    } catch (error) {
+      console.error("Failed to complete pickup:", error);
+    }
+  }, [currentDelivery, onDeliveryStatusUpdate]);
+
+  const handleCompleteDelivery = useCallback(async () => {
+    if (!currentDelivery || !onDeliveryConfirmation) return;
+    
+    try {
+      // This should trigger PIN input in the dashboard
+      const pin = prompt("Enter delivery PIN:");
+      if (pin) {
+        await onDeliveryConfirmation(currentDelivery.deliveryId, pin);
+        setDeliveryStatus('delivered');
+        setShowDeliveryActionPopup(false);
+        console.log("Delivery completed:", currentDelivery.deliveryId);
+      }
+    } catch (error) {
+      console.error("Failed to complete delivery:", error);
+    }
+  }, [currentDelivery, onDeliveryConfirmation]);
 
   // Handle trip summary close
   const handleTripSummaryClose = useCallback(() => {
@@ -619,6 +734,61 @@ const DashboardMap = ({
     }
   }, [activeTripId, activeTrip?.status]); // Only depend on ID and status
 
+  // Delivery distance calculation and popup logic
+  const [distanceToDeliveryPickup, setDistanceToDeliveryPickup] = useState(null);
+  const [distanceToDeliveryDropoff, setDistanceToDeliveryDropoff] = useState(null);
+  const hasShownDeliveryPickupPopup = useRef(false);
+  const hasShownDeliveryDropoffPopup = useRef(false);
+
+  useEffect(() => {
+    if (!isDeliveryUser || !currentDelivery || !deliveryPickupCoords || !deliveryDropoffCoords || !userLocation) return;
+
+    // Calculate distances
+    const distanceToPickup = getDistanceMeters(
+      userLocation.lat, userLocation.lng,
+      deliveryPickupCoords.lat, deliveryPickupCoords.lng
+    );
+    const distanceToDropoff = getDistanceMeters(
+      userLocation.lat, userLocation.lng, 
+      deliveryDropoffCoords.lat, deliveryDropoffCoords.lng
+    );
+    
+    setDistanceToDeliveryPickup(distanceToPickup);
+    setDistanceToDeliveryDropoff(distanceToDropoff);
+
+    // Show delivery start popup when arriving at pickup
+    if (deliveryStatus === "accepted" && distanceToPickup <= ARRIVAL_THRESHOLD && !hasShownDeliveryPickupPopup.current) {
+      console.log("Showing delivery start popup - distance to pickup:", distanceToPickup);
+      setDeliveryActionType('start');
+      setShowDeliveryActionPopup(true);
+      hasShownDeliveryPickupPopup.current = true;
+    }
+
+    // Show pickup complete popup when at pickup and delivery started
+    if (deliveryStatus === "started" && distanceToPickup <= ARRIVAL_THRESHOLD && !hasShownDeliveryPickupPopup.current) {
+      console.log("Showing pickup complete popup - distance to pickup:", distanceToPickup);
+      setDeliveryActionType('pickup');
+      setShowDeliveryActionPopup(true);
+      hasShownDeliveryPickupPopup.current = true;
+    }
+
+    // Show delivery complete popup when arriving at dropoff
+    if (deliveryStatus === "picked_up" && distanceToDropoff <= ARRIVAL_THRESHOLD && !hasShownDeliveryDropoffPopup.current) {
+      console.log("Showing delivery complete popup - distance to dropoff:", distanceToDropoff);
+      setDeliveryActionType('delivery');
+      setShowDeliveryActionPopup(true);
+      hasShownDeliveryDropoffPopup.current = true;
+    }
+  }, [isDeliveryUser, currentDelivery, deliveryStatus, deliveryPickupCoords, deliveryDropoffCoords, userLocation]);
+
+  // Reset delivery popup flags when delivery changes
+  useEffect(() => {
+    hasShownDeliveryPickupPopup.current = false;
+    hasShownDeliveryDropoffPopup.current = false;
+    setShowDeliveryActionPopup(false);
+    setDeliveryActionType(null);
+  }, [currentDelivery?.deliveryId]);
+
   // Optimized directions calculation
   useEffect(() => {
     // Skip if no required data or google maps not loaded
@@ -662,7 +832,40 @@ const DashboardMap = ({
         }
       }
     );
-  }, [activeTripId, userLocation, currentDestination]); // Use optimized dependencies
+  }, [activeTrip, userLocation, currentDestination]);
+
+  // Delivery directions calculation
+  useEffect(() => {
+    // Skip if not delivery user, no required data, or google maps not loaded
+    if (!isDeliveryUser || !currentDelivery || !userLocation || !window.google || !currentDeliveryDestination) {
+      setDeliveryDirections(null);
+      return;
+    }
+
+    // Initialize directions service if needed
+    if (!directionsServiceRef.current) {
+      directionsServiceRef.current = new window.google.maps.DirectionsService();
+    }
+
+    directionsServiceRef.current.route(
+      {
+        origin: userLocation,
+        destination: currentDeliveryDestination,
+        travelMode: window.google.maps.TravelMode.DRIVING,
+        avoidHighways: false,
+        avoidTolls: false,
+      },
+      (result, status) => {
+        if (status === window.google.maps.DirectionsStatus.OK) {
+          setDeliveryDirections(result);
+          console.log('Delivery directions calculated for destination:', currentDeliveryDestination);
+        } else {
+          console.warn("Delivery directions request failed:", status);
+          setDeliveryDirections(null);
+        }
+      }
+    );
+  }, [isDeliveryUser, currentDelivery, userLocation, currentDeliveryDestination]);
 
   // Optimized user location marker effect - NO PANNING DURING ACTIVE TRIPS
   useEffect(() => {
@@ -692,24 +895,24 @@ const DashboardMap = ({
           content: createMarkerElement(),
         });
         
-        // COMPLETELY DISABLE any initial panning if there's an active trip
-        if (!activeTripId) {
+        // COMPLETELY DISABLE any panning during ANY active trip phase
+        if (!activeTrip) {
           map.panTo(userLocation);
           console.log("Initial pan to user location (no active trip)");
         } else {
-          console.log("NO PANNING - active trip exists, keeping current view");
+          console.log("NO PANNING - active trip exists (status:", currentTripStatus, "), keeping current view");
         }
         
         console.log("Created new user location marker");
       } else {
-        // Just update the marker position - NO PANNING EVER DURING UPDATES
+        // Just update the marker position - NEVER PAN DURING ACTIVE TRIPS
         markerRef.current.position = userLocation;
-        console.log("Updated marker position - NO PANNING (active trip:", !!activeTripId, ")");
+        console.log("Updated marker position - NO PANNING during active trip (status:", currentTripStatus, ")");
       }
     } catch (error) {
       console.error("Error updating user location marker:", error);
     }
-  }, [isLoaded, map, userLocation, activeTripId]);
+  }, [isLoaded, map, userLocation, activeTrip, currentTripStatus]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -719,6 +922,78 @@ const DashboardMap = ({
       }
     };
   }, []);
+
+  // Delivery markers effect
+  const deliveryPickupMarkerRef = useRef(null);
+  const deliveryDropoffMarkerRef = useRef(null);
+
+  useEffect(() => {
+    if (!isLoaded || !map || !isDeliveryUser || !currentDelivery || !window.google) return;
+
+    try {
+      const { AdvancedMarkerElement } = window.google.maps.marker;
+
+      // Create pickup marker
+      if (deliveryPickupCoords && !deliveryPickupMarkerRef.current) {
+        const createPickupMarkerElement = () => {
+          const element = document.createElement('div');
+          element.className = "delivery-pickup-marker";
+          element.innerHTML = `
+            <div class="delivery-marker pickup">
+              <div class="marker-icon">📦</div>
+              <div class="marker-label">PICKUP</div>
+            </div>
+          `;
+          return element;
+        };
+
+        deliveryPickupMarkerRef.current = new AdvancedMarkerElement({
+          map,
+          position: deliveryPickupCoords,
+          content: createPickupMarkerElement(),
+          title: "Delivery Pickup Location"
+        });
+      }
+
+      // Create dropoff marker
+      if (deliveryDropoffCoords && !deliveryDropoffMarkerRef.current) {
+        const createDropoffMarkerElement = () => {
+          const element = document.createElement('div');
+          element.className = "delivery-dropoff-marker";
+          element.innerHTML = `
+            <div class="delivery-marker dropoff">
+              <div class="marker-icon">🏠</div>
+              <div class="marker-label">DELIVERY</div>
+            </div>
+          `;
+          return element;
+        };
+
+        deliveryDropoffMarkerRef.current = new AdvancedMarkerElement({
+          map,
+          position: deliveryDropoffCoords,
+          content: createDropoffMarkerElement(),
+          title: "Delivery Dropoff Location"
+        });
+      }
+
+      console.log("Created delivery markers");
+    } catch (error) {
+      console.error("Error creating delivery markers:", error);
+    }
+
+    // Cleanup delivery markers when delivery changes
+    return () => {
+      if (deliveryPickupMarkerRef.current) {
+        deliveryPickupMarkerRef.current.setMap(null);
+        deliveryPickupMarkerRef.current = null;
+      }
+      if (deliveryDropoffMarkerRef.current) {
+        deliveryDropoffMarkerRef.current.setMap(null);
+        deliveryDropoffMarkerRef.current = null;
+      }
+    };
+  }, [isLoaded, map, isDeliveryUser, currentDelivery, deliveryPickupCoords, deliveryDropoffCoords]);
 
   // Memoized Slider component for ride actions
   const SlideToConfirm = memo(({
@@ -910,7 +1185,7 @@ const DashboardMap = ({
                   fontWeight: '500'
                 }}
               >
-                🚗 Drive to Pickup
+                {isCurrentTripDelivery ? '� Drive to Pickup' : '�🚗 Drive to Pickup'}
               </button>
             )}
             {(currentTripStatus === 'started' || currentTripStatus === 'in_progress') && (
@@ -927,7 +1202,7 @@ const DashboardMap = ({
                   fontWeight: '500'
                 }}
               >
-                🎯 Drive to Dropoff
+                {isCurrentTripDelivery ? '🏠 Drive to Delivery' : '🎯 Drive to Dropoff'}
               </button>
             )}
             {isSimulationMode && (
@@ -962,7 +1237,7 @@ const DashboardMap = ({
                   marginTop: '2px'
                 }}
               >
-                ❌ Cancel Ride
+                {isCurrentTripDelivery ? '❌ Cancel Delivery' : '❌ Cancel Ride'}
               </button>
             )}
           </div>
@@ -984,20 +1259,22 @@ const DashboardMap = ({
         </div>
       )}
 
-      {/* Start Ride Popup */}
+      {/* Start Ride/Delivery Popup */}
       {showStartRidePopup && (
         <div className="ride-action-popup" style={{ zIndex: 9999 }}>
           <div className="popup-content">
-            <h3>Passenger Picked Up?</h3>
+            <h3>{isCurrentTripDelivery ? "📦 Start Delivery?" : "🚗 Passenger Picked Up?"}</h3>
             <p>
-              Slide to confirm the passenger is in your vehicle and start the
-              trip.
+              {isCurrentTripDelivery 
+                ? "You've arrived at the pickup location. Ready to collect the item for delivery?"
+                : "Slide to confirm the passenger is in your vehicle and start the trip."
+              }
             </p>
             <SlideToConfirm
               onConfirm={handleStartRide}
-              text="Slide to Start Trip"
-              confirmText="Starting..."
-              bgColor="#4CAF50"
+              text={isCurrentTripDelivery ? "Slide to Start Delivery" : "Slide to Start Trip"}
+              confirmText={isCurrentTripDelivery ? "Starting Delivery..." : "Starting..."}
+              bgColor={isCurrentTripDelivery ? "#FF9500" : "#4CAF50"}
               disabled={isUpdatingRideStatus}
             />
             <button
@@ -1011,17 +1288,20 @@ const DashboardMap = ({
         </div>
       )}
 
-      {/* Complete Ride Popup */}
+      {/* Complete Ride/Delivery Popup */}
       {showCompleteRidePopup && (
         <div className="ride-action-popup" style={{ zIndex: 9999 }}>
           <div className="popup-content">
-            <h3>Trip Complete?</h3>
-            <p>Slide to confirm the passenger has been dropped off safely.</p>
+            <h3>{isCurrentTripDelivery ? "🏠 Complete Delivery?" : "🎯 Trip Complete?"}</h3>
+            <p>{isCurrentTripDelivery 
+              ? "You've arrived at the delivery location. Ready to complete the delivery?" 
+              : "Slide to confirm the passenger has been dropped off safely."
+            }</p>
             <SlideToConfirm
               onConfirm={handleCompleteRide}
-              text="Slide to Complete Trip"
-              confirmText="Completing..."
-              bgColor="#2196F3"
+              text={isCurrentTripDelivery ? "Slide to Complete Delivery" : "Slide to Complete Trip"}
+              confirmText={isCurrentTripDelivery ? "Completing Delivery..." : "Completing..."}
+              bgColor={isCurrentTripDelivery ? "#4CAF50" : "#2196F3"}
               disabled={isUpdatingRideStatus}
             />
             <button
@@ -1035,19 +1315,21 @@ const DashboardMap = ({
         </div>
       )}
 
-      {/* Cancel Ride Popup */}
+      {/* Cancel Ride/Delivery Popup */}
       {showCancelRidePopup && (
         <div className="ride-action-popup" style={{ zIndex: 9999 }}>
           <div className="popup-content">
-            <h3>Cancel This Ride?</h3>
+            <h3>{isCurrentTripDelivery ? "❌ Cancel This Delivery?" : "❌ Cancel This Ride?"}</h3>
             <p>
-              This will cancel the ride and make you available for new requests. 
-              The passenger will be notified.
+              {isCurrentTripDelivery 
+                ? "This will cancel the delivery and make you available for new delivery requests. The customer will be notified."
+                : "This will cancel the ride and make you available for new requests. The passenger will be notified."
+              }
             </p>
             <SlideToConfirm
               onConfirm={handleCancelRide}
-              text="Slide to Cancel Ride"
-              confirmText="Cancelling..."
+              text={isCurrentTripDelivery ? "Slide to Cancel Delivery" : "Slide to Cancel Ride"}
+              confirmText={isCurrentTripDelivery ? "Cancelling Delivery..." : "Cancelling..."}
               bgColor="#dc3545"
               disabled={isUpdatingRideStatus}
             />
@@ -1056,7 +1338,57 @@ const DashboardMap = ({
               onClick={() => setShowCancelRidePopup(false)}
               disabled={isUpdatingRideStatus}
             >
-              Keep Ride
+              {isCurrentTripDelivery ? "Keep Delivery" : "Keep Ride"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Delivery Action Popup */}
+      {showDeliveryActionPopup && deliveryActionType && (
+        <div className="ride-action-popup delivery-action-popup" style={{ zIndex: 9999 }}>
+          <div className="popup-content">
+            {deliveryActionType === 'start' && (
+              <>
+                <h3>🚚 Start Delivery?</h3>
+                <p>You've arrived at the pickup location. Ready to start the delivery?</p>
+                <SlideToConfirm
+                  onConfirm={handleStartDelivery}
+                  text="Slide to Start Delivery"
+                  confirmText="Starting..."
+                  bgColor="#FF9500"
+                />
+              </>
+            )}
+            {deliveryActionType === 'pickup' && (
+              <>
+                <h3>📦 Pickup Complete?</h3>
+                <p>Confirm you have collected the item for delivery.</p>
+                <SlideToConfirm
+                  onConfirm={handleCompletePickup}
+                  text="Slide to Complete Pickup"
+                  confirmText="Completing..."
+                  bgColor="#FF9500"
+                />
+              </>
+            )}
+            {deliveryActionType === 'delivery' && (
+              <>
+                <h3>🏠 Complete Delivery?</h3>
+                <p>You've arrived at the delivery location. Ready to complete the delivery?</p>
+                <SlideToConfirm
+                  onConfirm={handleCompleteDelivery}
+                  text="Slide to Complete Delivery"
+                  confirmText="Completing..."
+                  bgColor="#4CAF50"
+                />
+              </>
+            )}
+            <button
+              className="popup-cancel"
+              onClick={() => setShowDeliveryActionPopup(false)}
+            >
+              Cancel
             </button>
           </div>
         </div>
@@ -1170,7 +1502,7 @@ const DashboardMap = ({
             options={{
               suppressMarkers: true,
               polylineOptions: {
-                strokeColor: "#4285F4",
+                strokeColor: isCurrentTripDelivery ? "#FF9500" : "#4285F4", // Orange for deliveries, blue for rides
                 strokeWeight: 6,
                 strokeOpacity: 0.8,
               },
