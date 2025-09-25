@@ -174,17 +174,17 @@ const DashboardMap = ({
 
   // Map center with controlled panning logic - stable during active trips, dynamic otherwise
   const mapCenter = useMemo(() => {
-    // During active trips, use a stable center and let bounds fitting control the view
-    // This prevents conflicts between center calculation and bounds fitting
+    // During active trips, use a completely stable center and let bounds fitting control the view
+    // This prevents constant panning by not updating center with user location changes
     if (activeTrip) {
-      // Use user location as base center during active trips
-      // Bounds fitting effects will handle showing both user location and destination
-      return userLocation || center;
+      // Return a stable center during active trips - do NOT update with user location changes
+      // Use the pickup location or fallback center as stable reference
+      return pickupCoords || center;
     }
     
-    // When no active trip, center on user location or fallback
+    // When no active trip, allow dynamic updates based on user location
     return userLocation || center;
-  }, [userLocation, center, activeTrip]);
+  }, [activeTrip, pickupCoords, center, ...(activeTrip ? [] : [userLocation])]);
 
   // Stable map center for consistent behavior - prevents unnecessary re-renders during bounds fitting
   const stableMapCenter = useMemo(() => {
