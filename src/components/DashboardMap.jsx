@@ -107,6 +107,7 @@ const DashboardMap = ({
   
   const previousTripStatus = useRef(null); // Track previous status for navigation
   const previousActiveTrip = useRef(null);
+  const lastBoundsFitTime = useRef(0); // Track last bounds fitting to prevent excessive calls
 
   // Helper function to detect if current trip is a delivery
   const isCurrentTripDelivery = useMemo(() => {
@@ -171,35 +172,33 @@ const DashboardMap = ({
     return null;
   }, [currentDelivery, deliveryStatus, deliveryPickupCoords, deliveryDropoffCoords]);
 
-  // Stable map center that doesn't change during active trips to prevent GoogleMap re-centering
+  // Map center with controlled panning - allows bounds fitting during active trips
   const stableMapCenter = useMemo(() => {
-    // During active trips, keep the center completely static to prevent any map movements
-    if (activeTrip) {
-      // Use a static reference that won't change during the trip
-      return previousActiveTrip.current?.mapCenter || center;
-    }
-    // When no active trip, use current user location or fallback to center
-    const currentCenter = userLocation || center;
-    // Store this center for future active trips
-    if (!activeTrip && currentCenter) {
-      if (!previousActiveTrip.current) {
-        previousActiveTrip.current = {};
-      }
-      previousActiveTrip.current.mapCenter = currentCenter;
-    }
-    return currentCenter;
-  }, [activeTrip, userLocation, center]);
+    // Use the calculated mapCenter for consistent behavior
+    return mapCenter;
+  }, [mapCenter]);
 
-  // Memoized map center to prevent unnecessary re-renders - STABLE DURING ACTIVE TRIPS
+  // Memoized map center with controlled panning logic
   const mapCenter = useMemo(() => {
-    // Keep map center stable during active trips to prevent re-rendering and panning
-    if (activeTrip) {
-      console.log("Map center LOCKED during active trip");
-      // Return the last known center or default center to prevent map shifts
-      return center;
+    // During active trips, calculate center between user location and destination
+    if (activeTrip && userLocation && currentDestination) {
+      const centerLat = (userLocation.lat + currentDestination.lat) / 2;
+      const centerLng = (userLocation.lng + currentDestination.lng) / 2;
+      console.log("Map center calculated for active trip:", { centerLat, centerLng });
+      return { lat: centerLat, lng: centerLng };
     }
+    
+    // For delivery trips, calculate center between user location and delivery destination
+    if (isDeliveryUser && currentDelivery && userLocation && currentDeliveryDestination) {
+      const centerLat = (userLocation.lat + currentDeliveryDestination.lat) / 2;
+      const centerLng = (userLocation.lng + currentDeliveryDestination.lng) / 2;
+      console.log("Map center calculated for delivery trip:", { centerLat, centerLng });
+      return { lat: centerLat, lng: centerLng };
+    }
+    
+    // Default to user location or fallback center
     return userLocation || center;
-  }, [userLocation, center, activeTrip]);
+  }, [userLocation, center, activeTrip, currentDestination, isDeliveryUser, currentDelivery, currentDeliveryDestination]);
 
   // Performance monitoring: Log when component re-renders
   useEffect(() => {
@@ -546,7 +545,7 @@ const DashboardMap = ({
     // Set the simulated location
     setUserLocation(simulatedLocation);
     
-    // Update backend with simulated location (no automatic map panning)
+    // Update backend with simulated location (controlled panning will handle map view)
     updateLocationToBackend(simulatedLocation.lat, simulatedLocation.lng);
   }, [pickupCoords, updateLocationToBackend]);
 
@@ -574,7 +573,7 @@ const DashboardMap = ({
     // Set the simulated location
     setUserLocation(simulatedLocation);
     
-    // Update backend with simulated location (no automatic map panning)
+    // Update backend with simulated location (controlled panning will handle map view)
     updateLocationToBackend(simulatedLocation.lat, simulatedLocation.lng);
   }, [dropoffCoords, updateLocationToBackend]);
 
@@ -651,19 +650,112 @@ const DashboardMap = ({
     }
   }, [onTripUpdate, completedTrip]);
 
-  // Auto-fit map bounds to show full route when trip becomes active - DISABLED DURING ACTIVE TRIPS
+  // Controlled map bounds fitting for active trips - show user location and destination
   useEffect(() => {
-    // COMPLETELY DISABLE auto-fitting during active trips to prevent unwanted panning
-    if (activeTrip) {
-      console.log("Auto-fit DISABLED - active trip in progress");
+    if (!map || !window.google || !userLocation) return;
+
+    const now = Date.now();
+    const BOUNDS_FIT_THROTTLE = 5000; // 5 seconds minimum between bounds fitting
+    const statusChanged = previousTripStatus.current !== currentTripStatus;
+
+    // For active trips, fit bounds to show user location and current destination
+    if (activeTrip && currentDestination) {
+      // Throttle bounds fitting to prevent excessive map movements, unless status changed
+      if (!statusChanged && now - lastBoundsFitTime.current < BOUNDS_FIT_THROTTLE) {
+        console.log("Bounds fitting throttled - too recent");
+        return;
+      }
+      
+      console.log("Fitting bounds for active trip - user location and destination:", currentTripStatus, statusChanged ? "(status changed)" : "");
+      
+      const bounds = new window.google.maps.LatLngBounds();
+      bounds.extend(userLocation);
+      bounds.extend(currentDestination);
+      
+      // Add some padding around the bounds
+      const paddingOptions = {
+        top: 100,
+        right: 50,
+        bottom: 200, // More bottom padding for UI elements
+        left: 50
+      };
+      
+      map.fitBounds(bounds, paddingOptions);
+      lastBoundsFitTime.current = now;
+      previousTripStatus.current = currentTripStatus; // Update previous status
+      console.log("Map bounds fitted to show user location and destination");
       return;
     }
 
-    if (!map || !window.google || !userLocation) return;
+    // If we have an active trip but no destination yet, still try to center on pickup if available
+    if (activeTrip && pickupCoords && !currentDestination) {
+      if (!statusChanged && now - lastBoundsFitTime.current < BOUNDS_FIT_THROTTLE) {
+        return;
+      }
+      
+      const bounds = new window.google.maps.LatLngBounds();
+      bounds.extend(userLocation);
+      bounds.extend(pickupCoords);
+      
+      const paddingOptions = {
+        top: 100,
+        right: 50,
+        bottom: 200,
+        left: 50
+      };
+      
+      map.fitBounds(bounds, paddingOptions);
+      lastBoundsFitTime.current = now;
+      previousTripStatus.current = currentTripStatus; // Update previous status
+      console.log("Map bounds fitted for active trip with pickup location");
+      return;
+    }
 
-    // Only auto-fit when there's no active trip (initial state)
-    console.log("Auto-fit available - no active trip");
-  }, [map, activeTrip, currentTripStatus, directions, userLocation, pickupCoords, dropoffCoords]);
+    // When no active trip, just center on user location (also throttled)
+    if (!activeTrip && userLocation) {
+      if (now - lastBoundsFitTime.current < BOUNDS_FIT_THROTTLE) {
+        return;
+      }
+      map.panTo(userLocation);
+      lastBoundsFitTime.current = now;
+      console.log("No active trip - centered on user location");
+    }
+  }, [map, activeTrip, currentTripStatus, userLocation, currentDestination, pickupCoords]);
+
+  // Controlled map bounds fitting for delivery trips
+  useEffect(() => {
+    if (!map || !window.google || !userLocation) return;
+    
+    const now = Date.now();
+    const BOUNDS_FIT_THROTTLE = 5000; // 5 seconds minimum between bounds fitting
+    
+    // For delivery trips, fit bounds to show user location and delivery destination
+    if (isDeliveryUser && currentDelivery && currentDeliveryDestination) {
+      // Throttle bounds fitting to prevent excessive map movements
+      if (now - lastBoundsFitTime.current < BOUNDS_FIT_THROTTLE) {
+        console.log("Delivery bounds fitting throttled - too recent");
+        return;
+      }
+      
+      console.log("Fitting bounds for delivery trip - user location and destination:", deliveryStatus);
+      
+      const bounds = new window.google.maps.LatLngBounds();
+      bounds.extend(userLocation);
+      bounds.extend(currentDeliveryDestination);
+      
+      // Add some padding around the bounds
+      const paddingOptions = {
+        top: 100,
+        right: 50,
+        bottom: 200, // More bottom padding for UI elements
+        left: 50
+      };
+      
+      map.fitBounds(bounds, paddingOptions);
+      lastBoundsFitTime.current = now;
+      console.log("Map bounds fitted to show user location and delivery destination");
+    }
+  }, [map, isDeliveryUser, currentDelivery, deliveryStatus, userLocation, currentDeliveryDestination]);
 
   // Enhanced geolocation tracking
   useEffect(() => {
@@ -1021,7 +1113,7 @@ const DashboardMap = ({
     );
   }, [isDeliveryUser, currentDelivery, userLocation, currentDeliveryDestination]);
 
-  // Optimized user location marker effect - NO PANNING DURING ACTIVE TRIPS
+  // Optimized user location marker effect with controlled panning
   useEffect(() => {
     if (!isLoaded || !map || !userLocation || !window.google) return;
 
@@ -1049,24 +1141,16 @@ const DashboardMap = ({
           content: createMarkerElement(),
         });
         
-        // COMPLETELY DISABLE any panning during ANY active trip phase
-        if (!activeTrip) {
-          map.panTo(userLocation);
-          console.log("Initial pan to user location (no active trip)");
-        } else {
-          console.log("NO PANNING - active trip exists (status:", currentTripStatus, "), keeping current view");
-        }
-        
         console.log("Created new user location marker");
       } else {
-        // Just update the marker position - NEVER PAN DURING ACTIVE TRIPS
+        // Update the marker position
         markerRef.current.position = userLocation;
-        console.log("Updated marker position - NO PANNING during active trip (status:", currentTripStatus, ")");
+        console.log("Updated user location marker position");
       }
     } catch (error) {
       console.error("Error updating user location marker:", error);
     }
-  }, [isLoaded, map, userLocation, activeTrip, currentTripStatus]);
+  }, [isLoaded, map, userLocation]);
 
   // Cleanup on unmount
   useEffect(() => {
