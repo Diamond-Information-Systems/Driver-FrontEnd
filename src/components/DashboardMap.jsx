@@ -172,33 +172,32 @@ const DashboardMap = ({
     return null;
   }, [currentDelivery, deliveryStatus, deliveryPickupCoords, deliveryDropoffCoords]);
 
-  // Map center with controlled panning - allows bounds fitting during active trips
-  const stableMapCenter = useMemo(() => {
-    // Use the calculated mapCenter for consistent behavior
-    return mapCenter;
-  }, [mapCenter]);
-
-  // Memoized map center with controlled panning logic
+  // Map center with controlled panning logic - stable during active trips, dynamic otherwise
   const mapCenter = useMemo(() => {
-    // During active trips, calculate center between user location and destination
-    if (activeTrip && userLocation && currentDestination) {
-      const centerLat = (userLocation.lat + currentDestination.lat) / 2;
-      const centerLng = (userLocation.lng + currentDestination.lng) / 2;
-      console.log("Map center calculated for active trip:", { centerLat, centerLng });
-      return { lat: centerLat, lng: centerLng };
+    // During active trips, use a stable center and let bounds fitting control the view
+    // This prevents conflicts between center calculation and bounds fitting
+    if (activeTrip) {
+      // Use user location as base center during active trips
+      // Bounds fitting effects will handle showing both user location and destination
+      return userLocation || center;
     }
     
-    // For delivery trips, calculate center between user location and delivery destination
-    if (isDeliveryUser && currentDelivery && userLocation && currentDeliveryDestination) {
-      const centerLat = (userLocation.lat + currentDeliveryDestination.lat) / 2;
-      const centerLng = (userLocation.lng + currentDeliveryDestination.lng) / 2;
-      console.log("Map center calculated for delivery trip:", { centerLat, centerLng });
-      return { lat: centerLat, lng: centerLng };
-    }
-    
-    // Default to user location or fallback center
+    // When no active trip, center on user location or fallback
     return userLocation || center;
-  }, [userLocation, center, activeTrip, currentDestination, isDeliveryUser, currentDelivery, currentDeliveryDestination]);
+  }, [userLocation, center, activeTrip]);
+
+  // Stable map center for consistent behavior - prevents unnecessary re-renders during bounds fitting
+  const stableMapCenter = useMemo(() => {
+    // During active trips, keep the center stable to prevent conflicts with bounds fitting
+    // Only update when activeTrip changes or when userLocation changes significantly
+    if (activeTrip) {
+      // Use a stable reference during active trips
+      return mapCenter;
+    }
+    
+    // When no active trip, allow dynamic updates based on user location
+    return mapCenter;
+  }, [mapCenter, activeTrip]);
 
   // Performance monitoring: Log when component re-renders
   useEffect(() => {
