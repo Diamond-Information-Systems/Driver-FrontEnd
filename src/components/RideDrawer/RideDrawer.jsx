@@ -69,6 +69,8 @@ const RideDrawer = ({
   const [dragStartY, setDragStartY] = useState(0);
   const [currentTranslateY, setCurrentTranslateY] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [hoveredStar, setHoveredStar] = useState(0);
   
   // Debug logging for drag state
   useEffect(() => {
@@ -259,70 +261,83 @@ const RideDrawer = ({
   const formatDistance = (distance) => `${distance} km`;
   const formatDuration = (duration) => `${duration} min`;
 
+  // Enhanced rating functionality
+  const handleStarClick = (starValue) => {
+    setRating(starValue);
+  };
+
+  const handleStarHover = (starValue) => {
+    setHoveredStar(starValue);
+  };
+
+  const handleStarLeave = () => {
+    setHoveredStar(0);
+  };
+
   const renderIdleContent = () => (
-    <div className="drawer-content idle-content">
-      <div className="drag-handle" 
+    <div className="vaye-drawer-content vaye-idle-content">
+      <div className="vaye-drag-handle" 
            onMouseDown={handleDragHandle}
            onTouchStart={handleDragHandle}
            style={{ 
              cursor: (drawerState === 'REQUEST_PENDING' || drawerState === 'TRIP_COMPLETED') ? 'default' : 'grab'
            }}>
-        <div className="drag-indicator"></div>
+        <div className="vaye-drag-indicator"></div>
       </div>
       
-      <div className="drawer-header" onClick={handleToggleExpansion}>
-        <div className="status-indicator">
-          <div className={`status-dot ${isOnline ? 'online' : 'offline'}`}></div>
-          <span className="status-text">
+      <div className="vaye-drawer-header" onClick={handleToggleExpansion}>
+        <div className="vaye-status-indicator">
+          <div className={`vaye-status-dot ${isOnline ? 'vaye-online' : 'vaye-offline'}`}></div>
+          <span className="vaye-status-text">
             {isOnline ? 'Online - Looking for rides' : 'Offline'}
           </span>
         </div>
         {allowManualToggle && (
-          <button className="expand-button">
+          <button className="vaye-expand-button">
             {isExpanded ? <ChevronDown size={20} /> : <ChevronUp size={20} />}
           </button>
         )}
       </div>
       
       {isExpanded && (
-        <div className="expanded-idle-content">
-          <div className="stats-grid">
-            <div className="stat-card">
-              <DollarSign size={20} className="stat-icon" />
-              <div className="stat-content">
-                <span className="stat-value">R{todayStats.earnings.toFixed(2)}</span>
-                <span className="stat-label">Today's Earnings</span>
+        <div className="vaye-expanded-idle-content">
+          <div className="vaye-stats-grid">
+            <div className="vaye-stat-card">
+              <DollarSign size={20} className="vaye-stat-icon" />
+              <div className="vaye-stat-content">
+                <span className="vaye-stat-value">ZWG{todayStats.earnings.toFixed(2)}</span>
+                <span className="vaye-stat-label">Today's Earnings</span>
               </div>
             </div>
-            <div className="stat-card">
-              <Car size={20} className="stat-icon" />
-              <div className="stat-content">
-                <span className="stat-value">{todayStats.trips}</span>
-                <span className="stat-label">Trips</span>
+            <div className="vaye-stat-card">
+              <Car size={20} className="vaye-stat-icon" />
+              <div className="vaye-stat-content">
+                <span className="vaye-stat-value">{todayStats.trips}</span>
+                <span className="vaye-stat-label">Trips</span>
               </div>
             </div>
-            <div className="stat-card">
-              <Clock size={20} className="stat-icon" />
-              <div className="stat-content">
-                <span className="stat-value">{todayStats.hours}h</span>
-                <span className="stat-label">Online</span>
+            <div className="vaye-stat-card">
+              <Clock size={20} className="vaye-stat-icon" />
+              <div className="vaye-stat-content">
+                <span className="vaye-stat-value">{todayStats.hours}h</span>
+                <span className="vaye-stat-label">Online</span>
               </div>
             </div>
-            <div className="stat-card">
-              <Star size={20} className="stat-icon" />
-              <div className="stat-content">
-                <span className="stat-value">{todayStats.rating}★</span>
-                <span className="stat-label">Rating</span>
+            <div className="vaye-stat-card">
+              <Star size={20} className="vaye-stat-icon" />
+              <div className="vaye-stat-content">
+                <span className="vaye-stat-value">{todayStats.rating}★</span>
+                <span className="vaye-stat-label">Rating</span>
               </div>
             </div>
           </div>
           
-          {/* <div className="quick-actions">
-            <button className="action-button secondary">
+          {/* <div className="vaye-quick-actions">
+            <button className="vaye-action-button vaye-secondary">
               <Activity size={16} />
               <span>View Analytics</span>
             </button>
-            <button className="action-button secondary">
+            <button className="vaye-action-button vaye-secondary">
               <TrendingUp size={16} />
               <span>Earnings History</span>
             </button>
@@ -336,41 +351,47 @@ const RideDrawer = ({
     console.log("🎨 Rendering request content with:", rideRequest);
     
     return (
-    <div className="drawer-content request-content">
-      <div className="drag-handle" 
+    <div className="vaye-drawer-content vaye-request-content">
+      <div className="vaye-drag-handle" 
            onMouseDown={handleDragHandle}
            onTouchStart={handleDragHandle}>
-        <div className="drag-indicator"></div>
+        <div className="vaye-drag-indicator"></div>
       </div>
       
-      <div className="request-header">
-        <div className="timer-section">
-          <div className="timer-circle">
+      <div className="vaye-request-header">
+        <div className="vaye-timer-section">
+          <div className="vaye-timer-circle">
             <Timer size={20} />
-            <span className="timer-text">{formatTime(requestTimer)}</span>
+            <span className="vaye-timer-text">{formatTime(requestTimer)}</span>
+            <div 
+              className="vaye-timer-progress" 
+              style={{
+                '--progress': `${((20 - requestTimer) / 20) * 100}%`
+              }}
+            ></div>
           </div>
         </div>
-        <div className="request-info">
+        <div className="vaye-request-info">
           <h3>New Ride Request</h3>
-          <span className="estimated-fare">R{rideRequest?.estimatedPrice || '0.00'}</span>
+          <span className="vaye-estimated-fare">ZWG{rideRequest?.estimatedPrice || '0.00'}</span>
         </div>
       </div>
 
-      <div className="passenger-info">
+      <div className="vaye-passenger-info">
         {rideRequest?.passengers?.map((passenger, index) => (
-          <div key={passenger.id} className="passenger-card">
-            <div className="passenger-avatar">
+          <div key={passenger.id} className="vaye-passenger-card">
+            <div className="vaye-passenger-avatar">
               <User size={18} />
             </div>
-            <div className="passenger-details">
-              <span className="passenger-name">{passenger.name}</span>
-              <div className="passenger-rating">
+            <div className="vaye-passenger-details">
+              <span className="vaye-passenger-name">{passenger.name}</span>
+              <div className="vaye-passenger-rating">
                 <Star size={12} fill="currentColor" />
                 <span>{passenger.rating}</span>
               </div>
             </div>
             {passenger.phoneNumber && (
-              <button className="contact-button">
+              <button className="vaye-contact-button">
                 <Phone size={14} />
               </button>
             )}
@@ -378,39 +399,39 @@ const RideDrawer = ({
         ))}
       </div>
 
-      <div className="route-overview">
-        <div className="route-stops">
+      <div className="vaye-route-overview">
+        <div className="vaye-route-stops">
           {rideRequest?.stops?.map((stop, index) => (
-            <div key={index} className="route-stop">
-              <div className={`stop-marker ${index === 0 ? 'pickup' : 'dropoff'}`}>
+            <div key={index} className="vaye-route-stop">
+              <div className={`vaye-stop-marker ${index === 0 ? 'vaye-pickup' : 'vaye-dropoff'}`}>
                 <MapPin size={12} />
               </div>
-              <div className="stop-details">
-                <span className="stop-location">{stop.location}</span>
-                <span className="stop-passenger">{stop.passengerName}</span>
+              <div className="vaye-stop-details">
+                <span className="vaye-stop-location">{stop.location}</span>
+                <span className="vaye-stop-passenger">{stop.passengerName}</span>
               </div>
             </div>
           ))}
         </div>
         
-        <div className="trip-metrics">
-          <div className="metric">
+        <div className="vaye-trip-metrics">
+          <div className="vaye-metric">
             <Route size={14} />
             <span>{formatDistance(rideRequest?.estimatedTotalDistance || '0')}</span>
           </div>
-          <div className="metric">
+          <div className="vaye-metric">
             <Clock size={14} />
             <span>{formatDuration(rideRequest?.estimatedTotalDuration || '0')}</span>
           </div>
         </div>
       </div>
 
-      <div className="request-actions">
-        <button className="action-button decline" onClick={onDeclineRequest}>
+      <div className="vaye-request-actions">
+        <button className="vaye-action-button vaye-decline" onClick={onDeclineRequest}>
           <XCircle size={18} />
           <span>Decline</span>
         </button>
-        <button className="action-button accept" onClick={onAcceptRequest}>
+        <button className="vaye-action-button vaye-accept" onClick={onAcceptRequest}>
           <CheckCircle size={18} />
           <span>Accept</span>
         </button>
@@ -420,38 +441,38 @@ const RideDrawer = ({
   };
 
   const renderTripActiveContent = () => (
-    <div className="drawer-content trip-content">
-      <div className="drag-handle" 
+    <div className="vaye-drawer-content vaye-trip-content">
+      <div className="vaye-drag-handle" 
            onMouseDown={handleDragHandle}
            onTouchStart={handleDragHandle}
            style={{ 
              cursor: (drawerState === 'REQUEST_PENDING' || drawerState === 'TRIP_COMPLETED') ? 'default' : 'grab'
            }}>
-        <div className="drag-indicator"></div>
+        <div className="vaye-drag-indicator"></div>
       </div>
       
-      <div className="drawer-header" onClick={handleToggleExpansion}>
-        <div className="trip-status">
-          <div className="status-indicator">
-            <div className="status-dot active"></div>
-            <span className="status-text">{getStatusDisplayText()}</span>
+      <div className="vaye-drawer-header" onClick={handleToggleExpansion}>
+        <div className="vaye-trip-status">
+          <div className="vaye-status-indicator">
+            <div className="vaye-status-dot vaye-active"></div>
+            <span className="vaye-status-text">{getStatusDisplayText()}</span>
           </div>
-          <span className="trip-fare">R{activeTrip?.price || activeTrip?.estimatedPrice || '0.00'}</span>
+          <span className="vaye-trip-fare">ZWG{activeTrip?.price || activeTrip?.estimatedPrice || '0.00'}</span>
         </div>
         {allowManualToggle && (
-          <button className="expand-button">
+          <button className="vaye-expand-button">
             {isExpanded ? <ChevronDown size={20} /> : <ChevronUp size={20} />}
           </button>
         )}
       </div>
 
       {!isExpanded && (
-        <div className="compact-trip-info">
-          <div className="passenger-summary">
+        <div className="vaye-compact-trip-info">
+          <div className="vaye-passenger-summary">
             <User size={16} />
             <span>{activeTrip?.rider?.fullName || 'Passenger'}</span>
           </div>
-          <div className="destination-summary">
+          <div className="vaye-destination-summary">
             <MapPin size={16} />
             <span>{activeTrip?.dropoff?.address || 'Destination'}</span>
           </div>
@@ -459,54 +480,54 @@ const RideDrawer = ({
       )}
 
       {isExpanded && (
-        <div className="expanded-trip-content">
-          <div className="passenger-section">
-            <div className="passenger-card active">
-              <div className="passenger-avatar">
+        <div className="vaye-expanded-trip-content">
+          <div className="vaye-passenger-section">
+            <div className="vaye-passenger-card vaye-active">
+              <div className="vaye-passenger-avatar">
                 <User size={20} />
               </div>
-              <div className="passenger-details">
-                <span className="passenger-name">{activeTrip?.rider?.fullName || 'Passenger'}</span>
-                <div className="passenger-rating">
+              <div className="vaye-passenger-details">
+                <span className="vaye-passenger-name">{activeTrip?.rider?.fullName || 'Passenger'}</span>
+                <div className="vaye-passenger-rating">
                   <Star size={12} fill="currentColor" />
                   <span>{activeTrip?.rider?.averageRating || '5.0'}</span>
                 </div>
               </div>
-              <div className="passenger-actions">
-                <button className="contact-button">
+              <div className="vaye-passenger-actions">
+                <button className="vaye-contact-button">
                   <Phone size={16} />
                 </button>
-                <button className="contact-button">
+                <button className="vaye-contact-button">
                   <MessageCircle size={16} />
                 </button>
               </div>
             </div>
           </div>
 
-          <div className="trip-route">
-            <div className="route-stop">
-              <div className="stop-marker pickup">
+          <div className="vaye-trip-route">
+            <div className="vaye-route-stop">
+              <div className="vaye-stop-marker vaye-pickup">
                 <MapPin size={12} />
               </div>
-              <div className="stop-details">
-                <span className="stop-location">{activeTrip?.pickup?.address || 'Pickup Location'}</span>
-                <span className="stop-status">Pickup</span>
+              <div className="vaye-stop-details">
+                <span className="vaye-stop-location">{activeTrip?.pickup?.address || 'Pickup Location'}</span>
+                <span className="vaye-stop-status">Pickup</span>
               </div>
             </div>
-            <div className="route-stop">
-              <div className="stop-marker dropoff">
+            <div className="vaye-route-stop">
+              <div className="vaye-stop-marker vaye-dropoff">
                 <MapPin size={12} />
               </div>
-              <div className="stop-details">
-                <span className="stop-location">{activeTrip?.dropoff?.address || 'Dropoff Location'}</span>
-                <span className="stop-status">Destination</span>
+              <div className="vaye-stop-details">
+                <span className="vaye-stop-location">{activeTrip?.dropoff?.address || 'Dropoff Location'}</span>
+                <span className="vaye-stop-status">Destination</span>
               </div>
             </div>
           </div>
 
-          <div className="trip-actions">
+          <div className="vaye-trip-actions">
             <button 
-              className="action-button navigation"
+              className="vaye-action-button vaye-navigation"
               onClick={() => onTripAction('navigate')}
             >
               <Navigation size={16} />
@@ -514,7 +535,7 @@ const RideDrawer = ({
             </button>
             {(currentTripStatus || activeTrip?.status) === 'accepted' && (
               <button 
-                className="action-button primary"
+                className="vaye-action-button vaye-primary"
                 onClick={() => onTripAction('arrived')}
               >
                 <CheckCircle size={16} />
@@ -523,7 +544,7 @@ const RideDrawer = ({
             )}
             {(currentTripStatus || activeTrip?.status) === 'arrived' && (
               <button 
-                className="action-button primary"
+                className="vaye-action-button vaye-primary"
                 onClick={() => onTripAction('start')}
               >
                 <Car size={16} />
@@ -532,7 +553,7 @@ const RideDrawer = ({
             )}
             {(currentTripStatus || activeTrip?.status) === 'started' && (
               <button 
-                className="action-button success"
+                className="vaye-action-button vaye-success"
                 onClick={() => onTripAction('complete')}
               >
                 <CheckCircle size={16} />
@@ -546,56 +567,62 @@ const RideDrawer = ({
   );
 
   const renderCompletedContent = () => (
-    <div className="drawer-content completed-content">
-      <div className="drag-handle" 
+    <div className="vaye-drawer-content vaye-completed-content">
+      <div className="vaye-drag-handle" 
            onMouseDown={handleDragHandle}
            onTouchStart={handleDragHandle}>
-        <div className="drag-indicator"></div>
+        <div className="vaye-drag-indicator"></div>
       </div>
       
-      <div className="completion-header">
-        <div className="completion-icon">
-          <CheckCircle size={32} className="success-icon" />
+      <div className="vaye-completion-header">
+        <div className="vaye-completion-icon">
+          <CheckCircle size={32} className="vaye-success-icon" />
         </div>
         <h3>Trip Completed!</h3>
-        <span className="completion-fare">R{completedTrip?.price || '0.00'}</span>
+        <span className="vaye-completion-fare">ZWG{completedTrip?.price || '0.00'}</span>
       </div>
 
-      <div className="trip-summary">
-        <div className="summary-item">
+      <div className="vaye-trip-summary">
+        <div className="vaye-summary-item">
           <Route size={16} />
           <span>{formatDistance(completedTrip?.distance || '0')}</span>
         </div>
-        <div className="summary-item">
+        <div className="vaye-summary-item">
           <Clock size={16} />
           <span>{formatDuration(completedTrip?.duration || '0')}</span>
         </div>
-        <div className="summary-item">
+        <div className="vaye-summary-item">
           <User size={16} />
           <span>{completedTrip?.rider?.fullName || 'Passenger'}</span>
         </div>
       </div>
 
-      <div className="rating-section">
+      <div className="vaye-rating-section">
         <h4>Rate your passenger</h4>
-        <div className="star-rating">
+        <div className="vaye-star-rating">
           {[1, 2, 3, 4, 5].map((star) => (
-            <button key={star} className="star-button">
-              <Star size={24} />
+            <button 
+              key={star} 
+              className={`vaye-star-button ${(hoveredStar >= star || rating >= star) ? 'vaye-active' : ''}`}
+              onClick={() => handleStarClick(star)}
+              onMouseEnter={() => handleStarHover(star)}
+              onMouseLeave={handleStarLeave}
+            >
+              <Star size={24} fill={(hoveredStar >= star || rating >= star) ? 'currentColor' : 'none'} />
             </button>
           ))}
         </div>
       </div>
 
-      <div className="completion-actions">
+      <div className="vaye-completion-actions">
         <button 
-          className="action-button secondary"
+          className="vaye-action-button vaye-secondary"
           onClick={onTripClose}
         >
           <span>Close</span>
         </button>
         <button 
-          className="action-button primary"
+          className="vaye-action-button vaye-primary"
           onClick={onRatingSubmit}
         >
           <span>Submit Rating</span>
@@ -630,16 +657,16 @@ const RideDrawer = ({
     <>
       {/* Backdrop for modal effect */}
       {isVisible && (isExpanded || drawerState === 'REQUEST_PENDING' || drawerState === 'TRIP_COMPLETED') && (
-        <div className="modal-backdrop" onClick={() => {
+        <div className="vaye-modal-backdrop" onClick={() => {
           if (drawerState !== 'REQUEST_PENDING' && drawerState !== 'TRIP_COMPLETED') {
             setIsExpanded(false);
           }
         }} />
       )}
       
-      {/* Floating Modal Drawer */}
+      {/* Card-Based Floating Modal Drawer */}
       <div 
-        className={`ride-drawer-modal ${drawerState.toLowerCase()} ${isExpanded ? 'expanded' : 'compact'} ${isAnimating ? 'animating' : ''} ${isDragging ? 'dragging' : ''}`}
+        className={`vaye-drawer-modal vaye-${drawerState.toLowerCase()} ${isExpanded ? 'vaye-expanded' : 'vaye-compact'} ${isAnimating ? 'vaye-animating' : ''} ${isDragging ? 'vaye-dragging' : ''}`}
         style={modalStyle}
       >
         {renderContent()}

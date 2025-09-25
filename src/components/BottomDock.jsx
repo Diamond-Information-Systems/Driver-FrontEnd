@@ -50,18 +50,18 @@ const BottomDock = ({
       color: "#51cf66",
       badge: isOnline === true ? "Live" : null,
     },
-    {
-      id: "earnings",
-      icon: DollarSign,
-      label: "Earnings",
-      color: "#ffd43b",
-    },
-    {
-      id: "profile",
-      icon: User,
-      label: "Profile",
-      color: "#a78bfa",
-    },
+    // {
+    //   id: "earnings",
+    //   icon: DollarSign,
+    //   label: "Earnings",
+    //   color: "#ffd43b",
+    // },
+    // {
+    //   id: "profile",
+    //   icon: User,
+    //   label: "Profile",
+    //   color: "#a78bfa",
+    // },
   ];
 
   const expandedActions = [
