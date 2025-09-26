@@ -118,10 +118,42 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
       clearInterval(pollingIntervalRef.current);
       pollingIntervalRef.current = null;
     }
+    if (pollingIntervalRef.startTimeout) {
+      clearTimeout(pollingIntervalRef.startTimeout);
+      pollingIntervalRef.startTimeout = null;
+    }
     if (requestTimerRef.current) {
       clearInterval(requestTimerRef.current);
       requestTimerRef.current = null;
     }
+    if (deliveryPollingIntervalRef.current) {
+      clearInterval(deliveryPollingIntervalRef.current);
+      deliveryPollingIntervalRef.current = null;
+    }
+    if (deliveryRequestTimerRef.current) {
+      clearInterval(deliveryRequestTimerRef.current);
+      deliveryRequestTimerRef.current = null;
+    }
+  }, []);
+
+  const clearRideTimers = useCallback(() => {
+    console.log("🧹 Clearing ride timers only");
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
+    }
+    if (pollingIntervalRef.startTimeout) {
+      clearTimeout(pollingIntervalRef.startTimeout);
+      pollingIntervalRef.startTimeout = null;
+    }
+    if (requestTimerRef.current) {
+      clearInterval(requestTimerRef.current);
+      requestTimerRef.current = null;
+    }
+  }, []);
+
+  const clearDeliveryTimers = useCallback(() => {
+    console.log("🧹 Clearing delivery timers only");
     if (deliveryPollingIntervalRef.current) {
       clearInterval(deliveryPollingIntervalRef.current);
       deliveryPollingIntervalRef.current = null;
@@ -333,7 +365,7 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
     
     if (isDeliveryUser) {
       console.log("🚗 Skipping ride polling - user is delivery driver");
-      clearAllTimers();
+      clearRideTimers();
       return;
     }
 
@@ -432,6 +464,16 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
       } catch (err) {
         console.error("Error polling for requests:", err);
         console.error("Error details:", err.message, err.stack);
+        
+        // Check if error is due to driver not being available on backend yet
+        if (err.message && (
+          err.message.includes('not available') || 
+          err.message.includes('driver status') ||
+          err.message.includes('availability')
+        )) {
+          console.log("🔄 Driver availability not synced yet, will retry on next poll cycle");
+          // Don't stop polling - let it retry on the next interval
+        }
       }
     };
 
@@ -470,11 +512,16 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
         pollingIntervalRef.current = null;
       }
       
-      // Start new polling interval immediately and then set up regular interval
-      console.log("🚗 Making immediate test API call...");
-      pollForRequests();
+      // Add delay to allow backend setDriverAvailability to complete before polling
+      console.log("🚗 Waiting 3 seconds for backend status to sync before starting polling...");
+      const startPollingTimeout = setTimeout(() => {
+        console.log("🚗 Starting polling after backend sync delay");
+        pollForRequests();
+        pollingIntervalRef.current = setInterval(pollForRequests, 4000);
+      }, 3000); // 3 second delay to allow backend sync
       
-      pollingIntervalRef.current = setInterval(pollForRequests, 4000);
+      // Store timeout ID for cleanup
+      pollingIntervalRef.startTimeout = startPollingTimeout;
       
     } else {
       console.log("❌ Stopping ride request polling:", {
@@ -485,10 +532,14 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
         shouldStartPolling
       });
       
-      // Clear polling
+      // Clear polling and any pending start timeout
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current);
         pollingIntervalRef.current = null;
+      }
+      if (pollingIntervalRef.startTimeout) {
+        clearTimeout(pollingIntervalRef.startTimeout);
+        pollingIntervalRef.startTimeout = null;
       }
       
       // Clear request state when not meeting conditions
@@ -505,8 +556,12 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
         clearInterval(pollingIntervalRef.current);
         pollingIntervalRef.current = null;
       }
+      if (pollingIntervalRef.startTimeout) {
+        clearTimeout(pollingIntervalRef.startTimeout);
+        pollingIntervalRef.startTimeout = null;
+      }
     };
-  }, [isOnline, activeTrip, currentTripStatus, showRequest, isDeliveryUser, userToken]);
+  }, [isOnline, activeTrip, currentTripStatus, showRequest, isDeliveryUser, userToken, clearRideTimers]);
   
 
 //     // Start polling if online, no active trip, and no current request
@@ -611,7 +666,7 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
   // Enhanced delivery polling with ref-based state management
   useEffect(() => {
     if (!isDeliveryUser) {
-      clearAllTimers();
+      clearDeliveryTimers();
       return;
     }
 
@@ -720,7 +775,7 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
         deliveryRequestTimerRef.current = null;
       }
     };
-  }, [isDeliveryUser, isOnline, activeTrip, showDeliveryRequest, userToken, declinedDeliveryIds]);
+  }, [isDeliveryUser, isOnline, activeTrip, showDeliveryRequest, userToken, declinedDeliveryIds, clearDeliveryTimers]);
 
   // Debug logging for active delivery route changes
   useEffect(() => {
@@ -1033,25 +1088,30 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
  const toggleOnlineStatus = async () => {
     const newStatus = !isOnline;
     
-    // Update state immediately to stop polling
+    console.log(`🔄 Toggling driver status from ${isOnline} to ${newStatus}`);
+    
+    // Update state immediately to stop/start polling effect
     setIsOnline(newStatus);
-    // handleStatusChange(newStatus);
 
     // Save to localStorage
     localStorage.setItem("vaye_driver_online", newStatus.toString());
 
     // Update driver availability on backend
     try {
+      console.log("🌐 Updating driver availability on backend...");
       const response = await setDriverAvailability(userToken, newStatus);
+      console.log("✅ Backend availability update completed:", response);
+      
       // If backend returns the user object, sync isOnline with isAvailable
       if (response && response.user && response.user.driverDetails) {
         setIsOnline(response.user.driverDetails.isAvailable);
+        console.log("🔄 Synced isOnline with backend:", response.user.driverDetails.isAvailable);
       }
       // Note: If backend response doesn't have the expected structure, 
       // we keep the newStatus we already set
     } catch (err) {
       // On error, revert the UI state
-      console.error("Failed to update availability:", err);
+      console.error("❌ Failed to update availability:", err);
       setIsOnline(!newStatus); // revert on error
       localStorage.setItem("vaye_driver_online", (!newStatus).toString());
     }
