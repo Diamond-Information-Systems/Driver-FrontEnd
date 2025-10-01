@@ -173,32 +173,19 @@ const DashboardMap = ({
     return null;
   }, [currentDelivery, deliveryStatus, deliveryPickupCoords, deliveryDropoffCoords]);
 
-  // Map center with controlled panning logic - stable during active trips, dynamic otherwise
+  // Stable map center - prevents continuous panning during active trips
   const mapCenter = useMemo(() => {
-    // During active trips, use a completely stable center and let bounds fitting control the view
-    // This prevents constant panning by not updating center with user location changes
+    // During active trips, use a completely stable center - NEVER update with user location
+    // This prevents the continuous panning issue on mobile
     if (activeTrip) {
-      // Return a stable center during active trips - do NOT update with user location changes
-      // Use the pickup location or fallback center as stable reference
+      // Use pickup location as stable reference, fallback to provided center
+      // This stays constant throughout the trip, letting bounds fitting handle the view
       return pickupCoords || center;
     }
     
-    // When no active trip, allow dynamic updates based on user location
+    // When no active trip, center on user location for normal navigation
     return userLocation || center;
   }, [activeTrip, pickupCoords, center, ...(activeTrip ? [] : [userLocation])]);
-
-  // Stable map center for consistent behavior - prevents unnecessary re-renders during bounds fitting
-  const stableMapCenter = useMemo(() => {
-    // During active trips, keep the center stable to prevent conflicts with bounds fitting
-    // Only update when activeTrip changes or when userLocation changes significantly
-    if (activeTrip) {
-      // Use a stable reference during active trips
-      return mapCenter;
-    }
-    
-    // When no active trip, allow dynamic updates based on user location
-    return mapCenter;
-  }, [mapCenter, activeTrip]);
 
   // Performance monitoring: Log when component re-renders
   useEffect(() => {
@@ -655,15 +642,30 @@ const DashboardMap = ({
     if (!map || !window.google || !userLocation) return;
 
     const now = Date.now();
-    const BOUNDS_FIT_THROTTLE = 5000; // 5 seconds minimum between bounds fitting
+    const BOUNDS_FIT_THROTTLE = 8000; // 8 seconds minimum between bounds fitting to prevent mobile panning issues
     const statusChanged = previousTripStatus.current !== currentTripStatus;
+    
+    // Skip frequent bounds fitting during active trips to prevent continuous panning
+    const isActiveTripWithFrequentUpdates = activeTrip && !statusChanged;
 
     // For active trips, fit bounds to show user location and current destination
     if (activeTrip && currentDestination) {
-      // Throttle bounds fitting to prevent excessive map movements, unless status changed
+      // More aggressive throttling to prevent mobile panning issues
       if (!statusChanged && now - lastBoundsFitTime.current < BOUNDS_FIT_THROTTLE) {
-        console.log("Bounds fitting throttled - too recent");
+        console.log("Bounds fitting throttled - preventing mobile panning issue");
         return;
+      }
+      
+      // Additional check: skip if user location hasn't moved significantly
+      if (isActiveTripWithFrequentUpdates && lastSentCoords.current) {
+        const distanceMoved = getDistanceMeters(
+          lastSentCoords.current.lat, lastSentCoords.current.lng,
+          userLocation.lat, userLocation.lng
+        );
+        if (distanceMoved < 50) { // Only update bounds if moved more than 50 meters
+          console.log("Skipping bounds fitting - user hasn't moved significantly");
+          return;
+        }
       }
       
       console.log("Fitting bounds for active trip - user location and destination:", currentTripStatus, statusChanged ? "(status changed)" : "");
@@ -780,7 +782,7 @@ const DashboardMap = ({
       
       // Only update state if location changed significantly
       const shouldUpdateState = !userLocation || 
-        getDistanceMeters(userLocation.lat, userLocation.lng, latitude, longitude) > 5; // 5 meter threshold
+        getDistanceMeters(userLocation.lat, userLocation.lng, latitude, longitude) > (activeTrip ? 15 : 5); // Conservative threshold during trips
       
       if (shouldUpdateState) {
         setUserLocation(newLocation);
@@ -828,7 +830,7 @@ const DashboardMap = ({
         watchIdRef.current = null;
       }
     };
-  }, [getDistanceMeters, updateLocationToBackend, isSimulationMode]);
+  }, [getDistanceMeters, updateLocationToBackend, isSimulationMode, activeTrip]);
 
   // Optimized arrival detection with distance calculations memoization
   const distanceToPickup = useMemo(() => {
@@ -1876,7 +1878,7 @@ const DashboardMap = ({
       <GoogleMap
         mapContainerStyle={mapContainerStyle}
         zoom={16}
-        center={stableMapCenter}
+        center={mapCenter}
         onLoad={setMap}
         options={mapOptions}
       >
