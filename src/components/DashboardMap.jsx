@@ -54,6 +54,7 @@ const DashboardMap = ({
   onTripUpdate,
   onTripStatusChange, // New prop to expose current trip status
   isDeliveryUser, // Add back for conditional UI
+  isOnline, // Online status for animations
   onDeliveryStatusUpdate, // For delivery status updates
   onDeliveryConfirmation, // For delivery confirmations
 }) => {
@@ -1123,7 +1124,7 @@ const DashboardMap = ({
       if (!markerRef.current) {
         const createMarkerElement = () => {
           const element = document.createElement("div");
-          element.className = "user-location-marker";
+          element.className = `user-location-marker ${isOnline ? 'driver-online-pulse' : ''}`;
           element.innerHTML = `
             <div class="pulse-marker">
               <div class="pulse-dot"></div>
@@ -1144,12 +1145,59 @@ const DashboardMap = ({
       } else {
         // Update the marker position
         markerRef.current.position = userLocation;
+        
+        // Update online status class on existing marker
+        const markerElement = markerRef.current.content;
+        if (markerElement) {
+          if (isOnline) {
+            markerElement.classList.add('driver-online-pulse');
+          } else {
+            markerElement.classList.remove('driver-online-pulse');
+          }
+        }
+        
         console.log("Updated user location marker position");
       }
     } catch (error) {
       console.error("Error updating user location marker:", error);
     }
-  }, [isLoaded, map, userLocation]);
+  }, [isLoaded, map, userLocation, isOnline]);
+
+  // Online status animation effect - zoom and pulse
+  useEffect(() => {
+    if (!map || !userLocation) return;
+
+    console.log('🎯 Online status changed:', isOnline);
+
+    if (isOnline) {
+      // Going online - zoom out to show coverage area with smooth animation
+      map.panTo(userLocation);
+      setTimeout(() => {
+        map.setZoom(13);
+      }, 300);
+      
+      // Add pulsing class to user marker if it exists
+      if (markerRef.current && markerRef.current.content) {
+        const markerElement = markerRef.current.content;
+        if (markerElement) {
+          markerElement.classList.add('driver-online-pulse');
+        }
+      }
+    } else {
+      // Going offline - zoom in slightly and remove pulse
+      setTimeout(() => {
+        map.setZoom(15);
+      }, 300);
+      
+      // Remove pulsing class from user marker
+      if (markerRef.current && markerRef.current.content) {
+        const markerElement = markerRef.current.content;
+        if (markerElement) {
+          markerElement.classList.remove('driver-online-pulse');
+        }
+      }
+    }
+  }, [isOnline, map, userLocation]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -1853,10 +1901,11 @@ const DashboardMap = ({
 
 // Custom comparison function for memo to prevent unnecessary re-renders
 const arePropsEqual = (prevProps, nextProps) => {
-  // Compare primitive values
+  // Compare primitive values including isOnline for animation triggers
   if (
     prevProps.userToken !== nextProps.userToken ||
-    prevProps.center !== nextProps.center
+    prevProps.center !== nextProps.center ||
+    prevProps.isOnline !== nextProps.isOnline
   ) {
     return false;
   }

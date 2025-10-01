@@ -1329,6 +1329,7 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
           onTripUpdate={handleTripUpdate}
           onTripStatusChange={handleTripStatusChange}
           isDeliveryUser={isDeliveryUser}
+          isOnline={isOnline}
           // Pass delivery handlers for when activeTrip is a delivery
           onDeliveryStatusUpdate={handleDeliveryStatusUpdate}
           onDeliveryConfirmation={handleDeliveryConfirmation}
