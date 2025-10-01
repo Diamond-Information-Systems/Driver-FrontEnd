@@ -1232,13 +1232,14 @@ const DashboardMap = ({
     };
   }, [isLoaded, map, isDeliveryUser, currentDelivery, deliveryPickupCoords, deliveryDropoffCoords]);
 
-  // Memoized Slider component for ride actions
+  // Enhanced Slider component for ride actions
   const SlideToConfirm = memo(({
     onConfirm,
     text,
     confirmText,
     bgColor = "#4CAF50",
     disabled = false,
+    variant = "start-ride", // New prop for styling variants
   }) => {
     const [isDragging, setIsDragging] = useState(false);
     const [position, setPosition] = useState(0);
@@ -1262,7 +1263,7 @@ const DashboardMap = ({
       setPosition(newPosition);
 
       // Auto-confirm if dragged to end
-      if (newPosition >= maxPosition * 0.8) {
+      if (newPosition >= maxPosition * 0.85) {
         onConfirm();
         setPosition(0);
         setIsDragging(false);
@@ -1275,56 +1276,33 @@ const DashboardMap = ({
       setPosition(0);
     };
 
+    // Get container width for position calculation
+    const containerWidth = containerRef.current?.clientWidth || 320;
+    const maxPosition = containerWidth - 60;
+    const progressPercentage = maxPosition > 0 ? (position / maxPosition) * 100 : 0;
+
     return (
       <div
         ref={containerRef}
-        className="slide-to-confirm"
-        style={{
-          position: "relative",
-          height: "60px",
-          backgroundColor: "#f0f0f0",
-          borderRadius: "30px",
-          overflow: "hidden",
-          userSelect: "none",
-          opacity: disabled ? 0.6 : 1,
-        }}
+        className={`slide-to-confirm ${variant} ${disabled ? 'disabled' : ''}`}
         onMouseMove={(e) => handleMove(e.clientX)}
         onMouseUp={handleEnd}
         onMouseLeave={handleEnd}
       >
         <div
-          className="slide-background"
+          className={`slide-background ${isDragging ? 'dragging' : ''}`}
           style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            height: "100%",
-            width: `${
-              (position / (containerRef.current?.clientWidth - 60 || 1)) * 100
-            }%`,
-            backgroundColor: bgColor,
-            borderRadius: "30px",
-            transition: isDragging ? "none" : "width 0.2s ease",
+            width: `${progressPercentage}%`,
+            '--slide-color': bgColor,
+            '--slide-color-dark': bgColor.replace('50', '700'), // Darker variant
           }}
         />
         <div
           ref={sliderRef}
-          className="slide-handle"
+          className={`slide-handle ${disabled ? 'disabled' : ''} ${isDragging ? 'dragging' : ''}`}
           style={{
-            position: "absolute",
-            top: "5px",
-            left: `${5 + position}px`,
-            width: "50px",
-            height: "50px",
-            backgroundColor: "white",
-            borderRadius: "25px",
-            cursor: disabled ? "not-allowed" : "grab",
-            boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: "20px",
-            transition: isDragging ? "none" : "left 0.2s ease",
+            left: `${4 + position}px`,
+            transition: isDragging ? "none" : "left 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
           }}
           onMouseDown={(e) => handleStart(e.clientX)}
           onTouchStart={(e) => handleStart(e.touches[0].clientX)}
@@ -1334,20 +1312,9 @@ const DashboardMap = ({
           →
         </div>
         <div
-          className="slide-text"
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            fontSize: "16px",
-            fontWeight: "bold",
-            color: position > 50 ? "white" : "#666",
-            transition: "color 0.2s ease",
-            pointerEvents: "none",
-          }}
+          className={`slide-text ${progressPercentage > 30 ? 'active' : ''}`}
         >
-          {position > 100 ? confirmText : text}
+          {progressPercentage > 50 ? confirmText : text}
         </div>
       </div>
     );
@@ -1393,22 +1360,22 @@ const DashboardMap = ({
           border: '1px solid rgba(255, 255, 255, 0.2)',
           transition: 'bottom 0.3s ease'
         }}>
-          <div style={{ marginBottom: '8px', fontWeight: 'bold', fontSize: '12px' }}>
+          {/* <div style={{ marginBottom: '8px', fontWeight: 'bold', fontSize: '12px' }}>
             🎮 Simulation
           </div>
           <div style={{ fontSize: '10px', marginBottom: '3px', color: '#666' }}>
             Status: <span style={{ fontWeight: '500', color: '#333' }}>{currentTripStatus || 'Unknown'}</span>
-          </div>
+          </div> */}
           <div style={{ 
             fontSize: '10px', 
             marginBottom: '8px',
             color: isSimulationMode ? '#ff6b35' : '#4CAF50',
             fontWeight: '500'
           }}>
-            {isSimulationMode ? '🎮 Simulation' : '📍 Real GPS'}
+            {/* {isSimulationMode ? '🎮 Simulation' : '📍 Real GPS'} */}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            {(currentTripStatus === 'accepted') && (
+            {/* {(currentTripStatus === 'accepted') && (
               <button
                 onClick={() => simulateMovementToPickup()}
                 style={{
@@ -1424,8 +1391,8 @@ const DashboardMap = ({
               >
                 {isCurrentTripDelivery ? '� Drive to Pickup' : '�🚗 Drive to Pickup'}
               </button>
-            )}
-            {(currentTripStatus === 'started' || currentTripStatus === 'in_progress') && (
+            )} */}
+            {/* {(currentTripStatus === 'started' || currentTripStatus === 'in_progress') && (
               <button
                 onClick={() => simulateMovementToDropoff()}
                 style={{
@@ -1441,8 +1408,8 @@ const DashboardMap = ({
               >
                 {isCurrentTripDelivery ? '🏠 Drive to Delivery' : '🎯 Drive to Dropoff'}
               </button>
-            )}
-            {isSimulationMode && (
+            )} */}
+            {/* {isSimulationMode && (
               <button
                 onClick={() => resetSimulation()}
                 style={{
@@ -1458,7 +1425,7 @@ const DashboardMap = ({
               >
                 🔄 Resume GPS
               </button>
-            )}
+            )} */}
             {/* Debug button for testing multiple pickup functionality */}
             {isCurrentTripDelivery && activeTrip?.allPickupDeliveries?.length > 1 && (
               <button
@@ -1531,6 +1498,7 @@ const DashboardMap = ({
               text="Slide to Start Trip"
               confirmText="Starting..."
               bgColor="#4CAF50"
+              variant="start-ride"
               disabled={isUpdatingRideStatus}
             />
             <button
@@ -1631,6 +1599,7 @@ const DashboardMap = ({
               text="Slide to Complete Trip"
               confirmText="Completing..."
               bgColor="#2196F3"
+              variant="complete-ride"
               disabled={isUpdatingRideStatus}
             />
             <button
@@ -1698,6 +1667,7 @@ const DashboardMap = ({
               text={isCurrentTripDelivery ? "Slide to Cancel Delivery" : "Slide to Cancel Ride"}
               confirmText={isCurrentTripDelivery ? "Cancelling Delivery..." : "Cancelling..."}
               bgColor="#dc3545"
+              variant="cancel-ride"
               disabled={isUpdatingRideStatus}
             />
             <button

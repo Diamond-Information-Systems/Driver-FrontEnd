@@ -191,6 +191,40 @@
   border-radius: var(--vd-radius-3xl);
 }
 
+/* Special compact styling for active trip to blend with dock */
+.vaye-drawer-modal.vaye-trip_active.vaye-compact {
+  bottom: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-top-left-radius: var(--vd-radius-2xl);
+  border-top-right-radius: var(--vd-radius-2xl);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  background: rgba(240, 244, 255, 0.95);
+  border: 1px solid rgba(79, 70, 229, 0.1);
+  border-bottom: none;
+  box-shadow: 
+    0 -8px 32px rgba(79, 70, 229, 0.12),
+    0 -4px 16px rgba(79, 70, 229, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  
+  /* Smooth integration animation */
+  transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  
+  /* Seamless connection with dock */
+  z-index: 998; /* Just below dock z-index of 1000 */
+}
+
+/* Enhanced expansion animation for trip_active */
+.vaye-drawer-modal.vaye-trip_active.vaye-expanded {
+  border-radius: var(--vd-radius-2xl) var(--vd-radius-2xl) 0 0;
+  box-shadow: 
+    0 -12px 40px rgba(79, 70, 229, 0.18),
+    0 -6px 20px rgba(79, 70, 229, 0.12),
+    0 -3px 10px rgba(79, 70, 229, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
 /* State-specific card styling */
 .vaye-drawer-modal.vaye-idle {
   border-top: 3px solid var(--vd-success);
@@ -213,6 +247,21 @@
   background: linear-gradient(145deg, #f0f4ff 0%, #ffffff 100%);
   animation: vayeDrawerSlideUp var(--vd-transition-bounce) ease-out,
              vayeActivePulse 2.5s ease-in-out infinite 1s;
+  
+  /* Dock integration - sit lower and blend with dock */
+  bottom: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom: none;
+  box-shadow: 
+    0 -4px 20px rgba(79, 70, 229, 0.15),
+    0 -2px 10px rgba(79, 70, 229, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  
+  /* Enhanced border effect */
+  border-top-width: 4px;
+  border-top-style: solid;
+  border-image: linear-gradient(90deg, var(--vd-primary), var(--vd-primary-light)) 1;
 }
 
 .vaye-drawer-modal.vaye-trip_completed {
@@ -230,6 +279,24 @@
     bottom: var(--vd-space-12);
     border-radius: var(--vd-radius-2xl);
   }
+  
+  /* Mobile dock integration for active trips */
+  .vaye-drawer-modal.vaye-trip_active {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: var(--vd-radius-2xl) var(--vd-radius-2xl) 0 0;
+    margin: 0;
+  }
+  
+  .vaye-drawer-modal.vaye-trip_active.vaye-compact {
+    border-radius: var(--vd-radius-xl) var(--vd-radius-xl) 0 0;
+    /* Enhanced mobile dock integration */
+    box-shadow: 
+      0 -6px 24px rgba(79, 70, 229, 0.12),
+      0 -3px 12px rgba(79, 70, 229, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
 }
 
 @media (min-width: 768px) {
@@ -242,6 +309,17 @@
   }
   
   .vaye-drawer-modal.vaye-dragging {
+    transform: translateX(-50%) scale(1.02);
+  }
+  
+  /* Desktop dock integration for active trips */
+  .vaye-drawer-modal.vaye-trip_active {
+    bottom: 0;
+    max-width: 500px;
+    transform: translateX(-50%);
+  }
+  
+  .vaye-drawer-modal.vaye-trip_active.vaye-dragging {
     transform: translateX(-50%) scale(1.02);
   }
 }
@@ -263,6 +341,18 @@
 
 .vaye-drag-handle:active {
   cursor: grabbing;
+}
+
+/* Enhanced drag handle for trip_active state */
+.vaye-drawer-modal.vaye-trip_active .vaye-drag-handle {
+  padding: var(--vd-space-3) 0 var(--vd-space-2) 0;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.1), transparent);
+  border-bottom: 1px solid rgba(79, 70, 229, 0.1);
+}
+
+.vaye-drawer-modal.vaye-trip_active.vaye-compact .vaye-drag-handle {
+  padding: var(--vd-space-2) 0;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05));
 }
 
 .vaye-drawer-modal.vaye-dragging .vaye-drag-handle {
@@ -835,15 +925,58 @@
 
 .vaye-request-content {
   animation: vayeFadeInUp 0.4s ease-out;
+  padding: var(--vd-space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--vd-space-5);
+  height: 100%;
 }
 
+/* Enhanced Request Header */
 .vaye-request-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--vd-space-4);
-  padding: var(--vd-space-4) 0;
-  margin-bottom: var(--vd-space-4);
-  border-bottom: 1px solid var(--vd-gray-200);
+  padding-bottom: var(--vd-space-4);
+  border-bottom: 2px solid var(--vd-gray-200);
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.08) 0%, rgba(255, 193, 7, 0.03) 100%);
+  border-radius: var(--vd-radius-lg);
+  padding: var(--vd-space-4);
+  margin: 0;
+  /* Enhanced accessibility border */
+  border: 2px solid rgba(255, 193, 7, 0.2);
+}
+
+.vaye-request-priority {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--vd-space-2);
+  flex-shrink: 0;
+}
+
+.vaye-priority-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--vd-space-1);
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: white;
+  padding: var(--vd-space-1) var(--vd-space-2);
+  border-radius: var(--vd-radius-full);
+  font-size: var(--vd-text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4);
+  animation: vayeUrgentPulse 2s ease-in-out infinite;
+  /* Enhanced contrast for accessibility */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+@keyframes vayeUrgentPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
 }
 
 .vaye-timer-section {
@@ -852,17 +985,20 @@
 
 .vaye-timer-circle {
   position: relative;
-  width: 60px;
-  height: 60px;
-  background: var(--vd-gradient-warning);
+  width: 72px;
+  height: 72px;
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
   border-radius: 50%;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   color: white;
-  box-shadow: var(--vd-shadow-md);
+  box-shadow: 
+    0 8px 24px rgba(255, 107, 53, 0.3),
+    0 4px 12px rgba(255, 107, 53, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
   overflow: hidden;
+  border: 3px solid rgba(255, 255, 255, 0.9);
 }
 
 .vaye-timer-circle::before {
@@ -880,71 +1016,175 @@
 }
 
 .vaye-timer-text {
-  font-size: var(--vd-text-sm);
-  font-weight: 700;
+  font-size: var(--vd-text-lg);
+  font-weight: 800;
+  color: var(--vd-gray-900);
   position: relative;
-  z-index: 1;
+  z-index: 2;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
 }
 
 .vaye-timer-progress {
   position: absolute;
-  inset: 2px;
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
   border-radius: 50%;
   background: conic-gradient(
-    from 0deg,
-    var(--vd-danger) var(--progress, 0%),
+    from -90deg,
+    transparent 0deg,
+    rgba(220, 38, 38, 0.8) var(--progress, 0%),
     transparent var(--progress, 0%)
   );
-  opacity: 0.3;
+  z-index: 1;
 }
 
 .vaye-request-info {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--vd-space-3);
 }
 
-.vaye-request-info h3 {
+.vaye-request-title {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vd-space-1);
+}
+
+.vaye-request-title h3 {
   font-size: var(--vd-text-xl);
-  font-weight: 700;
+  font-weight: 800;
   color: var(--vd-gray-900);
-  margin: 0 0 var(--vd-space-1) 0;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.vaye-request-subtitle {
+  font-size: var(--vd-text-sm);
+  color: var(--vd-gray-600);
+  font-weight: 500;
+}
+
+.vaye-fare-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vd-space-1);
+}
+
+.vaye-fare-label {
+  font-size: var(--vd-text-xs);
+  color: var(--vd-gray-500);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .vaye-estimated-fare {
   font-size: var(--vd-text-2xl);
-  font-weight: 800;
+  font-weight: 900;
   color: var(--vd-success);
-  background: var(--vd-gradient-success-text);
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+  line-height: 1;
+}
+
+/* Enhanced Section Styling */
+.vaye-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vd-space-3);
+}
+
+.vaye-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--vd-space-2);
+  border-bottom: 1px solid var(--vd-gray-200);
+}
+
+.vaye-section-title {
+  font-size: var(--vd-text-lg);
+  font-weight: 700;
+  color: var(--vd-gray-900);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--vd-space-2);
+}
+
+.vaye-section-title::before {
+  content: '';
+  width: 4px;
+  height: 20px;
+  background: linear-gradient(135deg, var(--vd-primary) 0%, var(--vd-primary-dark) 100%);
+  border-radius: var(--vd-radius-full);
+}
+
+.vaye-section-count {
+  font-size: var(--vd-text-sm);
+  color: var(--vd-gray-500);
+  font-weight: 500;
+  background: var(--vd-gray-100);
+  padding: var(--vd-space-1) var(--vd-space-2);
+  border-radius: var(--vd-radius-full);
 }
 
 .vaye-passenger-info {
-  margin-bottom: var(--vd-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--vd-space-2);
 }
 
 .vaye-passenger-card {
   display: flex;
   align-items: center;
   gap: var(--vd-space-3);
-  padding: var(--vd-space-3);
-  background: var(--vd-gradient-subtle);
-  border: 1px solid var(--vd-gray-200);
-  border-radius: var(--vd-radius-lg);
-  margin-bottom: var(--vd-space-2);
-  transition: all var(--vd-transition-fast);
+  padding: var(--vd-space-4);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.9) 100%);
+  border: 2px solid var(--vd-gray-100);
+  border-radius: var(--vd-radius-xl);
+  transition: all var(--vd-transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.vaye-passenger-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--vd-primary) 0%, var(--vd-primary-light) 100%);
+  opacity: 0;
+  transition: opacity var(--vd-transition-fast);
 }
 
 .vaye-passenger-card:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--vd-shadow-sm);
-  background: rgba(255, 255, 255, 0.95);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 25px rgba(0, 0, 0, 0.08),
+    0 4px 12px rgba(0, 0, 0, 0.05);
+  border-color: var(--vd-primary-light);
+}
+
+.vaye-passenger-card:hover::before {
+  opacity: 1;
 }
 
 .vaye-passenger-card.vaye-active {
   border-color: var(--vd-primary);
-  background: var(--vd-primary-bg);
+  background: linear-gradient(135deg, var(--vd-primary-bg) 0%, rgba(79, 70, 229, 0.03) 100%);
+}
+
+.vaye-passenger-card.vaye-active::before {
+  opacity: 1;
 }
 
 .vaye-passenger-avatar {
@@ -962,129 +1202,773 @@
 .vaye-passenger-details {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--vd-space-2);
 }
 
 .vaye-passenger-name {
-  font-size: var(--vd-text-sm);
-  font-weight: 600;
+  font-size: var(--vd-text-base);
+  font-weight: 700;
   color: var(--vd-gray-900);
-  display: block;
-  margin-bottom: var(--vd-space-1);
+  line-height: 1.2;
+}
+
+.vaye-passenger-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--vd-space-3);
 }
 
 .vaye-passenger-rating {
   display: flex;
   align-items: center;
   gap: var(--vd-space-1);
-  font-size: var(--vd-text-xs);
+  font-size: var(--vd-text-sm);
   color: var(--vd-warning);
-  font-weight: 600;
+  font-weight: 650;
 }
 
-.vaye-passenger-actions,
-.vaye-contact-button {
+.vaye-passenger-trips {
+  font-size: var(--vd-text-xs);
+  color: var(--vd-gray-500);
+  font-weight: 500;
+  background: var(--vd-gray-100);
+  padding: 2px var(--vd-space-2);
+  border-radius: var(--vd-radius-full);
+}
+
+.vaye-passenger-actions {
   display: flex;
   align-items: center;
   gap: var(--vd-space-2);
+  flex-shrink: 0;
 }
 
 .vaye-contact-button {
-  width: 32px;
-  height: 32px;
-  background: var(--vd-gray-100);
-  border: 1px solid var(--vd-gray-200);
-  border-radius: var(--vd-radius-md);
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--vd-gray-100) 0%, var(--vd-gray-50) 100%);
+  border: 2px solid var(--vd-gray-200);
+  border-radius: var(--vd-radius-lg);
   color: var(--vd-gray-600);
   cursor: pointer;
-  transition: all var(--vd-transition-fast);
+  transition: all var(--vd-transition-normal);
+  display: flex;
+  align-items: center;
   justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.vaye-contact-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.5s ease;
 }
 
 .vaye-contact-button:hover {
-  background: var(--vd-primary);
+  background: linear-gradient(135deg, var(--vd-primary) 0%, var(--vd-primary-dark) 100%);
   color: white;
-  transform: translateY(-1px);
-  box-shadow: var(--vd-shadow-sm);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 
+    0 8px 20px rgba(79, 70, 229, 0.3),
+    0 4px 10px rgba(79, 70, 229, 0.2);
+  border-color: var(--vd-primary-light);
+}
+
+.vaye-contact-button:hover::before {
+  left: 100%;
+}
+
+.vaye-contact-button:active {
+  transform: translateY(-1px) scale(1.02);
+}
+
+/* Enhanced Route Section */
+.vaye-route-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--vd-space-3);
+}
+
+.vaye-route-distance,
+.vaye-route-duration {
+  font-size: var(--vd-text-sm);
+  font-weight: 600;
+  color: var(--vd-primary);
+  background: var(--vd-primary-bg);
+  padding: var(--vd-space-1) var(--vd-space-2);
+  border-radius: var(--vd-radius-full);
 }
 
 .vaye-route-overview {
-  margin-bottom: var(--vd-space-6);
+  background: linear-gradient(135deg, rgba(248, 250, 252, 0.8) 0%, rgba(241, 245, 249, 0.8) 100%);
+  border: 1px solid var(--vd-gray-200);
+  border-radius: var(--vd-radius-xl);
+  padding: var(--vd-space-4);
 }
 
 .vaye-route-stops {
-  margin-bottom: var(--vd-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--vd-space-4);
 }
 
 .vaye-route-stop {
   display: flex;
   align-items: flex-start;
   gap: var(--vd-space-3);
-  margin-bottom: var(--vd-space-3);
+  position: relative;
+}
+
+.vaye-stop-timeline {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.vaye-route-line {
+  width: 2px;
+  height: 32px;
+  background: linear-gradient(to bottom, var(--vd-success) 0%, var(--vd-danger) 100%);
+  margin-top: var(--vd-space-2);
+  border-radius: var(--vd-radius-full);
+  opacity: 0.3;
 }
 
 .vaye-stop-marker {
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   flex-shrink: 0;
-  margin-top: var(--vd-space-1);
+  border: 3px solid white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  position: relative;
+  z-index: 1;
 }
 
 .vaye-stop-marker.vaye-pickup {
-  background: var(--vd-gradient-success);
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
 }
 
 .vaye-stop-marker.vaye-dropoff {
-  background: var(--vd-gradient-danger);
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
 }
 
 .vaye-stop-details {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--vd-space-2);
+}
+
+.vaye-stop-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.vaye-stop-type {
+  font-size: var(--vd-text-xs);
+  font-weight: 700;
+  color: var(--vd-gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.vaye-stop-time {
+  font-size: var(--vd-text-xs);
+  color: var(--vd-primary);
+  font-weight: 600;
+  background: var(--vd-primary-bg);
+  padding: 2px var(--vd-space-2);
+  border-radius: var(--vd-radius-full);
 }
 
 .vaye-stop-location {
-  font-size: var(--vd-text-sm);
+  font-size: var(--vd-text-base);
   font-weight: 600;
   color: var(--vd-gray-900);
-  display: block;
-  margin-bottom: var(--vd-space-1);
+  line-height: 1.3;
 }
 
-.vaye-stop-passenger,
-.vaye-stop-status {
+.vaye-stop-passenger {
+  font-size: var(--vd-text-sm);
+  color: var(--vd-gray-600);
+  font-weight: 500;
+}
+
+/* Enhanced Trip Metrics */
+.vaye-trip-metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--vd-space-3);
+}
+
+.vaye-metric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--vd-space-2);
+  padding: var(--vd-space-4);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.9) 100%);
+  border: 2px solid var(--vd-gray-100);
+  border-radius: var(--vd-radius-xl);
+  transition: all var(--vd-transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.vaye-metric::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--vd-primary) 0%, var(--vd-primary-light) 100%);
+  opacity: 0;
+  transition: opacity var(--vd-transition-fast);
+}
+
+.vaye-metric:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  border-color: var(--vd-primary-light);
+}
+
+.vaye-metric:hover::before {
+  opacity: 1;
+}
+
+.vaye-metric-primary {
+  border-color: var(--vd-primary-light);
+}
+
+.vaye-metric-primary::before {
+  background: linear-gradient(90deg, var(--vd-primary) 0%, var(--vd-primary-light) 100%);
+}
+
+.vaye-metric-secondary::before {
+  background: linear-gradient(90deg, var(--vd-success) 0%, var(--vd-success-light) 100%);
+}
+
+.vaye-metric-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--vd-primary) 0%, var(--vd-primary-dark) 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+.vaye-metric-secondary .vaye-metric-icon {
+  background: linear-gradient(135deg, var(--vd-success) 0%, var(--vd-success-dark) 100%);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.vaye-metric-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--vd-space-1);
+  text-align: center;
+}
+
+.vaye-metric-value {
+  font-size: var(--vd-text-lg);
+  font-weight: 800;
+  color: var(--vd-gray-900);
+  line-height: 1;
+}
+
+.vaye-metric-label {
+  font-size: var(--vd-text-xs);
+  color: var(--vd-gray-600);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Enhanced Action Buttons */
+.vaye-request-actions {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: var(--vd-space-4);
+  margin-top: auto;
+  padding-top: var(--vd-space-6);
+}
+
+/* Accessibility improvements */
+.vaye-action-button:focus-visible {
+  outline: 3px solid rgba(79, 70, 229, 0.5);
+  outline-offset: 2px;
+}
+
+.vaye-contact-button:focus-visible {
+  outline: 2px solid rgba(79, 70, 229, 0.5);
+  outline-offset: 2px;
+}
+
+/* Driver-Focused Trip Overview Card */
+.vaye-trip-overview-card {
+  display: flex;
+  align-items: center;
+  gap: var(--vd-space-4);
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.05) 0%, rgba(99, 102, 241, 0.03) 100%);
+  border: 2px solid rgba(79, 70, 229, 0.1);
+  border-radius: var(--vd-radius-xl);
+  padding: var(--vd-space-5);
+  margin-bottom: var(--vd-space-4);
+}
+
+.vaye-trip-summary {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--vd-space-3);
+}
+
+.vaye-trip-primary-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--vd-space-4);
+  align-items: center;
+}
+
+.vaye-trip-distance,
+.vaye-trip-duration {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.vaye-trip-price {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--vd-space-2) var(--vd-space-3);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%);
+  border-radius: var(--vd-radius-lg);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.vaye-price-value {
+  font-size: var(--vd-text-2xl);
+  font-weight: 900;
+  color: var(--vd-success);
+  line-height: 1;
+}
+
+.vaye-price-label {
+  font-size: var(--vd-text-xs);
+  color: var(--vd-success-dark);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+}
+
+.vaye-trip-earning {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--vd-space-3);
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-radius: var(--vd-radius-lg);
+  border-left: 4px solid var(--vd-primary);
+}
+
+.vaye-earning-value {
+  font-size: var(--vd-text-lg);
+  font-weight: 800;
+  color: var(--vd-primary);
+}
+
+.vaye-earning-label {
+  font-size: var(--vd-text-sm);
+  color: var(--vd-primary-dark);
+  font-weight: 600;
+}
+
+/* Integrated Trip Details Card */
+.vaye-trip-details-card {
+  background: var(--vd-white);
+  border: 1px solid var(--vd-gray-200);
+  border-radius: var(--vd-radius-xl);
+  padding: var(--vd-space-4);
+  margin-bottom: var(--vd-space-4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* Compact Passenger Section */
+.vaye-passenger-section {
+  margin-bottom: var(--vd-space-4);
+  padding-bottom: var(--vd-space-4);
+  border-bottom: 1px solid var(--vd-gray-100);
+}
+
+.vaye-passenger-compact {
+  display: flex;
+  align-items: center;
+  gap: var(--vd-space-3);
+}
+
+.vaye-passenger-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--vd-space-1);
+}
+
+.vaye-passenger-primary {
+  display: flex;
+  align-items: center;
+  gap: var(--vd-space-2);
+}
+
+.vaye-passenger-name {
+  font-size: var(--vd-text-lg);
+  font-weight: 700;
+  color: var(--vd-gray-900);
+}
+
+.vaye-passenger-rating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--vd-warning);
+  font-weight: 600;
+  font-size: var(--vd-text-sm);
+}
+
+.vaye-passenger-trips {
   font-size: var(--vd-text-xs);
   color: var(--vd-gray-600);
   font-weight: 500;
 }
 
-.vaye-trip-metrics {
+.vaye-passenger-actions {
   display: flex;
-  gap: var(--vd-space-4);
-  padding: var(--vd-space-3);
-  background: var(--vd-gray-50);
-  border-radius: var(--vd-radius-lg);
-  border: 1px solid var(--vd-gray-200);
+  gap: var(--vd-space-2);
 }
 
-.vaye-metric {
+/* Clean Route Section */
+.vaye-route-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vd-space-3);
+}
+
+.vaye-route-stops {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vd-space-3);
+}
+
+.vaye-route-stop {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--vd-space-3);
+}
+
+.vaye-stop-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.vaye-stop-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
-  gap: var(--vd-space-2);
-  color: var(--vd-gray-600);
-  font-size: var(--vd-text-sm);
-  font-weight: 500;
+  justify-content: center;
+  color: white;
+  border: 3px solid white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 1;
 }
 
-.vaye-request-actions {
+.vaye-stop-dot.vaye-pickup {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.vaye-stop-dot.vaye-dropoff {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+}
+
+.vaye-route-connector {
+  width: 2px;
+  height: 20px;
+  background: linear-gradient(to bottom, #10b981 0%, #3b82f6 100%);
+  margin-top: 8px;
+  opacity: 0.4;
+}
+
+.vaye-stop-info {
+  flex: 1;
   display: flex;
+  flex-direction: column;
+  gap: var(--vd-space-1);
+}
+
+.vaye-stop-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.vaye-stop-type {
+  font-size: var(--vd-text-xs);
+  font-weight: 700;
+  color: var(--vd-gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.vaye-stop-eta {
+  font-size: var(--vd-text-xs);
+  color: var(--vd-primary);
+  font-weight: 600;
+  background: var(--vd-primary-bg);
+  padding: 2px var(--vd-space-2);
+  border-radius: var(--vd-radius-full);
+}
+
+.vaye-stop-address {
+  font-size: var(--vd-text-base);
+  font-weight: 600;
+  color: var(--vd-gray-900);
+  line-height: 1.3;
+}
+
+/* Enhanced Decision Actions */
+.vaye-decision-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: var(--vd-space-3);
   margin-top: auto;
-  padding-top: var(--vd-space-4);
+}
+
+.vaye-cancel-button {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border: 2px solid var(--vd-gray-300);
+  color: var(--vd-gray-700);
+  font-weight: 600;
+  font-size: var(--vd-text-base);
+  padding: var(--vd-space-4);
+  border-radius: var(--vd-radius-xl);
+  transition: all var(--vd-transition-normal);
+}
+
+.vaye-cancel-button:hover {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  border-color: var(--vd-danger-light);
+  color: var(--vd-danger);
+  transform: translateY(-1px);
+}
+
+.vaye-start-button {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border: 2px solid var(--vd-success);
+  color: white;
+  font-weight: 700;
+  font-size: var(--vd-text-base);
+  padding: var(--vd-space-4);
+  border-radius: var(--vd-radius-xl);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  transition: all var(--vd-transition-normal);
+}
+
+.vaye-start-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
+/* Responsive Design for New Layout */
+@media (max-width: 480px) {
+  .vaye-trip-overview-card {
+    flex-direction: column;
+    gap: var(--vd-space-3);
+    padding: var(--vd-space-4);
+  }
+  
+  .vaye-trip-primary-info {
+    grid-template-columns: 1fr;
+    gap: var(--vd-space-3);
+    text-align: center;
+  }
+  
+  .vaye-trip-price {
+    order: -1;
+    padding: var(--vd-space-3);
+  }
+  
+  .vaye-trip-earning {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--vd-space-1);
+  }
+  
+  .vaye-passenger-compact {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--vd-space-2);
+  }
+  
+  .vaye-passenger-primary {
+    justify-content: center;
+  }
+  
+  .vaye-decision-actions {
+    grid-template-columns: 1fr;
+    gap: var(--vd-space-3);
+  }
+  
+  .vaye-cancel-button,
+  .vaye-start-button {
+    padding: var(--vd-space-4) var(--vd-space-6);
+  }
+}
+
+/* Comprehensive Accessibility Enhancements */
+
+/* Ensure all text has sufficient contrast */
+.vaye-request-content * {
+  /* Default text should be dark for readability */
+  color: inherit;
+}
+
+/* Force dark text on light backgrounds */
+.vaye-passenger-card,
+.vaye-route-overview,
+.vaye-metric {
+  color: var(--vd-gray-900);
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .vaye-request-header {
+    border: 3px solid var(--vd-gray-800);
+    background: var(--vd-white);
+  }
+  
+  .vaye-passenger-card {
+    border: 2px solid var(--vd-gray-800);
+    background: var(--vd-white);
+  }
+  
+  .vaye-route-overview {
+    border: 2px solid var(--vd-gray-800);
+    background: var(--vd-white);
+  }
+  
+  .vaye-action-button {
+    border-width: 3px;
+  }
+}
+
+/* Reduced motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .vaye-priority-badge {
+    animation: none;
+  }
+  
+  .vaye-timer-circle,
+  .vaye-metric,
+  .vaye-passenger-card {
+    transition: none;
+  }
+}
+
+/* Ensure readable text in all conditions */
+.vaye-request-title h3,
+.vaye-passenger-name,
+.vaye-stop-location,
+.vaye-metric-value {
+  color: var(--vd-gray-900) !important;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+}
+
+.vaye-request-subtitle,
+.vaye-passenger-trips,
+.vaye-stop-passenger,
+.vaye-metric-label {
+  color: var(--vd-gray-700) !important;
+}
+
+.vaye-action-button.vaye-primary-action {
+  background: linear-gradient(135deg, var(--vd-success) 0%, var(--vd-success-dark) 100%);
+  border: 2px solid var(--vd-success);
+  color: white;
+  font-weight: 700;
+  font-size: var(--vd-text-base);
+  padding: var(--vd-space-4) var(--vd-space-6);
+  border-radius: var(--vd-radius-xl);
+  box-shadow: 
+    0 8px 24px rgba(16, 185, 129, 0.3),
+    0 4px 12px rgba(16, 185, 129, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.vaye-action-button.vaye-primary-action::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.6s ease;
+}
+
+.vaye-action-button.vaye-primary-action:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 
+    0 12px 32px rgba(16, 185, 129, 0.4),
+    0 6px 16px rgba(16, 185, 129, 0.3);
+}
+
+.vaye-action-button.vaye-primary-action:hover::before {
+  left: 100%;
+}
+
+.vaye-action-button.vaye-decline {
+  background: linear-gradient(135deg, var(--vd-gray-100) 0%, var(--vd-gray-200) 100%);
+  border: 2px solid var(--vd-gray-300);
+  color: var(--vd-gray-700);
+  font-weight: 600;
+}
+
+.vaye-action-button.vaye-decline:hover {
+  background: linear-gradient(135deg, var(--vd-danger-light) 0%, var(--vd-danger) 100%);
+  border-color: var(--vd-danger);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
 }
 
 @keyframes vayeTimerPulse {
@@ -3155,4 +4039,41 @@
   .ride-drawer.request_pending {
     animation: none;
   }
+}
+
+/* Dock Integration Animations */
+@keyframes dockIntegration {
+  0% {
+    transform: translateY(0);
+    border-radius: var(--vd-radius-3xl);
+  }
+  50% {
+    transform: translateY(2px);
+    border-radius: var(--vd-radius-2xl) var(--vd-radius-2xl) var(--vd-radius-xl) var(--vd-radius-xl);
+  }
+  100% {
+    transform: translateY(0);
+    border-radius: var(--vd-radius-2xl) var(--vd-radius-2xl) 0 0;
+  }
+}
+
+@keyframes dockDisconnect {
+  0% {
+    border-radius: var(--vd-radius-2xl) var(--vd-radius-2xl) 0 0;
+    box-shadow: 0 -8px 32px rgba(79, 70, 229, 0.12);
+  }
+  100% {
+    border-radius: var(--vd-radius-3xl);
+    box-shadow: var(--vd-shadow-card);
+  }
+}
+
+/* Apply dock integration animation when transitioning to compact trip active */
+.vaye-drawer-modal.vaye-trip_active.vaye-compact:not(.vaye-dragging) {
+  animation: dockIntegration 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* Apply disconnect animation when leaving trip active state */
+.vaye-drawer-modal.vaye-idle:not(.vaye-trip_active) {
+  animation: dockDisconnect 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
