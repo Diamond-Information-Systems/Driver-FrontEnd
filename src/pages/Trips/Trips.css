@@ -12,12 +12,11 @@
   --color-dark: #1e2761;
 }
 
-body {
+/* body {
   background-color: #2a3990;
   min-height: 100vh;
   margin: 0;
-  padding: 20px;
-}
+} */
 
 /* Dashboard Section */
 .dashboard-section {

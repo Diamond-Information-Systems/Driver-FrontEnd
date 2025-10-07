@@ -1228,13 +1228,16 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
       
       if (response && response.success) {
         // Update the active trip status to reflect delivery status
-        if (activeTrip && activeTrip.isDelivery) {
+        // EXCEPT for dropoff_arrived which is only for buyer notification
+        if (activeTrip && activeTrip.isDelivery && status !== 'dropoff_arrived') {
           const updatedTrip = {
             ...activeTrip,
             status: status
           };
           setActiveTrip(updatedTrip);
           console.log("🚚 Updated delivery trip status to:", status);
+        } else if (status === 'dropoff_arrived') {
+          console.log("🔔 Sent dropoff_arrived notification to buyer - NOT updating local trip status");
         }
 
         // Check if we have a route in the response
@@ -1256,6 +1259,25 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
       
     } catch (err) {
       console.error("Error updating delivery status:", err);
+    }
+  };
+
+  // Separate function for buyer notifications to avoid interfering with driver workflow
+  const handleBuyerNotification = async (deliveryId, notificationType) => {
+    try {
+      console.log("🔔 Sending buyer notification:", { deliveryId, notificationType });
+      
+      // Use the update delivery status API but ONLY for notification - never update local state
+      const response = await updateDeliveryStatus(deliveryId, notificationType, userToken);
+      
+      console.log("✅ Buyer notification sent:", response);
+      
+      // Deliberately do NOT update any local state - this is notification only
+      return response;
+      
+    } catch (err) {
+      console.error("❌ Error sending buyer notification:", err);
+      throw err;
     }
   };
 
@@ -1333,6 +1355,7 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
           // Pass delivery handlers for when activeTrip is a delivery
           onDeliveryStatusUpdate={handleDeliveryStatusUpdate}
           onDeliveryConfirmation={handleDeliveryConfirmation}
+          onBuyerNotification={handleBuyerNotification}
         />
         
         {/* Online Status Toggle - Floating - Hidden when there's an active trip */}

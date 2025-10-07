@@ -1339,3 +1339,118 @@
     transform: translateX(-50%) translateY(0) scale(1);
   }
 }
+
+/* Simplified Pickup Popup Styles */
+.delivery-summary {
+  margin-top: 15px;
+}
+
+.orders-summary {
+  margin-top: 15px;
+}
+
+.orders-list {
+  max-height: 250px;
+  overflow-y: auto;
+  margin-top: 8px;
+  border-radius: 8px;
+  background: #f8f9fa;
+  padding: 8px;
+}
+
+.order-item {
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 8px;
+  transition: all 0.2s ease;
+}
+
+.order-item:last-child {
+  margin-bottom: 0;
+}
+
+.order-item:hover {
+  border-color: #FF9500;
+  box-shadow: 0 2px 8px rgba(255, 149, 0, 0.1);
+}
+
+.order-badge {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.order-number {
+  font-weight: 700;
+  color: #FF9500;
+  font-size: 15px;
+  background: #fff3e0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #ffcc80;
+}
+
+.order-item .customer-name {
+  font-weight: 500;
+  color: #495057;
+  font-size: 13px;
+  flex: 1;
+  text-align: right;
+  margin-left: 8px;
+}
+
+.delivery-pin-hint {
+  margin-top: 4px;
+  padding: 4px 8px;
+  background: #e8f5e8;
+  border-radius: 4px;
+  border-left: 3px solid #28a745;
+}
+
+.delivery-pin-hint small {
+  color: #155724;
+  font-weight: 500;
+  font-size: 11px;
+}
+
+.total-orders {
+  margin-top: 12px;
+  padding: 8px 12px;
+  background: #e7f3ff;
+  border-radius: 6px;
+  border-left: 3px solid #0066cc;
+  text-align: center;
+}
+
+.total-orders strong {
+  color: #0066cc;
+  font-size: 14px;
+}
+
+/* Update existing pickup-location for consistency */
+.pickup-location {
+  background: #e7f3ff;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border-left: 4px solid #0066cc;
+  margin-bottom: 15px;
+  font-size: 14px;
+}
+
+/* Update existing pickup-notes for consistency */
+.pickup-notes {
+  background: #fff3e0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border-left: 4px solid #FF9500;
+  margin-top: 15px;
+  font-size: 13px;
+  color: #e65100;
+}
+
+.pickup-notes strong {
+  color: #bf360c;
+}

@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   MapPin,
@@ -8,16 +8,31 @@ import {
   Star,
   TrendingUp,
   Activity,
+  RefreshCw,
+  Loader2,
 } from "lucide-react";
 import BottomDock from "../../components/BottomDock";
 import Header from "../../components/Header/Header";
 import { DriverStatusContext } from "../../context/DriverStatusContext";
+import { useAuth } from "../../context/AuthContext";
+import { getDriverTrips } from "../../services/tripService";
 import "./Trips.css"; // Ensure this file exists and contains the necessary styles
 
 function Trips({ onLogout = () => {} }) {
   const [activeTab, setActiveTab] = useState("trips");
   const { isOnline } = useContext(DriverStatusContext) || {};
+  const { user} = useAuth() || {};
   const [selectedFilter, setSelectedFilter] = useState("all");
+  const [trips, setTrips] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState(null);
+  const [summary, setSummary] = useState({
+    totalEarnings: 0,
+    totalDistance: 0,
+    avgRating: 0,
+    totalTrips: 0
+  });
   const navigate = useNavigate();
 
   const handleTabChange = (tabId) => {
@@ -36,110 +51,75 @@ function Trips({ onLogout = () => {} }) {
     console.log("Notifications clicked!");
   };
 
-  // Sample trip data with card numbers
-  const trips = [
-    {
-      id: "Thabo Mthembu",
-      date: "18 Jun",
-      time: "14:30",
-      pickup: "Sandton City Mall",
-      dropoff: "OR Tambo International Airport",
-      distance: "28.5 km",
-      duration: "35 min",
-      fare: 320.5,
-      paymentMethod: "card",
-      cardType: "visa",
-      cardNumber: "4532 •••• •••• 1234",
-      status: "completed",
-      rating: 4.8,
-    },
-    {
-      id: "Nomsa Dlamini",
-      date: "18 Jun",
-      time: "13:15",
-      pickup: "Rosebank Mall",
-      dropoff: "Melville",
-      distance: "12.3 km",
-      duration: "18 min",
-      fare: 85.0,
-      paymentMethod: "cash",
-      status: "completed",
-      rating: 5.0,
-    },
-    {
-      id: "Tendai Moyo",
-      date: "18 Jun",
-      time: "11:45",
-      pickup: "Johannesburg Central",
-      dropoff: "Sandton CBD",
-      distance: "15.7 km",
-      duration: "25 min",
-      fare: 145.75,
-      paymentMethod: "card",
-      cardType: "mastercard",
-      cardNumber: "5555 •••• •••• 9876",
-      status: "completed",
-      rating: 4.5,
-    },
-    {
-      id: "Sipho Nkomo",
-      date: "17 Jun",
-      time: "16:20",
-      pickup: "Eastgate Shopping Centre",
-      dropoff: "Bedfordview",
-      distance: "8.2 km",
-      duration: "15 min",
-      fare: 65.5,
-      paymentMethod: "cash",
-      status: "completed",
-      rating: 4.9,
-    },
-    {
-      id: "Chipo Ndebele",
-      date: "17 Jun",
-      time: "09:30",
-      pickup: "Fourways Mall",
-      dropoff: "Randburg",
-      distance: "18.9 km",
-      duration: "28 min",
-      fare: 198.25,
-      paymentMethod: "card",
-      cardType: "visa",
-      cardNumber: "4111 •••• •••• 5678",
-      status: "completed",
-      rating: 4.7,
-    },
-    {
-      id: "Lerato Molefe",
-      date: "16 Jun",
-      time: "20:15",
-      pickup: "Menlyn Park Shopping Centre",
-      dropoff: "Brooklyn Mall",
-      distance: "22.1 km",
-      duration: "30 min",
-      fare: 175.0,
-      paymentMethod: "cash",
-      status: "completed",
-      rating: 4.6,
-    },
-  ];
+  console.log("Auth User:", user);
+  
 
-  const filteredTrips = trips.filter((trip) => {
-    if (selectedFilter === "cash") return trip.paymentMethod === "cash";
-    if (selectedFilter === "card") return trip.paymentMethod === "card";
-    return true;
-  });
+  // Fetch trips data from API
+  const fetchTrips = async (refresh = false) => {
+    if (!user.token) {
+      setError("No authentication token available");
+      setLoading(false);
+      return;
+    }
 
-  const totalEarnings = filteredTrips.reduce((sum, trip) => sum + trip.fare, 0);
-  const totalDistance = filteredTrips.reduce(
-    (sum, trip) => sum + parseFloat(trip.distance),
-    0
+    try {
+      if (refresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
+      setError(null);
+
+      const filters = {
+        page: 1,
+        limit: 50,
+        status: 'completed',
+        ...(selectedFilter !== 'all' && { paymentMethod: selectedFilter })
+      };
+
+      const response = await getDriverTrips(user.token, filters);
+      
+      if (response && response.trips) {
+        setTrips(response.trips);
+        if (response.summary) {
+          setSummary(response.summary);
+        }
+      } else {
+        setTrips([]);
+      }
+    } catch (err) {
+      console.error("Error fetching trips:", err);
+      setError(err.message || "Failed to fetch trips");
+      setTrips([]);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  // Load trips on component mount and when filter changes
+  useEffect(() => {
+    fetchTrips();
+  }, [user.token, selectedFilter]);
+
+  // Handle refresh
+  const handleRefresh = () => {
+    fetchTrips(true);
+  };
+
+  // Filter trips based on payment method (trips are already filtered by the API based on selectedFilter)
+  const filteredTrips = trips;
+
+  // Use summary data from API response or calculate from filtered trips
+  const totalEarnings = summary.totalEarnings || filteredTrips.reduce((sum, trip) => sum + trip.fare, 0);
+  const totalDistance = parseFloat(summary.totalDistance) || filteredTrips.reduce(
+    (sum, trip) => sum + parseFloat(trip.distance.replace(' km', '')), 0
   );
-  const avgRating =
+  const avgRating = parseFloat(summary.avgRating) || (
     filteredTrips.length > 0
-      ? filteredTrips.reduce((sum, trip) => sum + trip.rating, 0) /
-        filteredTrips.length
-      : 0;
+      ? filteredTrips.reduce((sum, trip) => sum + trip.rating, 0) / filteredTrips.length
+      : 0
+  );
 
   return (
     <div style={styles.appLayout}>
@@ -205,6 +185,33 @@ function Trips({ onLogout = () => {} }) {
     </svg>
     Link Tribaal
   </a>
+  {/* Refresh Button */}
+  <button
+    onClick={handleRefresh}
+    disabled={refreshing}
+    style={{
+      display: "flex",
+      alignItems: "center",
+      gap: "8px",
+      padding: "8px 16px",
+      backgroundColor: "rgba(255, 255, 255, 0.1)",
+      color: "white",
+      border: "1px solid rgba(255, 255, 255, 0.2)",
+      borderRadius: "8px",
+      cursor: refreshing ? "not-allowed" : "pointer",
+      fontSize: "14px",
+      fontWeight: "500",
+      opacity: refreshing ? 0.7 : 1,
+      marginLeft: "auto"
+    }}
+  >
+    {refreshing ? (
+      <Loader2 size={16} className="spinning" />
+    ) : (
+      <RefreshCw size={16} />
+    )}
+    {refreshing ? "Refreshing..." : "Refresh"}
+  </button>
 </div>
             {/* Stats Grid - Improved Layout */}
             <div style={styles.statsGrid}>
@@ -311,17 +318,35 @@ function Trips({ onLogout = () => {} }) {
 
         {/* Trips List */}
         <div style={styles.tripsList}>
-          {filteredTrips.length === 0 ? (
+          {loading ? (
+            <div style={styles.loadingContainer}>
+              <Loader2 size={48} color="#60a5fa" className="spinning" />
+              <h3 style={styles.loadingTitle}>Loading trips...</h3>
+              <p style={styles.loadingSubtitle}>Please wait while we fetch your trip history</p>
+            </div>
+          ) : error ? (
+            <div style={styles.errorContainer}>
+              <MapPin size={48} color="#ef4444" />
+              <h3 style={styles.errorTitle}>Error loading trips</h3>
+              <p style={styles.errorSubtitle}>{error}</p>
+              <button onClick={handleRefresh} style={styles.retryButton}>
+                <RefreshCw size={16} />
+                Try Again
+              </button>
+            </div>
+          ) : filteredTrips.length === 0 ? (
             <div style={styles.noTrips}>
               <MapPin size={48} color="#d1d5db" />
               <h3 style={styles.noTripsTitle}>No trips found</h3>
               <p style={styles.noTripsSubtitle}>
-                Try adjusting your filter settings
+                {selectedFilter === 'all' 
+                  ? "You haven't completed any trips yet" 
+                  : `No ${selectedFilter} payment trips found`}
               </p>
             </div>
           ) : (
-            filteredTrips.map((trip) => (
-              <div key={trip.id} style={styles.tripItem}>
+            filteredTrips.map((trip, index) => (
+              <div key={`${trip.id}-${trip.date}-${trip.time}-${index}`} style={styles.tripItem}>
                 <div style={styles.tripMain}>
                   {/* Header */}
                   <div style={styles.tripHeader}>
@@ -408,6 +433,13 @@ function Trips({ onLogout = () => {} }) {
         @keyframes pulse {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.5; }
+        }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .spinning {
+          animation: spin 1s linear infinite;
         }
       `}</style>
     </div>
@@ -586,6 +618,54 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     gap: "16px",
+  },
+  loadingContainer: {
+    textAlign: "center",
+    padding: "64px 20px",
+    backgroundColor: "white",
+    borderRadius: "16px",
+    border: "1px solid #e5e7eb",
+  },
+  loadingTitle: {
+    fontSize: "20px",
+    fontWeight: "600",
+    color: "#111827",
+    margin: "16px 0 8px 0",
+  },
+  loadingSubtitle: {
+    color: "#6b7280",
+    margin: 0,
+  },
+  errorContainer: {
+    textAlign: "center",
+    padding: "64px 20px",
+    backgroundColor: "white",
+    borderRadius: "16px",
+    border: "1px solid #fecaca",
+    backgroundColor: "#fef2f2",
+  },
+  errorTitle: {
+    fontSize: "20px",
+    fontWeight: "600",
+    color: "#dc2626",
+    margin: "16px 0 8px 0",
+  },
+  errorSubtitle: {
+    color: "#7f1d1d",
+    margin: "0 0 16px 0",
+  },
+  retryButton: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "8px",
+    padding: "8px 16px",
+    backgroundColor: "#dc2626",
+    color: "white",
+    border: "none",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontSize: "14px",
+    fontWeight: "500",
   },
   noTrips: {
     textAlign: "center",

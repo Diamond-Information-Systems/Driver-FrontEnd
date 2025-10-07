@@ -57,6 +57,7 @@ const DashboardMap = ({
   isOnline, // Online status for animations
   onDeliveryStatusUpdate, // For delivery status updates
   onDeliveryConfirmation, // For delivery confirmations
+  onBuyerNotification, // For buyer-only notifications (non-intrusive)
 }) => {
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: config.GoogleMapsApiKey,
@@ -77,6 +78,7 @@ const DashboardMap = ({
   const [deliveryStatus, setDeliveryStatus] = useState(null);
   const [showDeliveryActionPopup, setShowDeliveryActionPopup] = useState(false);
   const [deliveryActionType, setDeliveryActionType] = useState(null); // 'start', 'pickup', 'delivery'
+  const [isDeliveryCompletionInProgress, setIsDeliveryCompletionInProgress] = useState(false); // Track completion flow
 
   // New state for ride completion logic
   const [showStartRidePopup, setShowStartRidePopup] = useState(false);
@@ -86,6 +88,9 @@ const DashboardMap = ({
   // Delivery-specific popup states (mirroring ride logic)
   const [showPickupDeliveryPopup, setShowPickupDeliveryPopup] = useState(false);
   const [showCompleteDeliveryPopup, setShowCompleteDeliveryPopup] = useState(false);
+  
+  // Popup protection state - prevents popups from closing due to external state changes
+  const [isPopupInteractionActive, setIsPopupInteractionActive] = useState(false);
   
   const [isUpdatingRideStatus, setIsUpdatingRideStatus] = useState(false);
   const [isSimulationMode, setIsSimulationMode] = useState(false); // Track simulation mode
@@ -200,16 +205,53 @@ const DashboardMap = ({
     });
   });
 
+  // Popup state debugging - track all popup state changes
+  useEffect(() => {
+    console.log("🔔 Popup State Debug:", {
+      showPickupDeliveryPopup,
+      showCompleteDeliveryPopup,
+      showDeliveryActionPopup,
+      isPopupInteractionActive,
+      hasShownPickupDeliveryPopup: hasShownPickupDeliveryPopup.current,
+      hasShownCompleteDeliveryPopup: hasShownCompleteDeliveryPopup.current,
+      isDeliveryCompletionInProgress,
+      currentTripStatus,
+      deliveryStatus,
+      isCurrentTripDelivery,
+      timestamp: new Date().toISOString()
+    });
+  }, [
+    showPickupDeliveryPopup,
+    showCompleteDeliveryPopup,
+    showDeliveryActionPopup,
+    isPopupInteractionActive,
+    isDeliveryCompletionInProgress,
+    currentTripStatus,
+    deliveryStatus,
+    isCurrentTripDelivery
+  ]);
+
   // Initialize local trip status when activeTrip changes
   useEffect(() => {
     if (activeTrip?.status) {
-      setCurrentTripStatus(activeTrip.status);
-      console.log("Initialized local trip status:", activeTrip.status);
+      // Don't update local status for dropoff_arrived (it's only for buyer notification)
+      if (activeTrip.status !== 'dropoff_arrived') {
+        setCurrentTripStatus(activeTrip.status);
+        console.log("Initialized local trip status:", activeTrip.status);
+      } else {
+        console.log("Skipping local status update for dropoff_arrived (buyer notification only)");
+      }
     }
   }, [activeTrip?.status]);
 
   // Initialize delivery state when activeTrip is a delivery
   useEffect(() => {
+    // Don't update delivery state if popup interaction is active (prevents premature clearing)
+    if (isPopupInteractionActive) {
+      console.log("🔒 Skipping delivery state update - popup interaction active");
+      return;
+    }
+
     if (activeTrip && activeTrip.isDelivery) {
       // Set delivery-specific state from the activeTrip
       setCurrentDelivery({
@@ -232,12 +274,12 @@ const DashboardMap = ({
       });
       setDeliveryStatus(activeTrip.status);
       console.log("🚚 Set current delivery from activeTrip:", activeTrip);
-    } else {
-      // Clear delivery state if activeTrip is not a delivery
+    } else if (!isPopupInteractionActive) {
+      // Only clear delivery state if not in popup interaction
       setCurrentDelivery(null);
       setDeliveryStatus(null);
     }
-  }, [activeTrip]);
+  }, [activeTrip, isPopupInteractionActive]);
 
   // Expose current trip status to parent component
   useEffect(() => {
@@ -439,6 +481,7 @@ const DashboardMap = ({
       }
       
       setShowPickupDeliveryPopup(false);
+      setIsPopupInteractionActive(false); // Clear popup protection
       hasShownPickupDeliveryPopup.current = true;
       setCurrentTripStatus("started"); // Update local status
       console.log("✅ Delivery pickup confirmed successfully");
@@ -485,6 +528,8 @@ const DashboardMap = ({
       }
       
       setShowCompleteDeliveryPopup(false);
+      setIsPopupInteractionActive(false); // Clear popup protection
+      setIsDeliveryCompletionInProgress(false); // Clear completion flag
       hasShownCompleteDeliveryPopup.current = true;
       setCurrentTripStatus("completed");
       
@@ -502,6 +547,7 @@ const DashboardMap = ({
     } catch (err) {
       console.error("Failed to complete delivery:", err);
       setLocationError(err.message || "Failed to complete delivery");
+      setIsDeliveryCompletionInProgress(false); // Clear completion flag on error
     } finally {
       setIsUpdatingRideStatus(false);
     }
@@ -889,35 +935,76 @@ const DashboardMap = ({
     if (isCurrentTripDelivery) {
       console.log("🚚 Delivery logic check:", {
         currentTripStatus,
+        deliveryStatus,
+        isDeliveryUser,
+        hasCurrentDelivery: !!currentDelivery,
         hasShownPickupDeliveryPopup: hasShownPickupDeliveryPopup.current,
         pickupCoords,
         distanceToPickup,
         ARRIVAL_THRESHOLD,
-        shouldShowPickup: currentTripStatus === "arrived" && !hasShownPickupDeliveryPopup.current && pickupCoords && distanceToPickup < ARRIVAL_THRESHOLD
+        isPopupInteractionActive,
+        showPickupDeliveryPopup,
+        shouldShowPickup: currentTripStatus === "arrived" && !hasShownPickupDeliveryPopup.current && pickupCoords && distanceToPickup < ARRIVAL_THRESHOLD && !isPopupInteractionActive
       });
       
       // Handle pickup location arrival (show pickup delivery popup)
+      // Only show if not currently interacting with any popup
       if (
         currentTripStatus === "arrived" &&
         !hasShownPickupDeliveryPopup.current &&
         pickupCoords &&
-        distanceToPickup < ARRIVAL_THRESHOLD
+        distanceToPickup < ARRIVAL_THRESHOLD &&
+        !isPopupInteractionActive &&
+        !showPickupDeliveryPopup // Ensure popup isn't already showing
       ) {
         console.log("🚚 Showing pickup delivery popup - distance to pickup:", distanceToPickup);
         console.log("🚚 Multiple deliveries from pickup:", activeTrip?.allPickupDeliveries?.length || 1);
+        console.log("🚚 ActiveTrip data for pickup popup:", {
+          activeTrip,
+          allPickupDeliveries: activeTrip?.allPickupDeliveries,
+          productDetailsStructure: activeTrip?.allPickupDeliveries?.map(d => ({
+            orderId: d.orderId,
+            productDetails: d.productDetails,
+            customer: d.customer
+          }))
+        });
         setShowPickupDeliveryPopup(true);
+        setIsPopupInteractionActive(true); // Protect against external state changes
         hasShownPickupDeliveryPopup.current = true;
       }
 
       // Handle dropoff location arrival (show complete delivery popup)
+      // Only show if not currently interacting with any popup
       if (
         (currentTripStatus === "started" || currentTripStatus === "in_progress") &&
         !hasShownCompleteDeliveryPopup.current &&
         dropoffCoords &&
-        distanceToDropoff < ARRIVAL_THRESHOLD
+        distanceToDropoff < ARRIVAL_THRESHOLD &&
+        !isPopupInteractionActive &&
+        !showCompleteDeliveryPopup && // Ensure popup isn't already showing
+        !isDeliveryCompletionInProgress // Don't show if completion is already in progress
       ) {
+        console.log("🚚 Driver arrived at delivery destination - notifying buyer");
+        
+        // 🔔 Notify buyer that driver has arrived at delivery location with PIN
+        // Use delayed notification to prevent state conflicts
+        if (isCurrentTripDelivery && onBuyerNotification && activeTrip?._id) {
+          console.log("🚀 Triggering dropoff_arrived notification for:", activeTrip._id);
+          setTimeout(() => {
+            onBuyerNotification(activeTrip._id, "dropoff_arrived")
+              .then(() => {
+                console.log("✅ Buyer notified of driver arrival with PIN information (non-intrusive)");
+              })
+              .catch((err) => {
+                console.error("❌ Failed to notify buyer of driver arrival:", err);
+              });
+          }, 100); // Small delay to prevent state conflicts
+        }
+        
         console.log("Showing complete delivery popup - distance to dropoff:", distanceToDropoff);
         setShowCompleteDeliveryPopup(true);
+        setIsPopupInteractionActive(true); // Protect against external state changes
+        setIsDeliveryCompletionInProgress(true);
         hasShownCompleteDeliveryPopup.current = true;
       }
     }
@@ -928,6 +1015,7 @@ const DashboardMap = ({
       pickupCoords &&
       distanceToPickup < ARRIVAL_THRESHOLD
     ) {
+  
       // Use appropriate update function based on trip type
       const updateFunction = isCurrentTripDelivery 
         ? () => updateDeliveryStatus(activeTrip._id, "arrived", userToken)
@@ -965,22 +1053,34 @@ const DashboardMap = ({
       setShowCompleteRidePopup(false);
       setShowCancelRidePopup(false);
       
-      // Reset delivery popup states
+      // Reset delivery popup states (but preserve active completion flows)
       hasShownPickupDeliveryPopup.current = false;
       hasShownCompleteDeliveryPopup.current = false;
-      setShowPickupDeliveryPopup(false);
-      setShowCompleteDeliveryPopup(false);
+      
+      // Only reset popup visibility if not currently in popup interaction
+      if (!isPopupInteractionActive) {
+        setShowPickupDeliveryPopup(false);
+        setShowCompleteDeliveryPopup(false);
+        setIsPopupInteractionActive(false); // Ensure protection is cleared
+      }
       
       setCurrentTripStatus(activeTrip?.status || null);
       previousTripStatus.current = null;
       setIsSimulationMode(false);
       setShowTripSummary(false);
       setCompletedTrip(null);
+      setIsDeliveryCompletionInProgress(false); // Reset completion flag
       
       // Update the previous trip reference
       previousActiveTrip.current = activeTrip;
+      
+      console.log("🔄 Reset complete for new trip/delivery:", {
+        newTripId: activeTripId,
+        resetPopupStates: !isPopupInteractionActive,
+        isDelivery: activeTrip?.isDelivery || false
+      });
     }
-  }, [activeTripId, activeTrip?.status]); // Only depend on ID and status
+  }, [activeTripId, isPopupInteractionActive]); // Include popup protection in dependencies
 
   // Delivery distance calculation and popup logic
   const [distanceToDeliveryPickup, setDistanceToDeliveryPickup] = useState(null);
@@ -989,6 +1089,15 @@ const DashboardMap = ({
   const hasShownDeliveryDropoffPopup = useRef(false);
 
   useEffect(() => {
+    console.log("📍 Delivery distance useEffect check:", {
+      isDeliveryUser,
+      hasCurrentDelivery: !!currentDelivery,
+      hasDeliveryPickupCoords: !!deliveryPickupCoords,
+      hasDeliveryDropoffCoords: !!deliveryDropoffCoords,
+      hasUserLocation: !!userLocation,
+      deliveryStatus
+    });
+    
     if (!isDeliveryUser || !currentDelivery || !deliveryPickupCoords || !deliveryDropoffCoords || !userLocation) return;
 
     // Calculate distances
@@ -1022,20 +1131,52 @@ const DashboardMap = ({
 
     // Show delivery complete popup when arriving at dropoff
     if (deliveryStatus === "picked_up" && distanceToDropoff <= ARRIVAL_THRESHOLD && !hasShownDeliveryDropoffPopup.current) {
+      console.log("🚚 Driver arrived at delivery dropoff - notifying buyer");
+      
+      // 🔔 Notify buyer that driver has arrived at delivery location with PIN
+      // Use the separate notification function to avoid interfering with completion workflow
+      if (onBuyerNotification && currentDelivery?.deliveryId) {
+        onBuyerNotification(currentDelivery.deliveryId, "dropoff_arrived")
+          .then(() => {
+            console.log("✅ Buyer notified of driver arrival at dropoff location (non-intrusive)");
+          })
+          .catch((err) => {
+            console.error("❌ Failed to notify buyer of driver arrival:", err);
+          });
+      }
+      
       console.log("Showing delivery complete popup - distance to dropoff:", distanceToDropoff);
       setDeliveryActionType('delivery');
       setShowDeliveryActionPopup(true);
+      setIsDeliveryCompletionInProgress(true); // Protect completion flow
       hasShownDeliveryDropoffPopup.current = true;
     }
-  }, [isDeliveryUser, currentDelivery, deliveryStatus, deliveryPickupCoords, deliveryDropoffCoords, userLocation]);
+  }, [isDeliveryUser, currentDelivery?.deliveryId, deliveryStatus, userLocation, getDistanceMeters, onBuyerNotification]);
 
   // Reset delivery popup flags when delivery changes
   useEffect(() => {
-    hasShownDeliveryPickupPopup.current = false;
-    hasShownDeliveryDropoffPopup.current = false;
-    setShowDeliveryActionPopup(false);
-    setDeliveryActionType(null);
-  }, [currentDelivery?.deliveryId]);
+    // Only reset if delivery ID actually changed (not just status updates)
+    const currentDeliveryId = currentDelivery?.deliveryId;
+    const previousDeliveryId = previousActiveTrip.current?.deliveryId || previousActiveTrip.current?._id;
+    
+    if (currentDeliveryId && previousDeliveryId && currentDeliveryId !== previousDeliveryId) {
+      console.log("Delivery ID changed, resetting delivery popup flags");
+      hasShownDeliveryPickupPopup.current = false;
+      hasShownDeliveryDropoffPopup.current = false;
+      
+      // Only clear action popup states if not currently in popup interaction
+      if (!isPopupInteractionActive && (deliveryActionType !== 'delivery' || !showDeliveryActionPopup)) {
+        setShowDeliveryActionPopup(false);
+        setDeliveryActionType(null);
+      }
+    } else if (!currentDeliveryId && previousDeliveryId && !isPopupInteractionActive) {
+      console.log("No current delivery, clearing delivery popup states");
+      hasShownDeliveryPickupPopup.current = false;
+      hasShownDeliveryDropoffPopup.current = false;
+      setShowDeliveryActionPopup(false);
+      setDeliveryActionType(null);
+    }
+  }, [currentDelivery?.deliveryId, isDeliveryCompletionInProgress, isPopupInteractionActive]);
 
   // Optimized directions calculation
   useEffect(() => {
@@ -1425,7 +1566,7 @@ const DashboardMap = ({
             {/* {isSimulationMode ? '🎮 Simulation' : '📍 Real GPS'} */}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            {/* {(currentTripStatus === 'accepted') && (
+            {(currentTripStatus === 'accepted') && (
               <button
                 onClick={() => simulateMovementToPickup()}
                 style={{
@@ -1441,8 +1582,8 @@ const DashboardMap = ({
               >
                 {isCurrentTripDelivery ? '� Drive to Pickup' : '�🚗 Drive to Pickup'}
               </button>
-            )} */}
-            {/* {(currentTripStatus === 'started' || currentTripStatus === 'in_progress') && (
+            )}
+            {(currentTripStatus === 'started' || currentTripStatus === 'in_progress') && (
               <button
                 onClick={() => simulateMovementToDropoff()}
                 style={{
@@ -1458,8 +1599,8 @@ const DashboardMap = ({
               >
                 {isCurrentTripDelivery ? '🏠 Drive to Delivery' : '🎯 Drive to Dropoff'}
               </button>
-            )} */}
-            {/* {isSimulationMode && (
+            )}
+            {isSimulationMode && (
               <button
                 onClick={() => resetSimulation()}
                 style={{
@@ -1475,7 +1616,7 @@ const DashboardMap = ({
               >
                 🔄 Resume GPS
               </button>
-            )} */}
+            )}
             {/* Debug button for testing multiple pickup functionality */}
             {isCurrentTripDelivery && activeTrip?.allPickupDeliveries?.length > 1 && (
               <button
@@ -1566,53 +1707,42 @@ const DashboardMap = ({
       {showPickupDeliveryPopup && isCurrentTripDelivery && (
         <div className="ride-action-popup" style={{ zIndex: 9999 }}>
           <div className="popup-content">
-            <h3>📦 Pickup Items</h3>
-            <p>You've arrived at the pickup location. Confirm you have collected all items for delivery.</p>
+            <h3>📦 Pickup Confirmation</h3>
+            <p>Confirm you have collected all orders from this location.</p>
             
-            {/* Show all deliveries from this pickup location */}
-            <div className="delivery-details">
+            <div className="delivery-summary">
               <div className="pickup-location">
-                <strong>📍 Pickup Location:</strong> {activeTrip?.pickup?.address}
+                <strong>📍 Location:</strong> {activeTrip?.pickup?.address}
               </div>
               
-              {activeTrip?.allPickupDeliveries?.length > 1 && (
-                <div className="multiple-deliveries-notice">
-                  <strong>⚡ Multiple Orders:</strong> {activeTrip.allPickupDeliveries.length} deliveries from this location
-                </div>
-              )}
-              
-              <div className="items-list">
-                <strong>Items to collect:</strong>
-                <div className="pickup-deliveries">
-                  {activeTrip?.allPickupDeliveries?.map((delivery, index) => (
-                    <div key={delivery.deliveryId} className="delivery-item">
-                      <div className="delivery-header">
-                        <span className="order-id">Order #{delivery.orderId}</span>
-                        <span className="customer-name">→ {delivery.customer.name}</span>
+              <div className="orders-summary">
+                <strong>Orders to collect:</strong>
+                <div className="orders-list">
+                  {(activeTrip?.allPickupDeliveries?.length > 0 ? activeTrip.allPickupDeliveries : [activeTrip]).map((delivery, index) => (
+                    <div key={delivery?.deliveryId || delivery?._id || index} className="order-item">
+                      <div className="order-badge">
+                        <span className="order-number">#{delivery?.orderId || `ORDER-${index + 1}`}</span>
+                        <span className="customer-name">→ {delivery?.customer?.name || activeTrip?.customer?.name || activeTrip?.rider?.fullName || 'Customer'}</span>
                       </div>
-                      <div className="items">
-                        {Array.isArray(delivery.productDetails) ? 
-                          delivery.productDetails.map((item, itemIndex) => (
-                            <div key={itemIndex} className="item">
-                              • {item.name} x{item.quantity}
-                            </div>
-                          )) : 
-                          <div className="item">• {delivery.productDetails?.title || 'Product'}</div>
-                        }
-                      </div>
-                      {delivery.notes && (
-                        <div className="delivery-notes">
-                          <em>Note: {delivery.notes}</em>
+                      {/* {delivery?.deliveryPin && (
+                        <div className="delivery-pin-hint">
+                          <small>📌 PIN: {delivery.deliveryPin}</small>
                         </div>
-                      )}
+                      )} */}
                     </div>
                   ))}
                 </div>
+                
+                {activeTrip?.allPickupDeliveries?.length > 1 && (
+                  <div className="total-orders">
+                    <strong>Total: {activeTrip.allPickupDeliveries.length} orders</strong>
+                  </div>
+                )}
               </div>
               
               {activeTrip?.notes && (
                 <div className="pickup-notes">
-                  <strong>Pickup Notes:</strong> {activeTrip.notes}
+                  <strong>📝 Notes:</strong> {activeTrip.notes}
                 </div>
               )}
             </div>
@@ -1620,7 +1750,7 @@ const DashboardMap = ({
             <SlideToConfirm
               onConfirm={handlePickupDelivery}
               text={activeTrip?.allPickupDeliveries?.length > 1 ? 
-                `Slide to Confirm ${activeTrip.allPickupDeliveries.length} Pickups` : 
+                `Slide to Confirm All Pickups` : 
                 "Slide to Confirm Pickup"
               }
               confirmText="Confirming Pickup..."
@@ -1629,7 +1759,10 @@ const DashboardMap = ({
             />
             <button
               className="popup-cancel"
-              onClick={() => setShowPickupDeliveryPopup(false)}
+              onClick={() => {
+                setShowPickupDeliveryPopup(false);
+                setIsPopupInteractionActive(false); // Clear popup protection
+              }}
               disabled={isUpdatingRideStatus}
             >
               Cancel
@@ -1692,7 +1825,10 @@ const DashboardMap = ({
             />
             <button
               className="popup-cancel"
-              onClick={() => setShowCompleteDeliveryPopup(false)}
+              onClick={() => {
+                setShowCompleteDeliveryPopup(false);
+                setIsPopupInteractionActive(false); // Clear popup protection
+              }}
               disabled={isUpdatingRideStatus}
             >
               Cancel
@@ -1773,7 +1909,10 @@ const DashboardMap = ({
             )}
             <button
               className="popup-cancel"
-              onClick={() => setShowDeliveryActionPopup(false)}
+              onClick={() => {
+                setShowDeliveryActionPopup(false);
+                setIsDeliveryCompletionInProgress(false); // Clear completion flag on cancel
+              }}
             >
               Cancel
             </button>
