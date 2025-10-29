@@ -47,6 +47,7 @@ import {
   acceptDeliveryJob,
   confirmDelivery
 } from "../../services/deliveryService";
+import driverSocketService from "../../services/DriverSocketService";
 import "./EnhancedDriverDashboard.css";
 
 // Utility function to map API ride data to drawer format
@@ -192,6 +193,33 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
   }, [user?.user?.role, user?.userType]);
 
   const userToken = useMemo(() => user?.token, [user?.token]);
+
+  // Socket service integration - Connect/disconnect based on user login
+  useEffect(() => {
+    if (user && user.user && userToken) {
+      console.log('🔌 Connecting driver to socket service...', {
+        userId: user.user._id,
+        hasToken: !!userToken
+      });
+      
+      // Connect to socket service
+      driverSocketService.connect(user.user._id, userToken)
+        .then(() => {
+          console.log('✅ Driver successfully connected to socket service');
+        })
+        .catch((error) => {
+          console.error('❌ Failed to connect driver to socket service:', error);
+        });
+    }
+
+    // Cleanup on unmount or user logout
+    return () => {
+      if (driverSocketService.isSocketConnected()) {
+        console.log('📴 Disconnecting driver from socket service...');
+        driverSocketService.disconnect();
+      }
+    };
+  }, [user, userToken]);
 
   // Determine current drawer state
   const drawerState = useMemo(() => {
@@ -1107,13 +1135,24 @@ function EnhancedDriverDashboard({ onLogout = () => {} }) {
         setIsOnline(response.user.driverDetails.isAvailable);
         console.log("🔄 Synced isOnline with backend:", response.user.driverDetails.isAvailable);
       }
-      // Note: If backend response doesn't have the expected structure, 
-      // we keep the newStatus we already set
+      
+      // 🚀 SOCKET INTEGRATION: Broadcast driver availability and start/stop location updates
+      if (driverSocketService.isSocketConnected()) {
+        const userType = isDeliveryUser ? 'delivery' : 'driver';
+        console.log(`🔌 Broadcasting driver availability via socket: ${newStatus ? 'ONLINE' : 'OFFLINE'}`);
+        driverSocketService.broadcastDriverAvailability(newStatus, userType);
+      } else {
+        console.warn('⚠️ Socket not connected, cannot broadcast availability');
+      }
+      
     } catch (err) {
       // On error, revert the UI state
       console.error("❌ Failed to update availability:", err);
       setIsOnline(!newStatus); // revert on error
       localStorage.setItem("vaye_driver_online", (!newStatus).toString());
+      
+      // Don't broadcast if backend update failed
+      console.log('❌ Not broadcasting availability due to backend error');
     }
 
     if (newStatus && !notificationsEnabled) {
