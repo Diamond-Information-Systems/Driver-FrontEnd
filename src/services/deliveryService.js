@@ -141,7 +141,11 @@ export async function updateDeliveryStatus(deliveryId, status, token) {
       console.log(`🔌 Broadcasting delivery status update via socket: ${deliveryId} -> ${status}`);
       driverSocketService.broadcastDeliveryStatusUpdate(deliveryId, status, {
         timestamp: new Date().toISOString(),
-        orderId: result.delivery?.orderId || result.orderId
+        orderId: result.delivery?.orderId || result.orderId,
+        driver: result.delivery?.driver || null,
+        assignedDriver: result.delivery?.driver ? {
+          location: result.delivery.driver.location
+        } : null
       });
     } else {
       console.warn('⚠️ Socket not connected, delivery status update not broadcasted');

@@ -826,14 +826,28 @@ const DashboardMap = ({
       const { latitude, longitude, accuracy } = position.coords;
       const newLocation = { lat: latitude, lng: longitude };
       
+      // 🔧 BUG FIX: Check both activeTrip AND currentDelivery for threshold
+      const hasActiveWork = activeTrip || currentDelivery;
+      const locationThreshold = hasActiveWork ? 15 : 5; // Conservative threshold during active work
+      
       // Only update state if location changed significantly
       const shouldUpdateState = !userLocation || 
-        getDistanceMeters(userLocation.lat, userLocation.lng, latitude, longitude) > (activeTrip ? 15 : 5); // Conservative threshold during trips
+        getDistanceMeters(userLocation.lat, userLocation.lng, latitude, longitude) > locationThreshold;
       
       if (shouldUpdateState) {
         setUserLocation(newLocation);
         setLocationError(null);
         setIsLocationLoading(false);
+        
+        // 🔧 BUG FIX: Log location updates for delivery users
+        if (isDeliveryUser && currentDelivery) {
+          console.log("📍 Delivery driver location updated:", {
+            lat: latitude,
+            lng: longitude,
+            deliveryId: currentDelivery.deliveryId,
+            deliveryStatus: deliveryStatus
+          });
+        }
       }
 
       // Update backend only if moved significantly from last sent coordinates
@@ -876,7 +890,7 @@ const DashboardMap = ({
         watchIdRef.current = null;
       }
     };
-  }, [getDistanceMeters, updateLocationToBackend, isSimulationMode, activeTrip]);
+  }, [getDistanceMeters, updateLocationToBackend, isSimulationMode, activeTrip, currentDelivery, isDeliveryUser, deliveryStatus]);
 
   // Optimized arrival detection with distance calculations memoization
   const distanceToPickup = useMemo(() => {
