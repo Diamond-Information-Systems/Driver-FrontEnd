@@ -1,9 +1,9 @@
 const config = {
-  apiBaseUrl: "https://d1ptwhbf-5000.uks1.devtunnels.ms", // Update this to your backend URL
-  //apiBaseUrl: 'http://localhost:5000', // Update this to your backend URL
+  apiBaseUrl: "https://vayebac.onrender.com", // Vaye Backend Production URL
+  //apiBaseUrl: 'http://localhost:5000', // Use this for local development
   GoogleMapsApiKey: "AIzaSyDPmgYmKhagLqDqopG1ve9pry2mz8sIF8k",
   GoogleMapsId: "89419a0a0fdf71f9c3be2b26",
-  NodeEnv: "development", // Change to 'development' for local testing
+  NodeEnv: "production", // Change to 'development' for local testing
 };
 
 export default config;

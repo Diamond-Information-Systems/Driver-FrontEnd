@@ -30,7 +30,7 @@ import TripSummary from "./TripSummary";
 const LIBRARIES = ["marker"];
 const DEFAULT_CENTER = { lat: -25.7479, lng: 28.2293 };
 const LOCATION_UPDATE_THRESHOLD = 5; // meters
-const ARRIVAL_THRESHOLD = 100; // meters
+const ARRIVAL_THRESHOLD = 30; // meters
 const GEOLOCATION_OPTIONS = {
   enableHighAccuracy: true,
   maximumAge: 10000,
@@ -926,27 +926,33 @@ const DashboardMap = ({
 
       const { latitude, longitude, accuracy } = position.coords;
       const newLocation = { lat: latitude, lng: longitude };
-      
+
       // 🔧 BUG FIX: Check both activeTrip AND currentDelivery for threshold
       const hasActiveWork = activeTrip || currentDelivery;
       const locationThreshold = hasActiveWork ? 15 : 5; // Conservative threshold during active work
-      
+
       // Only update state if location changed significantly
-      const shouldUpdateState = !userLocation || 
-        getDistanceMeters(userLocation.lat, userLocation.lng, latitude, longitude) > locationThreshold;
-      
+      const shouldUpdateState =
+        !userLocation ||
+        getDistanceMeters(
+          userLocation.lat,
+          userLocation.lng,
+          latitude,
+          longitude
+        ) > locationThreshold;
+
       if (shouldUpdateState) {
         setUserLocation(newLocation);
         setLocationError(null);
         setIsLocationLoading(false);
-        
+
         // 🔧 BUG FIX: Log location updates for delivery users
         if (isDeliveryUser && currentDelivery) {
           console.log("📍 Delivery driver location updated:", {
             lat: latitude,
             lng: longitude,
             deliveryId: currentDelivery.deliveryId,
-            deliveryStatus: deliveryStatus
+            deliveryStatus: deliveryStatus,
           });
         }
       }
@@ -992,7 +998,15 @@ const DashboardMap = ({
         watchIdRef.current = null;
       }
     };
-  }, [getDistanceMeters, updateLocationToBackend, isSimulationMode, activeTrip, currentDelivery, isDeliveryUser, deliveryStatus]);
+  }, [
+    getDistanceMeters,
+    updateLocationToBackend,
+    isSimulationMode,
+    activeTrip,
+    currentDelivery,
+    isDeliveryUser,
+    deliveryStatus,
+  ]);
 
   // Optimized arrival detection with distance calculations memoization
   const distanceToPickup = useMemo(() => {
