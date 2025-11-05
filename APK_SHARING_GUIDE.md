@@ -5,6 +5,7 @@
 Your Vaye Driver APK has been created and is ready for sharing.
 
 ## 📍 APK Location
+
 ```
 C:\Users\Dell\Desktop\Vaye-driver\Driver-FrontEnd\android\app\build\outputs\apk\debug\app-debug.apk
 ```
@@ -12,7 +13,9 @@ C:\Users\Dell\Desktop\Vaye-driver\Driver-FrontEnd\android\app\build\outputs\apk\
 ## 📤 How to Share Your APK
 
 ### Option 1: Direct File Sharing
+
 1. **Copy APK to Desktop**:
+
    ```powershell
    Copy-Item "android\app\build\outputs\apk\debug\app-debug.apk" "$env:USERPROFILE\Desktop\VayeDriverApp.apk"
    ```
@@ -26,11 +29,13 @@ C:\Users\Dell\Desktop\Vaye-driver\Driver-FrontEnd\android\app\build\outputs\apk\
 ### Option 2: Cloud Storage Upload
 
 **Google Drive**:
+
 1. Upload APK to Google Drive
 2. Right-click → Get link → Copy link
 3. Share the link with testers
 
 **Dropbox**:
+
 1. Upload APK to Dropbox
 2. Create shareable link
 3. Send link to users
@@ -38,11 +43,13 @@ C:\Users\Dell\Desktop\Vaye-driver\Driver-FrontEnd\android\app\build\outputs\apk\
 ### Option 3: Development Distribution
 
 **GitHub Releases** (Recommended for team):
+
 1. Create a release in your GitHub repository
 2. Attach the APK file
 3. Share the release link
 
 **Firebase App Distribution**:
+
 1. Upload APK to Firebase Console
 2. Add tester emails
 3. Testers receive email with download link
@@ -50,10 +57,12 @@ C:\Users\Dell\Desktop\Vaye-driver\Driver-FrontEnd\android\app\build\outputs\apk\
 ### Option 4: APK Distribution Services
 
 **AppCenter**:
+
 - Upload APK to Visual Studio App Center
 - Distribute to test groups
 
 **TestFlight Alternative for Android**:
+
 - Use Firebase App Distribution
 - Upload APK and manage testers
 
@@ -62,6 +71,7 @@ C:\Users\Dell\Desktop\Vaye-driver\Driver-FrontEnd\android\app\build\outputs\apk\
 When you make changes to your app:
 
 ### Quick Build:
+
 ```bash
 # 1. Build React app
 npm run build
@@ -75,6 +85,7 @@ cd android
 ```
 
 ### Full Rebuild:
+
 ```bash
 # Complete rebuild process
 npm run cap:build
@@ -85,6 +96,7 @@ cd android
 ## 📋 Installation Instructions for Users
 
 ### For Android Users:
+
 1. **Download the APK** from the shared link
 2. **Enable Unknown Sources**:
    - Settings → Security → Unknown Sources (Android 7 and below)
@@ -95,7 +107,9 @@ cd android
    - Grant necessary permissions
 
 ### Required Permissions:
+
 Your app will request these permissions:
+
 - 📍 Location (for driver tracking)
 - 📷 Camera (for profile/delivery photos)
 - 📞 Phone (for calling customers)
@@ -107,11 +121,13 @@ Your app will request these permissions:
 For Play Store release, you'll need a **signed APK**:
 
 1. **Generate Keystore**:
+
    ```bash
    keytool -genkey -v -keystore vaye-driver.keystore -alias vaye-driver -keyalg RSA -keysize 2048 -validity 10000
    ```
 
 2. **Build Signed APK**:
+
    ```bash
    cd android
    .\gradlew assembleRelease
@@ -122,6 +138,7 @@ For Play Store release, you'll need a **signed APK**:
 ## 📱 Testing Checklist
 
 Before sharing, ensure:
+
 - [ ] App opens without crashes
 - [ ] Login functionality works
 - [ ] Location permissions granted
@@ -133,6 +150,7 @@ Before sharing, ensure:
 ## 🔗 Quick Share Command
 
 Copy APK to desktop for easy sharing:
+
 ```powershell
 Copy-Item "android\app\build\outputs\apk\debug\app-debug.apk" "$env:USERPROFILE\Desktop\VayeDriverApp-$(Get-Date -Format 'yyyy-MM-dd').apk"
 ```
