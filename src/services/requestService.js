@@ -1,4 +1,5 @@
 import config from "../config";
+import driverSocketService from "./DriverSocketService";
 
 // Get nearby ride requests for drivers
 export async function getNearbyRequests(token) {
@@ -104,7 +105,19 @@ export async function updateRideStatus(token, rideId, status) {
       throw new Error(error.message || "Failed to update ride status");
     }
 
-    return await response.json();
+    const result = await response.json();
+
+    // 🚀 SOCKET INTEGRATION: Broadcast ride status update to Vaye riders
+    if (driverSocketService.isSocketConnected()) {
+      console.log(`🔌 Broadcasting ride status update via socket: ${rideId} -> ${status}`);
+      driverSocketService.broadcastStatusUpdate(rideId, status, {
+        timestamp: new Date().toISOString()
+      });
+    } else {
+      console.warn('⚠️ Socket not connected, ride status update not broadcasted');
+    }
+
+    return result;
   } catch (error) {
     throw error;
   }

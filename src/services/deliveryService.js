@@ -1,4 +1,5 @@
 import config from "../config";
+import driverSocketService from "./DriverSocketService";
 
 // Get available delivery jobs (unassigned deliveries) for delivery personnel
 export async function getAvailableDeliveryJobs(token, latitude = null, longitude = null) {
@@ -133,7 +134,24 @@ export async function updateDeliveryStatus(deliveryId, status, token) {
       throw new Error(error.message || "Failed to update delivery status");
     }
 
-    return await response.json();
+    const result = await response.json();
+
+    // 🚀 SOCKET INTEGRATION: Broadcast delivery status update to Vaye riders
+    if (driverSocketService.isSocketConnected()) {
+      console.log(`🔌 Broadcasting delivery status update via socket: ${deliveryId} -> ${status}`);
+      driverSocketService.broadcastDeliveryStatusUpdate(deliveryId, status, {
+        timestamp: new Date().toISOString(),
+        orderId: result.delivery?.orderId || result.orderId,
+        driver: result.delivery?.driver || null,
+        assignedDriver: result.delivery?.driver ? {
+          location: result.delivery.driver.location
+        } : null
+      });
+    } else {
+      console.warn('⚠️ Socket not connected, delivery status update not broadcasted');
+    }
+
+    return result;
   } catch (error) {
     throw error;
   }
@@ -182,6 +200,23 @@ export async function updateMultipleDeliveryStatuses(deliveryIds, status, token)
 
     if (data.batchUpdate?.totalUpdated !== deliveryIds.length) {
       console.warn(`⚠️ Partial update: ${data.batchUpdate?.totalUpdated}/${deliveryIds.length} deliveries updated`);
+    }
+
+    // 🚀 SOCKET INTEGRATION: Broadcast batch delivery status updates to Vaye riders
+    if (driverSocketService.isSocketConnected()) {
+      console.log(`🔌 Broadcasting batch delivery status updates via socket: ${deliveryIds.length} deliveries -> ${status}`);
+      
+      // Broadcast each delivery status update individually for proper tracking
+      deliveryIds.forEach((deliveryId, index) => {
+        driverSocketService.broadcastDeliveryStatusUpdate(deliveryId, status, {
+          timestamp: new Date().toISOString(),
+          batchUpdate: true,
+          batchIndex: index + 1,
+          batchTotal: deliveryIds.length
+        });
+      });
+    } else {
+      console.warn('⚠️ Socket not connected, batch delivery status updates not broadcasted');
     }
 
     return {
